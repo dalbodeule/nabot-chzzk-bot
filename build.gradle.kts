@@ -14,11 +14,23 @@ java {
     sourceCompatibility = JavaVersion.VERSION_21
 }
 
+kotlin {
+    jvmToolchain(21)
+}
+
 application {
     mainClass.set("${"${project.group}.${project.name}".lowercase()}.MainKt")
 }
 
 graalvmNative {
+    agent {
+        trackReflectionMetadata.set(true)
+
+        metadataCopy {
+            outputDirectories.add("src/main/resources/META-INF/native-image")
+            mergeWithExisting.set(true)
+        }
+    }
     binaries {
         binaries.all {
             resources.autodetect()
@@ -27,6 +39,9 @@ graalvmNative {
             useFatJar.set(true)
             sharedLibrary.set(false)
         }
+    }
+    metadataRepository {
+        enabled.set(true)
     }
 }
 
@@ -41,6 +56,9 @@ dependencies {
     }
     // https://mvnrepository.com/artifact/io.github.R2turnTrue/chzzk4j
     implementation("io.github.R2turnTrue:chzzk4j:0.0.7")
+    implementation("ch.qos.logback:logback-classic:1.4.14")
+
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     kotlin("stdlib-jdk8")
 }
