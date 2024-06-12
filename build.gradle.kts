@@ -1,9 +1,13 @@
+import org.jetbrains.kotlin.gradle.targets.native.NativeCompilerOptions
+
 plugins {
     val kotlinVersion = "2.0.0"
 
     id("java")
     id("application")
     kotlin("jvm") version kotlinVersion
+    kotlin("plugin.jpa") version kotlinVersion
+    id("org.hibernate.orm") version "6.5.2.Final"
     id("org.graalvm.buildtools.native") version "0.10.2"
 }
 
@@ -58,9 +62,23 @@ dependencies {
     implementation("io.github.R2turnTrue:chzzk4j:0.0.7")
     implementation("ch.qos.logback:logback-classic:1.4.14")
 
+    // https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core
+    implementation("org.hibernate.orm:hibernate-core:6.5.2.Final")
+    implementation("org.hibernate:hibernate-hikaricp:6.5.2.Final")
+    implementation("org.hibernate:hibernate-graalvm:6.5.2.Final")
+
+    // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
+    implementation("com.zaxxer:HikariCP:5.1.0")
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
+    // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
+    implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+    // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.4.0")
+
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
-    kotlin("stdlib-jdk8")
+    kotlin("stdlib")
 }
 
 tasks.withType<Jar> {
