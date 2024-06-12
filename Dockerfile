@@ -1,0 +1,34 @@
+# Builder Stage
+FROM ghcr.io/graalvm/graalvm-ce:latest AS builder
+
+# Install necessary tools
+RUN gu install native-image
+
+# Set working directory
+WORKDIR /app
+
+# Install dependencies
+COPY build.gradle.kts settings.gradle.kts gradlew ./
+COPY gradle ./gradle
+RUN ./gradlew --no-daemon dependencies
+
+# Copy the source code
+COPY src ./src
+
+# Build the application
+RUN ./gradlew nativeCompile
+
+# Runner Stage
+FROM alpine:latest AS runner
+
+# Set working directory
+WORKDIR /app
+
+# Copy the native image from the builder stage
+COPY --from=builder /app/chzzk_bot .
+
+# Ensure the application binary is executable
+RUN chmod +x /app/chzzk_bot
+
+# Run the application
+CMD ["./chzzk_bot"]
