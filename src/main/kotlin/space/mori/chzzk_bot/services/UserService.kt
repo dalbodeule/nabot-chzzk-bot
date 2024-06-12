@@ -1,21 +1,25 @@
 package space.mori.chzzk_bot.services
 
-import space.mori.chzzk_bot.Database
-import space.mori.chzzk_bot.discord.User
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import space.mori.chzzk_bot.models.User
+import space.mori.chzzk_bot.models.Users
 
 class UserService {
     fun saveUser(user: User) {
-        val session = Database.sessionFactory.openSession()
-        session.beginTransaction()
-        session.persist(user)
-        session.transaction.commit()
-        session.close()
+        User.new {
+            username = user.username
+            token = user.token
+            discord = user.discord
+        }
     }
 
-    fun getUser(id: Long): User? {
-        val session = Database.sessionFactory.openSession()
-        val user = session.get(User::class.java, id)
-        session.close()
-        return user
+    fun getUser(id: Int): User? {
+        return User.findById(id)
+    }
+
+    fun getUser(discordID: Long): User? {
+        val users = User.find(Users.discord eq discordID)
+
+        return users.firstOrNull()
     }
 }

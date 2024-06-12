@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.native.NativeCompilerOptions
-
 plugins {
     val kotlinVersion = "2.0.0"
 
@@ -7,7 +5,6 @@ plugins {
     id("application")
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.jpa") version kotlinVersion
-    id("org.hibernate.orm") version "6.5.2.Final"
     id("org.graalvm.buildtools.native") version "0.10.2"
 }
 
@@ -42,6 +39,7 @@ graalvmNative {
         named("main") {
             useFatJar.set(true)
             sharedLibrary.set(false)
+            buildArgs.add("--initialize-at-build-time=org.hibernate.*")
         }
     }
     metadataRepository {
@@ -62,10 +60,16 @@ dependencies {
     implementation("io.github.R2turnTrue:chzzk4j:0.0.7")
     implementation("ch.qos.logback:logback-classic:1.4.14")
 
-    // https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core
-    implementation("org.hibernate.orm:hibernate-core:6.5.2.Final")
-    implementation("org.hibernate:hibernate-hikaricp:6.5.2.Final")
-    implementation("org.hibernate:hibernate-graalvm:6.5.2.Final")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core
+    implementation("org.jetbrains.exposed:exposed-core:0.51.1")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
+    implementation("org.jetbrains.exposed:exposed-dao:0.51.1")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
+    runtimeOnly("org.jetbrains.exposed:exposed-jdbc:0.51.1")
+    // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-kotlin-datetime
+    runtimeOnly("org.jetbrains.exposed:exposed-kotlin-datetime:0.51.1")
+
+
 
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     implementation("com.zaxxer:HikariCP:5.1.0")

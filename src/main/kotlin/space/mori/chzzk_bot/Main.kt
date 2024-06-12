@@ -13,13 +13,13 @@ val logger: Logger = LoggerFactory.getLogger("main")
 
 fun main(args: Array<String>) {
     val discord = Discord()
-    Database
 
+    Connector
     discord.enable()
 
     if(dotenv.get("RUN_AGENT", "false").toBoolean()) {
         runBlocking {
-            delay(TimeUnit.SECONDS.toMillis(10))
+            delay(TimeUnit.MINUTES.toMillis(1))
             discord.disable()
         }
     }
