@@ -69,14 +69,16 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-kotlin-datetime
     runtimeOnly("org.jetbrains.exposed:exposed-kotlin-datetime:0.51.1")
 
-
-
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     implementation("com.zaxxer:HikariCP:5.1.0")
+
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
+    // https://mvnrepository.com/artifact/org.reflections/reflections
+    implementation("org.reflections:reflections:0.10.2")
+
     // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
     implementation("org.mariadb.jdbc:mariadb-java-client:3.4.0")
 

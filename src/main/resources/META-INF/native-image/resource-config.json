@@ -13,6 +13,10 @@
   }, {
     "pattern":"\\QMETA-INF/services/java.time.zone.ZoneRulesProvider\\E"
   }, {
+    "pattern":"\\QMETA-INF/services/kotlin.reflect.jvm.internal.impl.resolve.ExternalOverridabilityCondition\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/kotlin.reflect.jvm.internal.impl.util.ModuleVisibilityHelper\\E"
+  }, {
     "pattern":"\\QMETA-INF/services/org.jetbrains.exposed.sql.DatabaseConnectionAutoRegistration\\E"
   }, {
     "pattern":"\\QMETA-INF/services/org.jetbrains.exposed.sql.statements.GlobalStatementInterceptor\\E"
@@ -30,6 +34,8 @@
     "pattern":"\\Qlogback.xml\\E"
   }, {
     "pattern":"\\Qmariadb.properties\\E"
+  }, {
+    "pattern":"\\Qspace/mori/chzzk_bot/discord/commands\\E"
   }, {
     "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt72b/nfc.nrm\\E"
   }, {

@@ -121,14 +121,23 @@
   "name":"java.lang.ClassValue"
 },
 {
+  "name":"java.lang.Module"
+},
+{
   "name":"java.lang.RuntimePermission"
 },
 {
   "name":"java.lang.String"
 },
 {
+  "name":"java.lang.StringBuilder"
+},
+{
   "name":"java.lang.Thread",
   "fields":[{"name":"threadLocalRandomProbe"}]
+},
+{
+  "name":"java.lang.invoke.CallSite"
 },
 {
   "name":"java.net.NetPermission"
@@ -171,7 +180,18 @@
   "name":"java.security.interfaces.RSAPublicKey"
 },
 {
+  "name":"java.sql.Date"
+},
+{
   "name":"java.util.Date"
+},
+{
+  "name":"java.util.List",
+  "methods":[{"name":"copyOf","parameterTypes":["java.util.Collection"] }]
+},
+{
+  "name":"java.util.Optional",
+  "methods":[{"name":"isEmpty","parameterTypes":[] }]
 },
 {
   "name":"java.util.PropertyPermission"
@@ -193,6 +213,12 @@
   "fields":[{"name":"base"}, {"name":"cellsBusy"}]
 },
 {
+  "name":"java.util.function.Function"
+},
+{
+  "name":"java.util.zip.DeflaterInputStream"
+},
+{
   "name":"javax.net.ssl.SNIHostName",
   "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
 },
@@ -210,6 +236,11 @@
 },
 {
   "name":"jdk.internal.misc.Unsafe"
+},
+{
+  "name":"kotlin.Metadata",
+  "queryAllDeclaredMethods":true,
+  "methods":[{"name":"bv","parameterTypes":[] }, {"name":"d1","parameterTypes":[] }, {"name":"d2","parameterTypes":[] }, {"name":"k","parameterTypes":[] }, {"name":"mv","parameterTypes":[] }, {"name":"pn","parameterTypes":[] }, {"name":"xi","parameterTypes":[] }, {"name":"xs","parameterTypes":[] }]
 },
 {
   "name":"kotlin.SafePublicationLazyImpl",
@@ -263,6 +294,10 @@
   "fields":[{"name":"_isTerminated$volatile"}, {"name":"controlState$volatile"}, {"name":"parkedWorkersStack$volatile"}]
 },
 {
+  "name":"net.dv8tion.jda.api.hooks.ListenerAdapter",
+  "methods":[{"name":"onGatewayPing","parameterTypes":["net.dv8tion.jda.api.events.GatewayPingEvent"] }, {"name":"onGenericGuild","parameterTypes":["net.dv8tion.jda.api.events.guild.GenericGuildEvent"] }, {"name":"onGenericSession","parameterTypes":["net.dv8tion.jda.api.events.session.GenericSessionEvent"] }, {"name":"onGuildReady","parameterTypes":["net.dv8tion.jda.api.events.guild.GuildReadyEvent"] }, {"name":"onHttpRequest","parameterTypes":["net.dv8tion.jda.api.events.http.HttpRequestEvent"] }, {"name":"onReady","parameterTypes":["net.dv8tion.jda.api.events.session.ReadyEvent"] }, {"name":"onShutdown","parameterTypes":["net.dv8tion.jda.api.events.session.ShutdownEvent"] }, {"name":"onStatusChange","parameterTypes":["net.dv8tion.jda.api.events.StatusChangeEvent"] }]
+},
+{
   "name":"net.dv8tion.jda.internal.utils.FallbackLogger",
   "methods":[{"name":"<init>","parameterTypes":["java.lang.String"] }]
 },
@@ -283,6 +318,13 @@
 },
 {
   "name":"org.slf4j.spi.SLF4JServiceProvider"
+},
+{
+  "name":"space.mori.chzzk_bot.discord.CommandInterface"
+},
+{
+  "name":"space.mori.chzzk_bot.discord.commands.Ping",
+  "fields":[{"name":"INSTANCE"}]
 },
 {
   "name":"sun.security.pkcs12.PKCS12KeyStore",
