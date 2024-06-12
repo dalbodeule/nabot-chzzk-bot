@@ -12,19 +12,22 @@ import space.mori.chzzk_bot.discord.Command
 import space.mori.chzzk_bot.discord.CommandInterface
 import space.mori.chzzk_bot.services.CommandService
 import space.mori.chzzk_bot.services.UserService
+import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
 
 @Command
-object RemoveCommand : CommandInterface {
+object UpdateCommand : CommandInterface {
     private val logger = LoggerFactory.getLogger(this::class.java)
-    override val name: String = "remove"
-    override val command = Commands.slash(name, "명령어를 삭제합니다.")
-        .addOptions(OptionData(OptionType.STRING, "label", "삭제할 명령어를 입력하세요.", true))
+    override val name: String = "update"
+    override val command = Commands.slash(name, "명령어를 수정합니다.")
+        .addOptions(OptionData(OptionType.STRING, "label", "수정할 명령어를 입력하세요.", true))
+        .addOptions(OptionData(OptionType.STRING, "content", "표시될 텍스트를 입력하세요.", true))
 
     override fun run(event: SlashCommandInteractionEvent, bot: JDA) {
         val label = event.getOption("label")?.asString
+        val content = event.getOption("content")?.asString
 
-        if(label == null) {
-            event.hook.sendMessage("명령어는 필수 입력입니다.").queue()
+        if(label == null || content == null) {
+            event.hook.sendMessage("명령어와 텍스트는 필수 입력입니다.").queue()
             return
         }
 
@@ -36,11 +39,11 @@ object RemoveCommand : CommandInterface {
         val chzzkChannel = Connector.getChannel(user.token)
 
         try {
-            CommandService.removeCommand(user, label)
+            CommandService.updateCommand(user, label, content)
             try {
                 ChzzkHandler.reloadCommand(chzzkChannel!!)
             } catch (_: Exception) {}
-            event.hook.sendMessage("삭제가 완료되었습니다. $label").queue()
+            event.hook.sendMessage("등록이 완료되었습니다. $label = $content").queue()
         } catch (e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
             logger.debug(e.stackTraceToString())

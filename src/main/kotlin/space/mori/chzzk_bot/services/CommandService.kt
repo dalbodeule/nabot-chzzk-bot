@@ -3,6 +3,7 @@ package space.mori.chzzk_bot.services
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import space.mori.chzzk_bot.models.Command
 import space.mori.chzzk_bot.models.Commands
 import space.mori.chzzk_bot.models.User
@@ -26,6 +27,18 @@ object CommandService {
             commandRow.delete()
 
             return@transaction commandRow
+        }
+    }
+
+    fun updateCommand(user: User, command: String, content: String): Command {
+        return transaction {
+            val updated = Commands.update({Commands.user eq user.id and(Commands.command eq command)}) {
+                it[Commands.content] = content
+            }
+
+            if(updated == 0) throw RuntimeException("Command not found! $command")
+
+            return@transaction Command.find(Commands.user eq user.id and(Commands.command eq command)).first()
         }
     }
 

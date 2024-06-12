@@ -6,6 +6,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import org.slf4j.LoggerFactory
+import space.mori.chzzk_bot.chzzk.ChzzkHandler
+import space.mori.chzzk_bot.chzzk.Connector
 import space.mori.chzzk_bot.discord.Command
 import space.mori.chzzk_bot.discord.CommandInterface
 import space.mori.chzzk_bot.services.CommandService
@@ -33,9 +35,13 @@ object AddCommand : CommandInterface {
             event.hook.sendMessage("치지직 계정을 찾을 수 없습니다.").queue()
             return
         }
+        val chzzkChannel = Connector.getChannel(user.token)
 
         try {
             CommandService.saveCommand(user, label, content)
+            try {
+                ChzzkHandler.reloadCommand(chzzkChannel!!)
+            } catch (_: Exception) {}
             event.hook.sendMessage("등록이 완료되었습니다. $label = $content").queue()
         } catch (e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
