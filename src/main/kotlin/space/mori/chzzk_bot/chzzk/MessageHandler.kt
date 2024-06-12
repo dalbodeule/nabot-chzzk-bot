@@ -6,6 +6,7 @@ import space.mori.chzzk_bot.services.UserService
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
+
 class MessageHandler(
     private val channel: ChzzkChannel,
     private val logger: Logger,
@@ -14,6 +15,10 @@ class MessageHandler(
     private val commands = mutableMapOf<String, () -> Unit>()
 
     init {
+        reloadCommand()
+    }
+
+    internal fun reloadCommand() {
         val user = UserService.getUser(channel.channelId)
             ?: throw RuntimeException("User not found. it's bug? ${channel.channelName} - ${channel.channelId}")
         val commands = CommandService.getCommands(user)

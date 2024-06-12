@@ -29,9 +29,17 @@ object ChzzkHandler {
             handler.disable()
         }
     }
+
+    internal fun reloadCommand(chzzkChannel: ChzzkChannel) {
+        val handler = handlers.firstOrNull { it.channel == chzzkChannel }
+        if (handler != null)
+            handler.reloadCommand()
+        else
+            throw RuntimeException("${chzzkChannel.channelName} doesn't have handler")
+    }
 }
 
-class UserHandler(private val channel: ChzzkChannel, private val logger: Logger) {
+class UserHandler(val channel: ChzzkChannel, private val logger: Logger) {
     private lateinit var messageHandler: MessageHandler
 
     private var listener: ChzzkChat = chzzk.chat(channel.channelId)
@@ -65,5 +73,9 @@ class UserHandler(private val channel: ChzzkChannel, private val logger: Logger)
 
     internal fun disable() {
         listener.closeBlocking()
+    }
+
+    internal fun reloadCommand() {
+        messageHandler.reloadCommand()
     }
 }
