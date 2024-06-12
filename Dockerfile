@@ -30,7 +30,7 @@ FROM alpine:latest AS runner
 WORKDIR /app
 
 # Copy the native image from the builder stage
-COPY --from=builder /app/chzzk_bot .
+COPY --from=builder /app/build/native/nativeCompile/chzzk_bot .
 
 # Ensure the application binary is executable
 RUN chmod +x /app/chzzk_bot
