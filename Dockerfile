@@ -1,5 +1,5 @@
 # Builder Stage
-FROM ghcr.io/graalvm/native-image-community:22 AS builder
+FROM ghcr.io/graalvm/native-image-community:22-muslib AS builder
 
 # Set working directory
 WORKDIR /app
