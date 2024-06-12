@@ -6,13 +6,13 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
+import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.dotenv
-import space.mori.chzzk_bot.logger
-import kotlin.concurrent.thread
 
 class Discord: ListenerAdapter() {
     private lateinit var bot: JDA
     private var guild: Guild? = null
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     private val commands = getCommands()
 

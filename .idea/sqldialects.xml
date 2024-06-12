@@ -3,4 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="PROJECT" dialect="MariaDB" />
   </component>
+  <component name="SqlResolveMappings">
+    <file url="file://$PROJECT_DIR$/src/main/kotlin/space/mori/chzzk_bot/models/Command.kt" scope="{&quot;node&quot;:{  &quot;@negative&quot;:&quot;1&quot;,  &quot;group&quot;:{   &quot;@kind&quot;:&quot;root&quot;,   &quot;node&quot;:{    &quot;@negative&quot;:&quot;1&quot;   }  } }}" />
+  </component>
 </project>

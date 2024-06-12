@@ -58,6 +58,7 @@ dependencies {
     }
     // https://mvnrepository.com/artifact/io.github.R2turnTrue/chzzk4j
     implementation("io.github.R2turnTrue:chzzk4j:0.0.7")
+
     implementation("ch.qos.logback:logback-classic:1.4.14")
 
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core

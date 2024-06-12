@@ -1,0 +1,27 @@
+<configuration>
+
+    <!-- 콘솔에 출력하는 기본 로그 설정 -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- HikariCP 로그 레벨 설정 -->
+    <logger name="com.zaxxer.hikari" level="INFO" />
+    <logger name="com.zaxxer.hikari.HikariConfig" level="WARN" />
+    <logger name="com.zaxxer.hikari.pool.PoolBase" level="WARN" />
+    <logger name="com.zaxxer.hikari.pool.HikariPool" level="WARN" />
+    <logger name="com.zaxxer.hikari.util.DriverDataSource" level="WARN" />
+
+    <!-- Exposed 로그 레벨 설정 -->
+    <logger name="org.jetbrains.exposed" level="INFO" />
+    <logger name="org.jetbrains.exposed.sql" level="WARN" />
+    <logger name="org.jetbrains.exposed.sql.transactions" level="WARN" />
+
+    <!-- 루트 로거 설정 -->
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
