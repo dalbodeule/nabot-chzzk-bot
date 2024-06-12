@@ -1,16 +1,20 @@
 # Builder Stage
 FROM ghcr.io/graalvm/graalvm-ce:latest AS builder
 
-# Install necessary tools
-RUN gu install native-image
-
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
-COPY build.gradle.kts settings.gradle.kts gradlew ./
+# Copy Gradle wrapper and build scripts
+COPY gradlew ./
 COPY gradle ./gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+
+# Download dependencies
 RUN ./gradlew --no-daemon dependencies
+
+# Build the application
+RUN ./gradlew build
 
 # Copy the source code
 COPY src ./src
