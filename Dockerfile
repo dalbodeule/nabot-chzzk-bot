@@ -3,9 +3,6 @@ FROM ghcr.io/graalvm/native-image-community:21-muslib-ol8 as build
 
 WORKDIR /app
 
-# Install required dependencies
-RUN gu install native-image
-
 # Copy the Gradle files and source code
 COPY build.gradle.kts settings.gradle.kts gradlew ./
 COPY gradle gradle
