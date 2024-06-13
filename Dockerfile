@@ -16,6 +16,8 @@ FROM alpine:3.13
 
 WORKDIR /app
 
+RUN apk add gcompat
+
 # Copy the executable from the build stage
 COPY --from=build /app/build/native/nativeCompile/chzzk_bot .
 COPY --from=build /app/build/native/nativeCompile/libjsound.so .
