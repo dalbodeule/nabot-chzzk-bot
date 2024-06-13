@@ -8,6 +8,8 @@ COPY build.gradle.kts settings.gradle.kts gradlew ./
 COPY gradle gradle
 COPY src src
 
+RUN microdnf install findutils
+
 # Build the project
 RUN ./gradlew nativeCompile
 
