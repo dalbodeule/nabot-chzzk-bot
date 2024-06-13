@@ -1,5 +1,5 @@
 # Stage 1: Build the executable with GraalVM
-FROM ghcr.io/graalvm/native-image-community:21-muslib-ol8 as build
+FROM gradle:jdk-21-and-22-graal as build
 
 WORKDIR /app
 
@@ -8,10 +8,8 @@ COPY build.gradle.kts settings.gradle.kts gradlew gradle.properties ./
 COPY gradle gradle
 COPY src src
 
-RUN microdnf install findutils
-
 # Build the project
-RUN ./gradlew nativeCompile
+RUN gradle nativeCompile
 
 # Stage 2: Create a minimal Docker image and add the binary
 FROM alpine:3.13
