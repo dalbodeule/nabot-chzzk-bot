@@ -16,6 +16,7 @@ FROM alpine:3.13
 
 WORKDIR /app
 
+# https://stackoverflow.com/a/77779723/11516704
 RUN apk add gcompat
 
 # Copy the executable from the build stage

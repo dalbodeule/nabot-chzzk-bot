@@ -6,8 +6,8 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
-import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.dotenv
+import org.slf4j.LoggerFactory
 
 class Discord: ListenerAdapter() {
     private lateinit var bot: JDA

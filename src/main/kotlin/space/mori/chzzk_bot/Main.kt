@@ -11,7 +11,9 @@ import space.mori.chzzk_bot.chzzk.Connector as ChzzkConnector
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
-val dotenv = dotenv()
+val dotenv = dotenv {
+    ignoreIfMissing = true
+}
 val logger: Logger = LoggerFactory.getLogger("main")
 
 fun main(args: Array<String>) {
