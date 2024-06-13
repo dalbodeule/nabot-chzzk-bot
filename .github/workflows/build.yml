@@ -33,16 +33,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Native Image
+      - name: Build and Push Native Image (multi-platform)
         run: |
-          pack build dalbodeule/chzzkbot:latest \
-            --builder paketobuildpacks/builder:tiny \
-            --tag dalbodeule/chzzkbot:${{ env.DATETIME }}
-
-      - name: Create multi-platform image
-        run: |
-          docker buildx create --use
-          docker buildx build --platform linux/amd64,linux/arm64 \
-            --tag dalbodeule/chzzkbot:${{ env.DATETIME }} \
+          pack build --builder paketobuildpacks/builder-jammy-full: \
+            --push true \
             --tag dalbodeule/chzzkbot:latest \
-            --push .
+            --tag dalbodeule/chzzkbot:${{ env.DATETIME }} \
+            --platforms linux/amd64,linux/arm64 .
