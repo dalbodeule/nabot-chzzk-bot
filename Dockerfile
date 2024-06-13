@@ -1,5 +1,5 @@
 # Stage 1: Build the executable with GraalVM
-FROM ghcr.io/graalvm/graalvm-ce:21.3.3 as build
+FROM ghcr.io/graalvm/native-image-community:21-muslib-ol8 as build
 
 WORKDIR /app
 
