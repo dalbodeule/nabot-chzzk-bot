@@ -20,6 +20,9 @@ jobs:
         run: |
           curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.24.0/pack-v0.24.0-linux.tgz" | tar -xzv -C /usr/local/bin
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Set datetime variable
         id: vars
         run: echo "DATETIME=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
@@ -34,6 +37,12 @@ jobs:
         run: |
           pack build dalbodeule/chzzkbot:latest \
             --builder paketobuildpacks/builder:tiny \
+            --tag dalbodeule/chzzkbot:${{ env.DATETIME }}
+
+      - name: Create multi-platform image
+        run: |
+          docker buildx create --use
+          docker buildx build --platform linux/amd64,linux/arm64 \
             --tag dalbodeule/chzzkbot:${{ env.DATETIME }} \
-            --publish \
-            --platform linux/amd64,linux/arm64
+            --tag dalbodeule/chzzkbot:latest \
+            --push .
