@@ -16,30 +16,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to Docker hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Install Buildpack CLI
+        uses: paketo-buildpacks/pack@v1
 
       - name: Set datetime variable
         id: vars
         run: echo "DATETIME=$(date +'%Y%m%d%H%M')" >> $GITHUB_ENV
 
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: |
-            dalbodeule/chzzkbot:latest
-            dalbodeule/chzzkbot:${{ env.DATETIME }}
-          platforms: |
-            linux/amd64
-            linux/arm64
+      - name: Build and Push Native Image
+        run: |
+          pack build --builder paketo-buildpacks/builder:tiny . \
+            --push true \
+            --tag dalbodeule/chzzkbot:latest \
+            --tag dalbodeule/chzzkbot:${{ env.DATETIME }}
+            --platforms linux/amd64,linux/arm64
