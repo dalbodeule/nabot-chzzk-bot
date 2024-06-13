@@ -35,7 +35,7 @@ jobs:
 
       - name: Build and Push Native Image (multi-platform)
         run: |
-          pack build --builder paketobuildpacks/builder-jammy-full: \
+          pack build --builder paketobuildpacks/builder-jammy-full:latest \
             --tag dalbodeule/chzzkbot:latest \
             --tag dalbodeule/chzzkbot:${{ env.DATETIME }} \
             --publish
