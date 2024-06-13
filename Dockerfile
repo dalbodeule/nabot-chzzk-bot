@@ -1,5 +1,5 @@
 # Stage 1: Build the executable with GraalVM
-FROM ghcr.io/graalvm/graalvm-ce:22.1.0 as build
+FROM ghcr.io/graalvm/graalvm-ce:21.3.3 as build
 
 WORKDIR /app
 
