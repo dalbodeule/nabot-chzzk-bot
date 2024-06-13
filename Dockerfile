@@ -12,7 +12,7 @@ COPY gradle gradle
 COPY src src
 
 # Build the project
-RUN ./gradlew nativeImage
+RUN ./gradlew nativeCompile
 
 # Stage 2: Create a minimal Docker image and add the binary
 FROM alpine:3.13
