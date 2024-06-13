@@ -1,42 +1,27 @@
-# Builder Stage
-FROM ghcr.io/graalvm/graalvm-ce:22.3.3 AS builder
+# Stage 1: Build the executable with GraalVM
+FROM ghcr.io/graalvm/graalvm-ce:22.1.0 as build
 
-# Set working directory
 WORKDIR /app
 
-# Copy Gradle wrapper and build scripts
-COPY gradlew ./
-COPY gradle ./gradle
-COPY build.gradle.kts .
-COPY settings.gradle.kts .
-COPY gradle.properties .
+# Install required dependencies
+RUN gu install native-image
 
-# Download dependencies
-RUN ./gradlew --no-daemon dependencies
+# Copy the Gradle files and source code
+COPY build.gradle.kts settings.gradle.kts gradlew ./
+COPY gradle gradle
+COPY src src
 
-# Copy the source code
-COPY src ./src
+# Build the project
+RUN ./gradlew build
+RUN ./gradlew nativeImage
 
-# Build the application
-RUN ./gradlew nativeCompile
+# Stage 2: Create a minimal Docker image and add the binary
+FROM alpine:3.13
 
-# Runner Stage
-FROM woahbase/alpine-glibc:latest AS runner
-
-# Install glibc (required for running Java applications on Alpine)
-RUN apk add --no-cache libc6-compat patchelf
-
-# Set working directory
 WORKDIR /app
 
-# Copy the native image from the builder stage
-COPY --from=builder /app/build/native/nativeCompile/chzzk_bot .
+# Copy the executable from the build stage
+COPY --from=build /app/build/native-image/chzzk_bot .
 
-# Ensure the application binary is executable
-RUN chmod +x /app/chzzk_bot
-
-# Patch the binary to use the correct dynamic linker
-RUN patchelf --set-interpreter /lib/ld-linux-x86-64.so.2 /app/chzzk_bot
-
-# Run the application
-CMD ["./chzzk_bot"]
+# Set the entry point
+ENTRYPOINT ["./chzzk_bot"]
