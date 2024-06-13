@@ -1,5 +1,5 @@
 # Builder Stage
-FROM gradle:jdk-21-and-22-graal-jammy AS builder
+FROM gradle:jdk-21-and-22-graal AS builder
 
 # Set working directory
 WORKDIR /app
@@ -14,9 +14,6 @@ COPY gradle.properties .
 # Download dependencies
 RUN ./gradlew --no-daemon dependencies
 
-# Build the application
-RUN ./gradlew build
-
 # Copy the source code
 COPY src ./src
 
@@ -24,7 +21,10 @@ COPY src ./src
 RUN ./gradlew nativeCompile
 
 # Runner Stage
-FROM alpine:latest AS runner
+FROM woahbase/alpine-glibc:latest AS runner
+
+# Install glibc (required for running Java applications on Alpine)
+RUN apk add --no-cache libc6-compat patchelf
 
 # Set working directory
 WORKDIR /app
@@ -34,6 +34,9 @@ COPY --from=builder /app/build/native/nativeCompile/chzzk_bot .
 
 # Ensure the application binary is executable
 RUN chmod +x /app/chzzk_bot
+
+# Patch the binary to use the correct dynamic linker
+RUN patchelf --set-interpreter /lib/ld-linux-x86-64.so.2 /app/chzzk_bot
 
 # Run the application
 CMD ["./chzzk_bot"]
