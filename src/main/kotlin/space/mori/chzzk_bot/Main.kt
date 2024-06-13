@@ -9,6 +9,7 @@ import space.mori.chzzk_bot.chzzk.ChzzkHandler
 import space.mori.chzzk_bot.discord.Discord
 import space.mori.chzzk_bot.chzzk.Connector as ChzzkConnector
 import java.util.concurrent.TimeUnit
+import kotlin.system.exitProcess
 
 val dotenv = dotenv()
 val logger: Logger = LoggerFactory.getLogger("main")
@@ -26,7 +27,7 @@ fun main(args: Array<String>) {
     if(dotenv.get("RUN_AGENT", "false").toBoolean()) {
         runBlocking {
             delay(TimeUnit.MINUTES.toMillis(1))
-            discord.disable()
+            exitProcess(0)
         }
     }
 

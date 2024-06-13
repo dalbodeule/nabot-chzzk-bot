@@ -381,12 +381,20 @@
   "fields":[{"name":"_decisionAndIndex$volatile"}, {"name":"_parentHandle$volatile"}, {"name":"_state$volatile"}]
 },
 {
+  "name":"kotlinx.coroutines.CompletedExceptionally",
+  "fields":[{"name":"_handled$volatile"}]
+},
+{
   "name":"kotlinx.coroutines.EventLoopImplBase",
   "fields":[{"name":"_delayed$volatile"}, {"name":"_isCompleted$volatile"}, {"name":"_queue$volatile"}]
 },
 {
   "name":"kotlinx.coroutines.JobSupport",
   "fields":[{"name":"_parentHandle$volatile"}, {"name":"_state$volatile"}]
+},
+{
+  "name":"kotlinx.coroutines.JobSupport$Finishing",
+  "fields":[{"name":"_exceptionsHolder$volatile"}, {"name":"_isCompleting$volatile"}, {"name":"_rootCause$volatile"}]
 },
 {
   "name":"kotlinx.coroutines.internal.DispatchedContinuation",

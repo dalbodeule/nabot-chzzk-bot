@@ -8,7 +8,7 @@ import space.mori.chzzk_bot.models.Users
 object UserService {
     fun saveUser(username: String, token: String, discordID: Long): User {
         return transaction {
-            return@transaction User.new {
+            User.new {
                 this.username = username
                 this.token = token
                 this.discord = discordID
@@ -18,7 +18,7 @@ object UserService {
 
     fun getUser(id: Int): User? {
         return transaction {
-            return@transaction User.findById(id)
+            User.findById(id)
         }
     }
 
@@ -26,7 +26,7 @@ object UserService {
         return transaction {
             val users = User.find(Users.discord eq discordID)
 
-            return@transaction users.firstOrNull()
+            users.firstOrNull()
         }
     }
 
@@ -34,13 +34,13 @@ object UserService {
         return transaction {
             val users = User.find(Users.token eq chzzkID)
 
-            return@transaction users.firstOrNull()
+            users.firstOrNull()
         }
     }
 
     fun getAllUsers(): List<User> {
         return transaction {
-            return@transaction User.all().toList()
+            User.all().toList()
         }
     }
 }

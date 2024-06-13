@@ -3,6 +3,7 @@ package space.mori.chzzk_bot.chzzk
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chzzk.Connector.chzzk
+import space.mori.chzzk_bot.models.User
 import space.mori.chzzk_bot.services.UserService
 import xyz.r2turntrue.chzzk4j.chat.ChatEventListener
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
@@ -14,13 +15,13 @@ object ChzzkHandler {
     private val handlers = mutableListOf<UserHandler>()
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    internal fun addUser(chzzkChannel: ChzzkChannel) {
-        handlers.add(UserHandler(chzzkChannel, logger))
+    internal fun addUser(chzzkChannel: ChzzkChannel, user: User) {
+        handlers.add(UserHandler(chzzkChannel, logger, user))
     }
 
     internal fun enable() {
         UserService.getAllUsers().map {
-            chzzk.getChannel(it.token)?.let { token -> addUser(token)}
+            chzzk.getChannel(it.token)?.let { token -> addUser(token, it)}
         }
     }
 
@@ -31,7 +32,7 @@ object ChzzkHandler {
     }
 
     internal fun reloadCommand(chzzkChannel: ChzzkChannel) {
-        val handler = handlers.firstOrNull { it.channel == chzzkChannel }
+        val handler = handlers.firstOrNull { it.channel.channelId == chzzkChannel.channelId }
         if (handler != null)
             handler.reloadCommand()
         else
@@ -39,7 +40,9 @@ object ChzzkHandler {
     }
 }
 
-class UserHandler(val channel: ChzzkChannel, private val logger: Logger) {
+class UserHandler(
+    val channel: ChzzkChannel, private val logger: Logger, private val user: User
+) {
     private lateinit var messageHandler: MessageHandler
 
     private var listener: ChzzkChat = chzzk.chat(channel.channelId)
@@ -56,7 +59,7 @@ class UserHandler(val channel: ChzzkChannel, private val logger: Logger) {
             }
 
             override fun onChat(msg: ChatMessage) {
-                messageHandler.handle(msg)
+                messageHandler.handle(msg, user)
             }
 
             override fun onConnectionClosed(code: Int, reason: String?, remote: Boolean, tryingToReconnect: Boolean) {

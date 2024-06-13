@@ -9,12 +9,13 @@ import space.mori.chzzk_bot.models.Commands
 import space.mori.chzzk_bot.models.User
 
 object CommandService {
-    fun saveCommand(user: User, command: String, content: String): Command {
+    fun saveCommand(user: User, command: String, content: String, failContent: String): Command {
         return transaction {
             return@transaction Command.new {
                 this.user = user
                 this.command = command
                 this.content = content
+                this.failContent = failContent
             }
         }
     }
@@ -26,31 +27,32 @@ object CommandService {
             commandRow ?: throw RuntimeException("Command not found! $command")
             commandRow.delete()
 
-            return@transaction commandRow
+           commandRow
         }
     }
 
-    fun updateCommand(user: User, command: String, content: String): Command {
+    fun updateCommand(user: User, command: String, content: String, failContent: String): Command {
         return transaction {
             val updated = Commands.update({Commands.user eq user.id and(Commands.command eq command)}) {
                 it[Commands.content] = content
+                it[Commands.failContent] = failContent
             }
 
             if(updated == 0) throw RuntimeException("Command not found! $command")
 
-            return@transaction Command.find(Commands.user eq user.id and(Commands.command eq command)).first()
+            Command.find(Commands.user eq user.id and(Commands.command eq command)).first()
         }
     }
 
     fun getCommand(id: Int): Command? {
         return transaction {
-            return@transaction Command.findById(id)
+            Command.findById(id)
         }
     }
 
     fun getCommands(user: User): List<Command> {
         return transaction {
-            return@transaction Command.find(Commands.user eq user.id)
+            Command.find(Commands.user eq user.id)
                 .toList()
         }
     }

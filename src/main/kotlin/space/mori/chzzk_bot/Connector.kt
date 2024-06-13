@@ -7,13 +7,12 @@ import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
-import space.mori.chzzk_bot.models.Commands
-import space.mori.chzzk_bot.models.Users
+import space.mori.chzzk_bot.models.*
 
 object Connector {
     private val dotenv = dotenv()
 
-    val hikariConfig = HikariConfig().apply {
+    private val hikariConfig = HikariConfig().apply {
         jdbcUrl = dotenv["DB_URL"]
         driverClassName = "org.mariadb.jdbc.Driver"
         username = dotenv["DB_USER"]
@@ -24,12 +23,10 @@ object Connector {
 
     init {
         Database.connect(dataSource)
-        val tables = listOf(Users, Commands)
+        val tables = listOf(Users, Commands, Counters, DailyCounters, PersonalCounters)
 
         transaction {
-            tables.forEach { table ->
-                SchemaUtils.createMissingTablesAndColumns(table)
-            }
+            SchemaUtils.createMissingTablesAndColumns(* tables.toTypedArray())
         }
     }
 }

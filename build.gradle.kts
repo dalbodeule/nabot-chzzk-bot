@@ -66,9 +66,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
     implementation("org.jetbrains.exposed:exposed-dao:0.51.1")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
-    runtimeOnly("org.jetbrains.exposed:exposed-jdbc:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.51.1")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-kotlin-datetime
-    runtimeOnly("org.jetbrains.exposed:exposed-kotlin-datetime:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.51.1")
 
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     implementation("com.zaxxer:HikariCP:5.1.0")
