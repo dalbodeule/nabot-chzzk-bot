@@ -12,7 +12,6 @@ COPY gradle gradle
 COPY src src
 
 # Build the project
-RUN ./gradlew build
 RUN ./gradlew nativeImage
 
 # Stage 2: Create a minimal Docker image and add the binary
