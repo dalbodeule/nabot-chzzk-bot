@@ -18,7 +18,6 @@ RUN ./gradlew --no-daemon dependencies
 COPY src ./src
 
 # Build the application
-RUN ./gradlew build
 RUN ./gradlew nativeCompile
 
 # Runner Stage

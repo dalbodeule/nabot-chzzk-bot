@@ -16,10 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install Buildpack CLI
-        run: |
-          curl -sSL "https://github.com/buildpacks/pack/releases/download/v0.24.0/pack-v0.24.0-linux.tgz" | tar -xzv -C /usr/local/bin
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
