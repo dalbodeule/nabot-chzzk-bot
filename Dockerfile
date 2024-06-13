@@ -1,5 +1,5 @@
 # Builder Stage
-FROM gradle:jdk-21-and-22-graal AS builder
+FROM ghcr.io/graalvm/graalvm-ce:22.3.3 AS builder
 
 # Set working directory
 WORKDIR /app
@@ -18,6 +18,7 @@ RUN ./gradlew --no-daemon dependencies
 COPY src ./src
 
 # Build the application
+RUN ./gradlew build
 RUN ./gradlew nativeCompile
 
 # Runner Stage

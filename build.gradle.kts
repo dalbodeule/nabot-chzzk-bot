@@ -39,7 +39,7 @@ graalvmNative {
         named("main") {
             useFatJar.set(true)
             sharedLibrary.set(false)
-            buildArgs.add("--initialize-at-build-time=org.hibernate.*")
+            buildArgs.add("-march=compatibility")
         }
     }
     metadataRepository {
