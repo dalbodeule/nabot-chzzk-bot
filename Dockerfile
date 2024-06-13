@@ -18,6 +18,7 @@ WORKDIR /app
 
 # Copy the executable from the build stage
 COPY --from=build /app/build/native/nativeCompile/chzzk_bot .
+COPY --from=build /app/build/native/nativeCompile/libjsound.so .
 
 # Set the entry point
 ENTRYPOINT ["./chzzk_bot"]
