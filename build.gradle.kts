@@ -40,6 +40,8 @@ graalvmNative {
             useFatJar.set(true)
             sharedLibrary.set(false)
             buildArgs.add("-march=compatibility")
+            buildArgs.add("--enable-http")
+            buildArgs.add("--enable-https")
         }
     }
     metadataRepository {
