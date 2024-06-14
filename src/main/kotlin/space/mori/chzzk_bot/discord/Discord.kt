@@ -8,17 +8,26 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import space.mori.chzzk_bot.dotenv
 import org.slf4j.LoggerFactory
+import space.mori.chzzk_bot.discord.commands.*
 
 class Discord: ListenerAdapter() {
     private lateinit var bot: JDA
     private var guild: Guild? = null
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    private val commands = getCommands()
+    private val commands = listOf(
+        AddCommand,
+        PingCommand,
+        RegisterCommand,
+        RemoveCommand,
+        UpdateCommand,
+    )
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         event.deferReply().queue()
-        commands.find { it.name == event.name }?.run(event, bot)
+        val handler = commands.find { it.name == event.name }
+        logger.debug("Handler: ${handler?.name ?: "undefined"} command")
+        handler?.run(event, bot)
     }
 
     internal fun enable() {
@@ -33,7 +42,10 @@ class Discord: ListenerAdapter() {
 
                 bot.updateCommands()
                     .addCommands(* commands.map { it.command }.toTypedArray())
-                    .onSuccess { logger.info("Command update success!") }
+                    .onSuccess {
+                        logger.info("Command update success!")
+                        logger.debug("Command list: ${commands.joinToString("/ ") { it.name }}")
+                    }
                     .queue()
 
 

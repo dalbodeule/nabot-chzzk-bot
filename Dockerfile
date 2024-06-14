@@ -1,5 +1,5 @@
-# Stage 1: Build the executable with GraalVM
-FROM gradle:jdk-21-and-22-graal as build
+# Stage 1: Build the JAR file
+FROM gradle:jdk21 as build
 
 WORKDIR /app
 
@@ -8,20 +8,16 @@ COPY build.gradle.kts settings.gradle.kts gradlew gradle.properties ./
 COPY gradle gradle
 COPY src src
 
-# Build the project
-RUN gradle nativeCompile
+# Build the project using Gradle
+RUN ./gradlew build
 
-# Stage 2: Create a minimal Docker image and add the binary
-FROM alpine:3.13
+# Stage 2: Run the JAR file using JDK 21
+FROM openjdk:21-jdk
 
 WORKDIR /app
 
-# https://stackoverflow.com/a/77779723/11516704
-RUN apk add gcompat
-
-# Copy the executable from the build stage
-COPY --from=build /app/build/native/nativeCompile/chzzk_bot .
-COPY --from=build /app/build/native/nativeCompile/libjsound.so .
+# Copy the JAR file from the build stage
+COPY --from=build /app/build/libs/*.jar app.jar
 
 # Set the entry point
-ENTRYPOINT ["./chzzk_bot"]
+ENTRYPOINT ["java", "-jar", "app.jar"]

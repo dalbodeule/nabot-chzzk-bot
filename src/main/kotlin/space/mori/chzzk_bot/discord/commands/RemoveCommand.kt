@@ -8,12 +8,10 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chzzk.ChzzkHandler
 import space.mori.chzzk_bot.chzzk.Connector
-import space.mori.chzzk_bot.discord.Command
 import space.mori.chzzk_bot.discord.CommandInterface
 import space.mori.chzzk_bot.services.CommandService
 import space.mori.chzzk_bot.services.UserService
 
-@Command
 object RemoveCommand : CommandInterface {
     private val logger = LoggerFactory.getLogger(this::class.java)
     override val name: String = "remove"

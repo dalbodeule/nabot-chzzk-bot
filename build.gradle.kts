@@ -1,3 +1,5 @@
+import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
+
 plugins {
     val kotlinVersion = "2.0.0"
 
@@ -103,4 +105,16 @@ tasks.withType<Jar> {
     })
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.register<JavaExec>("generateReflectConfig") {
+    group = "build"
+    description = "Generate GraalVM reflection configuration using agent"
+    mainClass = application.mainClass
+
+    classpath = sourceSets["main"].runtimeClasspath
+
+    jvmArgs(
+        "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image"
+    )
 }
