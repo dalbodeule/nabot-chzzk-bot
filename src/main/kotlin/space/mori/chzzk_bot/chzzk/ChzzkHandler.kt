@@ -71,11 +71,11 @@ class UserHandler(
 
     init {
         logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
-        listener.connectBlocking()
+        listener.connectAsync()
     }
 
     internal fun disable() {
-        listener.closeBlocking()
+        listener.closeAsync()
     }
 
     internal fun reloadCommand() {
