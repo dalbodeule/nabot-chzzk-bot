@@ -1,5 +1,3 @@
-import org.graalvm.buildtools.gradle.tasks.BuildNativeImageTask
-
 plugins {
     val kotlinVersion = "2.0.0"
 
@@ -25,32 +23,6 @@ application {
     mainClass.set("${"${project.group}.${project.name}".lowercase()}.MainKt")
 }
 
-graalvmNative {
-    agent {
-        trackReflectionMetadata.set(true)
-
-        metadataCopy {
-            outputDirectories.add("src/main/resources/META-INF/native-image")
-            mergeWithExisting.set(true)
-        }
-    }
-    binaries {
-        binaries.all {
-            resources.autodetect()
-        }
-        named("main") {
-            useFatJar.set(true)
-            sharedLibrary.set(false)
-            buildArgs.add("-march=compatibility")
-            buildArgs.add("--enable-http")
-            buildArgs.add("--enable-https")
-        }
-    }
-    metadataRepository {
-        enabled.set(true)
-    }
-}
-
 repositories {
     mavenCentral()
 }
@@ -61,7 +33,7 @@ dependencies {
         exclude(module = "opus-java")
     }
     // https://mvnrepository.com/artifact/io.github.R2turnTrue/chzzk4j
-    implementation("io.github.R2turnTrue:chzzk4j:0.0.7")
+    implementation("io.github.R2turnTrue:chzzk4j:0.0.8")
 
     implementation("ch.qos.logback:logback-classic:1.4.14")
 
@@ -105,16 +77,4 @@ tasks.withType<Jar> {
     })
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.register<JavaExec>("generateReflectConfig") {
-    group = "build"
-    description = "Generate GraalVM reflection configuration using agent"
-    mainClass = application.mainClass
-
-    classpath = sourceSets["main"].runtimeClasspath
-
-    jvmArgs(
-        "-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image"
-    )
 }

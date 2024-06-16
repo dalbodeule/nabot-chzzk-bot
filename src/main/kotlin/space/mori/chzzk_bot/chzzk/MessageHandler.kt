@@ -89,7 +89,7 @@ class MessageHandler(
         }
 
         result = followPattern.replace(result) {
-            val following = getFollowDate("", msg.userId)
+            val following = getFollowDate(listener.chatId, msg.userId)
             val dateString: String? = following.content.streamingProperty["followDate"]
             val today = LocalDate.now()
 
