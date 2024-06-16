@@ -16,14 +16,33 @@ data class IFollowContent(
     val nickname: String = "",
     val profileImageUrl: String = "",
     val userRoleCode: String = "",
-    val badge: String? = null,
-    val title: String? = null,
+    val badge: Badge? = null,
+    val title: Title? = null,
     val verifiedMark: Boolean = false,
     val activityBadges: List<String> = emptyList(),
-    val streamingProperty: Map<String, String> = mapOf(
-        "following" to "",
-        "nicknameColor" to ""
-    )
+    val streamingProperty: StreamingProperty = StreamingProperty()
+)
+
+data class Badge(
+    val imageUrl: String = ""
+)
+
+data class Title(
+    val name: String = "",
+    val color: String = ""
+)
+
+data class StreamingProperty(
+    val following: Following? = Following(),
+    val nicknameColor: NicknameColor = NicknameColor()
+)
+
+data class Following(
+    val followDate: String? = null
+)
+
+data class NicknameColor(
+    val colorCode: String = ""
 )
 
 val client = OkHttpClient()
@@ -38,7 +57,8 @@ fun getFollowDate(chatID: String, userId: String) : IFollow {
     client.newCall(request).execute().use { response ->
         try {
             if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
-            val follow = gson.fromJson(response.body?.string(), IFollow::class.java)
+            val body = response.body?.string()
+            val follow = gson.fromJson(body, IFollow::class.java)
 
             return follow
         } catch(e: Exception) {

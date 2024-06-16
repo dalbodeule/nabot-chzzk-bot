@@ -8,10 +8,11 @@ import space.mori.chzzk_bot.services.UserService
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.Period
 import java.time.format.DateTimeFormatter
-
+import java.util.*
 
 
 class MessageHandler(
@@ -90,17 +91,17 @@ class MessageHandler(
 
         result = followPattern.replace(result) {
             val following = getFollowDate(listener.chatId, msg.userId)
-            val dateString: String? = following.content.streamingProperty["followDate"]
+            val dateString: String = following.content.streamingProperty.following?.followDate ?: SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
+                Date()
+            )
             val today = LocalDate.now()
 
-            if(dateString == null) {
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                // 문자열을 LocalDate 객체로 변환
-                val pastDate = LocalDate.parse(dateString, formatter)
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            // 문자열을 LocalDate 객체로 변환
+            val pastDate = LocalDate.parse(dateString, formatter)
 
-                val period = Period.between(pastDate, today)
-                period.days.toString()
-            } else ""
+            val period = Period.between(pastDate, today)
+            period.days.toString()
         }
         if(isFail) {
             return chat.second
