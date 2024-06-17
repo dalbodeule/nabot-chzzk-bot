@@ -105,6 +105,7 @@ class UserHandler(
             }
 
             override fun onChat(msg: ChatMessage) {
+                if(!_isActive) return
                 messageHandler.handle(msg, user)
             }
 
@@ -158,9 +159,13 @@ class UserHandler(
                         .setEmbeds(embed.build())
                         .build()
                 ).queue()
+
+                listener.sendChat("${user.username} 님의 방송이 감지되었습니다.")
             }
         } else {
             logger.info("${user.username} is offline.")
+
+            listener.sendChat("${user.username} 님! 방송 수고하셨습니다.")
         }
     }
 }
