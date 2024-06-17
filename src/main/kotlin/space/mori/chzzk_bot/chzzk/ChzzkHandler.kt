@@ -61,8 +61,9 @@ object ChzzkHandler {
                     val streamInfo = getStreamInfo(it.channel.channelId)
                     if(streamInfo.content.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
                     if(streamInfo.content.status == "CLOSED" && it.isActive) it.isActive(false, streamInfo)
-                    Thread.sleep(3000)
+                    Thread.sleep(5000)
                 }
+                Thread.sleep(60000)
             }
         }.start()
     }
