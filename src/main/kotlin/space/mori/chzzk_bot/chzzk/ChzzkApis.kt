@@ -2,6 +2,7 @@ package space.mori.chzzk_bot.chzzk
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -90,7 +91,20 @@ data class AdParameter(
     val tag: String = ""
 )
 
-val client = OkHttpClient()
+// User-Agent 헤더를 설정하는 Interceptor
+val userAgentInterceptor = Interceptor { chain ->
+    val originalRequest = chain.request()
+    val requestWithUserAgent = originalRequest.newBuilder()
+        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36\n")
+        .build()
+    chain.proceed(requestWithUserAgent)
+}
+
+// OkHttpClient에 Interceptor 추가
+val client = OkHttpClient.Builder()
+    .addInterceptor(userAgentInterceptor)
+    .build()
+
 val gson = Gson()
 
 fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent> {
