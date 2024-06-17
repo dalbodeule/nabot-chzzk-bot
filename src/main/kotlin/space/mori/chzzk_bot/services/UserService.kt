@@ -45,17 +45,18 @@ object UserService {
         }
     }
 
-    fun updateLiveAlert(id: Int, guildId: Long, channelId: Long, alertMessage: String?) {
+    fun updateLiveAlert(id: Int, guildId: Long, channelId: Long, alertMessage: String?): User {
         return transaction {
             val updated = Users.update({ Users.id eq id }) {
-                it[Users.liveAlertGuild] = guildId
-                it[Users.liveAlertChannel] = channelId
-                it[Users.liveAlertMessage] = alertMessage ?: ""
+                it[liveAlertGuild] = guildId
+                it[liveAlertChannel] = channelId
+                it[liveAlertMessage] = alertMessage ?: ""
             }
 
             if(updated == 0) throw RuntimeException("User not found! $id")
+            val users = User.find { Users.id eq id }
 
-            User.find(Users.id eq id)
+            return@transaction users.first()
         }
     }
 }

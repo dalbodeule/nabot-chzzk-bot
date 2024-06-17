@@ -25,6 +25,7 @@ val chzzkHandler = ChzzkHandler
 fun main(args: Array<String>) {
     discord.enable()
     chzzkHandler.enable()
+    chzzkHandler.runStreamInfo()
 
     if(dotenv.get("RUN_AGENT", "false").toBoolean()) {
         runBlocking {
@@ -35,6 +36,7 @@ fun main(args: Array<String>) {
 
     Runtime.getRuntime().addShutdownHook(Thread {
         logger.info("Shutting down...")
+        chzzkHandler.stopStreamInfo()
         chzzkHandler.disable()
         discord.disable()
         connector.dataSource.close()

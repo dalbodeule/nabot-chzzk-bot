@@ -44,6 +44,14 @@ object ChzzkHandler {
             throw RuntimeException("${chzzkChannel.channelName} doesn't have handler")
     }
 
+    internal fun reloadUser(chzzkChannel: ChzzkChannel, user: User) {
+        val handler = handlers.firstOrNull { it.channel.channelId == chzzkChannel.channelId }
+        if (handler != null)
+            handler.reloadUser(user)
+        else
+            throw RuntimeException("${chzzkChannel.channelName} doesn't have handler")
+    }
+
     internal fun runStreamInfo() {
         running = true
         Thread {
@@ -67,7 +75,7 @@ object ChzzkHandler {
 class UserHandler(
     val channel: ChzzkChannel,
     private val logger: Logger,
-    private val user: User,
+    private var user: User,
     private var _isActive: Boolean = false
 ) {
     private lateinit var messageHandler: MessageHandler
@@ -107,6 +115,10 @@ class UserHandler(
 
     internal fun reloadCommand() {
         messageHandler.reloadCommand()
+    }
+
+    internal fun reloadUser(user: User) {
+        this.user = user
     }
 
     internal val isActive: Boolean
