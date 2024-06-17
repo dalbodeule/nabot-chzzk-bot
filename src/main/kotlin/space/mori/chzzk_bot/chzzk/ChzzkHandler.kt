@@ -55,7 +55,7 @@ object ChzzkHandler {
 
     internal fun runStreamInfo() {
         running = true
-        Thread {
+        val thread = Thread({
             while(running) {
                 handlers.forEach {
                     if (!running) return@forEach
@@ -64,16 +64,18 @@ object ChzzkHandler {
                         if (streamInfo.content.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
                         if (streamInfo.content.status == "CLOSED" && it.isActive) it.isActive(false, streamInfo)
                     } catch(e: SocketTimeoutException) {
-                        logger.info("timeout: ${it.channel.channelName}")
+                        logger.info("Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
-                        logger.info("Exception: ${it.channel.channelName}")
+                        logger.info("Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } finally {
                         Thread.sleep(5000)
                     }
                 }
                 Thread.sleep(60000)
             }
-        }.start()
+        }, "Chzzk-StreamInfo")
+
+        thread.start()
     }
 
     internal fun stopStreamInfo() {
@@ -138,7 +140,7 @@ class UserHandler(
         if(value) {
             logger.info("${user.username} is live.")
             if(user.liveAlertMessage != "" && user.liveAlertGuild != null && user.liveAlertChannel != null) {
-                val channel = discord.getChannel(user.liveAlertGuild!!, user.liveAlertGuild!!) ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
+                val channel = discord.getChannel(user.liveAlertGuild!!, user.liveAlertChannel!!) ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
 
                 val embed = EmbedBuilder()
                 embed.setTitle(status.content.liveTitle, "https://chzzk.naver.com/live/${user.token}")
