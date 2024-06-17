@@ -13,6 +13,7 @@ import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
 import java.lang.Exception
+import java.net.SocketTimeoutException
 import java.time.Instant
 
 object ChzzkHandler {
@@ -58,10 +59,17 @@ object ChzzkHandler {
             while(running) {
                 handlers.forEach {
                     if (!running) return@forEach
-                    val streamInfo = getStreamInfo(it.channel.channelId)
-                    if(streamInfo.content.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
-                    if(streamInfo.content.status == "CLOSED" && it.isActive) it.isActive(false, streamInfo)
-                    Thread.sleep(5000)
+                    try {
+                        val streamInfo = getStreamInfo(it.channel.channelId)
+                        if (streamInfo.content.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
+                        if (streamInfo.content.status == "CLOSED" && it.isActive) it.isActive(false, streamInfo)
+                    } catch(e: SocketTimeoutException) {
+                        logger.info("timeout: ${it.channel.channelName}")
+                    } catch (e: Exception) {
+                        logger.info("Exception: ${it.channel.channelName}")
+                    } finally {
+                        Thread.sleep(5000)
+                    }
                 }
                 Thread.sleep(60000)
             }
