@@ -150,7 +150,7 @@ class UserHandler(
                 embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}", status.content.channel.channelImageUrl)
                 embed.addField("카테고리", status.content.liveCategoryValue, true)
                 embed.addField("태그", status.content.tags.joinToString(", "), true)
-                embed.setImage(status.content.liveImageUrl)
+                embed.setImage(status.content.liveImageUrl.replace("{type}", "1080"))
 
                 channel.sendMessage(
                     MessageCreateBuilder()
