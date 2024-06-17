@@ -2,6 +2,7 @@ package space.mori.chzzk_bot.services
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import space.mori.chzzk_bot.models.User
 import space.mori.chzzk_bot.models.Users
 
@@ -41,6 +42,20 @@ object UserService {
     fun getAllUsers(): List<User> {
         return transaction {
             User.all().toList()
+        }
+    }
+
+    fun updateLiveAlert(id: Int, guildId: Long, channelId: Long, alertMessage: String?) {
+        return transaction {
+            val updated = Users.update({ Users.id eq id }) {
+                it[Users.liveAlertGuild] = guildId
+                it[Users.liveAlertChannel] = channelId
+                it[Users.liveAlertMessage] = alertMessage ?: ""
+            }
+
+            if(updated == 0) throw RuntimeException("User not found! $id")
+
+            User.find(Users.id eq id)
         }
     }
 }
