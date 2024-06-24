@@ -39,8 +39,8 @@ object RegisterCommand: CommandInterface {
 
         try {
             val user = UserService.saveUser(chzzkChannel.channelName, chzzkChannel.channelId, event.user.idLong)
-            ChzzkHandler.addUser(chzzkChannel, user)
             event.hook.sendMessage("등록이 완료되었습니다. `${chzzkChannel.channelId}` - `${chzzkChannel.channelName}`")
+            ChzzkHandler.addUser(chzzkChannel, user)
         } catch(e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
             logger.debug(e.stackTraceToString())
