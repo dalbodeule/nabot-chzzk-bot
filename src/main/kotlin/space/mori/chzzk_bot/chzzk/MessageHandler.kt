@@ -1,6 +1,7 @@
 package space.mori.chzzk_bot.chzzk
 
 import org.slf4j.Logger
+import space.mori.chzzk_bot.models.Command
 import space.mori.chzzk_bot.models.User
 import space.mori.chzzk_bot.services.CommandService
 import space.mori.chzzk_bot.services.CounterService
@@ -36,6 +37,11 @@ class MessageHandler(
         val user = UserService.getUser(channel.channelId)
             ?: throw RuntimeException("User not found. it's bug? ${channel.channelName} - ${channel.channelId}")
         val commands = CommandService.getCommands(user)
+        val manageCommands = mapOf("!명령어추가" to this::manageAddCommand, "!명령어삭제" to this::manageRemoveCommand, "!명령어수정" to this::manageUpdateCommand)
+
+        manageCommands.forEach { (commandName, command) ->
+            this.commands[commandName] = command
+        }
 
         commands.map {
             this.commands.put(it.command.lowercase()) { msg, user ->
@@ -45,6 +51,64 @@ class MessageHandler(
                 listener.sendChat(result)
             }
         }
+    }
+
+    private fun manageAddCommand(msg: ChatMessage, user: User) {
+        if (msg.profile?.userRoleCode != "streaming_channel_manager" || msg.profile?.userRoleCode != "streamer") {
+            listener.sendChat("매니저만 명령어를 추가할 수 있습니다.")
+            return
+        }
+
+        val parts = msg.content.split(" ", limit = 3)
+        if (parts.size < 3) {
+            listener.sendChat("명령어 추가 형식은 '!명령어추가 명령어 내용'입니다.")
+            return
+        }
+        if (commands.containsKey(parts[0])) {
+            listener.sendChat("${parts[1]} 명령어는 이미 있는 명령어입니다.")
+            return
+        }
+        val command = parts[1]
+        val content = parts[2]
+        CommandService.saveCommand(user, command, content, "")
+        listener.sendChat("명령어 '$command' 추가되었습니다.")
+    }
+
+    private fun manageUpdateCommand(msg: ChatMessage, user: User) {
+        if (msg.profile?.userRoleCode != "streaming_channel_manager" || msg.profile?.userRoleCode != "streamer") {
+            listener.sendChat("매니저만 명령어를 추가할 수 있습니다.")
+            return
+        }
+
+        val parts = msg.content.split(" ", limit = 3)
+        if (parts.size < 3) {
+            listener.sendChat("명령어 수정 형식은 '!명령어수정 명령어 내용'입니다.")
+            return
+        }
+        if (!commands.containsKey(parts[0])) {
+            listener.sendChat("${parts[1]} 명령어는 없는 명령어입니다.")
+            return
+        }
+        val command = parts[1]
+        val content = parts[2]
+        CommandService.updateCommand(user, command, content, "")
+        listener.sendChat("명령어 '$command' 수정되었습니다.")
+    }
+
+    private fun manageRemoveCommand(msg: ChatMessage, user: User) {
+        if (msg.profile?.userRoleCode != "streaming_channel_manager" || msg.profile?.userRoleCode != "streamer") {
+            listener.sendChat("매니저만 명령어를 삭제할 수 있습니다.")
+            return
+        }
+
+        val parts = msg.content.split(" ", limit = 2)
+        if (parts.size < 2) {
+            listener.sendChat("명령어 삭제 형식은 '!명령어삭제 명령어'입니다.")
+            return
+        }
+        val command = parts[1]
+        CommandService.removeCommand(user, command)
+        listener.sendChat("명령어 '$command' 삭제되었습니다.")
     }
 
     internal fun handle(msg: ChatMessage, user: User) {
