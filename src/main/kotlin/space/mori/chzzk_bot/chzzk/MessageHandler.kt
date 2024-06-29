@@ -63,7 +63,7 @@ class MessageHandler(
             listener.sendChat("명령어 추가 형식은 '!명령어추가 명령어 내용'입니다.")
             return
         }
-        if (commands.containsKey(parts[0])) {
+        if (commands.containsKey(parts[1])) {
             listener.sendChat("${parts[1]} 명령어는 이미 있는 명령어입니다.")
             return
         }
@@ -84,7 +84,7 @@ class MessageHandler(
             listener.sendChat("명령어 수정 형식은 '!명령어수정 명령어 내용'입니다.")
             return
         }
-        if (!commands.containsKey(parts[0])) {
+        if (!commands.containsKey(parts[1])) {
             listener.sendChat("${parts[1]} 명령어는 없는 명령어입니다.")
             return
         }
