@@ -54,7 +54,7 @@ class MessageHandler(
     }
 
     private fun manageAddCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode != "streaming_channel_manager" && msg.profile?.userRoleCode != "streamer") {
+        if (msg.profile?.userRoleCode == "common_user") {
             listener.sendChat("매니저만 명령어를 추가할 수 있습니다.")
             return
         }
@@ -75,7 +75,7 @@ class MessageHandler(
     }
 
     private fun manageUpdateCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode != "streaming_channel_manager" && msg.profile?.userRoleCode != "streamer") {
+        if (msg.profile?.userRoleCode == "common_user") {
             listener.sendChat("매니저만 명령어를 추가할 수 있습니다.")
             return
         }
@@ -96,7 +96,7 @@ class MessageHandler(
     }
 
     private fun manageRemoveCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode != "streaming_channel_manager" && msg.profile?.userRoleCode != "streamer") {
+        if (msg.profile?.userRoleCode == "common_user") {
             listener.sendChat("매니저만 명령어를 삭제할 수 있습니다.")
             return
         }
