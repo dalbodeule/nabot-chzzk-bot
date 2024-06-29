@@ -1,7 +1,6 @@
 package space.mori.chzzk_bot.chzzk
 
 import org.slf4j.Logger
-import space.mori.chzzk_bot.models.Command
 import space.mori.chzzk_bot.models.User
 import space.mori.chzzk_bot.services.CommandService
 import space.mori.chzzk_bot.services.CounterService
@@ -121,16 +120,6 @@ class MessageHandler(
         var result = chat.first
         var isFail = false
 
-        result = counterPattern.replace(result) {
-            val name = it.groupValues[1]
-            CounterService.updateCounterValue(name, 1, user).toString()
-        }
-
-        result = personalCounterPattern.replace(result) {
-            val name = it.groupValues[1]
-            CounterService.updatePersonalCounterValue(name, msg.userId, 1, user).toString()
-        }
-
         result = dailyCounterPattern.replace(result) {
             val name = it.groupValues[1]
             val dailyCounter = CounterService.getDailyCounterValue(name, msg.userId, user)
@@ -167,8 +156,15 @@ class MessageHandler(
             val period = Period.between(pastDate, today)
             period.days.toString()
         }
-        if(isFail) {
-            return chat.second
+
+        result = counterPattern.replace(result) {
+            val name = it.groupValues[1]
+            CounterService.updateCounterValue(name, 1, user).toString()
+        }
+
+        result = personalCounterPattern.replace(result) {
+            val name = it.groupValues[1]
+            CounterService.updatePersonalCounterValue(name, msg.userId, 1, user).toString()
         }
 
         result = namePattern.replace(result, userName)
