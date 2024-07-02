@@ -116,11 +116,6 @@ class UserHandler(
         })
         .build()
 
-    init {
-        logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
-        listener.connectAsync()
-    }
-
     internal fun disable() {
         listener.closeAsync()
     }
@@ -140,6 +135,10 @@ class UserHandler(
         _isActive = value
         if(value) {
             logger.info("${user.username} is live.")
+
+            logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
+            listener.connectAsync()
+
             if(user.liveAlertMessage != "" && user.liveAlertGuild != null && user.liveAlertChannel != null) {
                 val channel = discord.getChannel(user.liveAlertGuild!!, user.liveAlertChannel!!) ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
 
@@ -164,6 +163,7 @@ class UserHandler(
             }
         } else {
             logger.info("${user.username} is offline.")
+            listener.closeAsync()
 
             listener.sendChat("${user.username} 님! 방송 수고하셨습니다.")
         }
