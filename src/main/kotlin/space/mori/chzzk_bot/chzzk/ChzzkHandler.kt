@@ -62,7 +62,7 @@ object ChzzkHandler {
                     try {
                         val streamInfo = getStreamInfo(it.channel.channelId)
                         if (streamInfo.content.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
-                        if (streamInfo.content.status == "CLOSED" && it.isActive) it.isActive(false, streamInfo)
+                        if (streamInfo.content.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
                     } catch(e: SocketTimeoutException) {
                         logger.info("Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
@@ -164,8 +164,6 @@ class UserHandler(
         } else {
             logger.info("${user.username} is offline.")
             listener.closeAsync()
-
-            listener.sendChat("${user.username} 님! 방송 수고하셨습니다.")
         }
     }
 }
