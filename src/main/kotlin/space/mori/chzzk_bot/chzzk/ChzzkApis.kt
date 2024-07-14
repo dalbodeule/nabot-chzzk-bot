@@ -21,12 +21,17 @@ data class IFollowContent(
     val badge: Badge? = null,
     val title: Title? = null,
     val verifiedMark: Boolean = false,
-    val activityBadges: List<String> = emptyList(),
+    val activityBadges: List<Badge> = emptyList(),
     val streamingProperty: StreamingProperty = StreamingProperty()
 )
 
 data class Badge(
-    val imageUrl: String = ""
+    val badgeNo: Int?,
+    val badgeId: String?,
+    val imageUrl: String?,
+    val title: String?,
+    val description: String?,
+    val activated: Boolean?
 )
 
 data class Title(
@@ -113,10 +118,12 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent> {
         try {
             if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
             val body = response.body?.string()
+            println(body)
             val follow = gson.fromJson(body, object: TypeToken<IData<IFollowContent>>() {})
 
             return follow
         } catch(e: Exception) {
+            println(e.stackTrace)
             throw e
         }
     }

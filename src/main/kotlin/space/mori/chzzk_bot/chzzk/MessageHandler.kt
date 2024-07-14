@@ -8,11 +8,9 @@ import space.mori.chzzk_bot.services.UserService
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
-import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.Period
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.*
+import java.time.temporal.ChronoUnit
 
 
 class MessageHandler(
@@ -144,22 +142,23 @@ class MessageHandler(
 
         result = followPattern.replace(result) {
             try {
-                val following = getFollowDate(listener.chatId, msg.userId)
+                val followingDate = getFollowDate(listener.chatId, msg.userId)
+                    .content.streamingProperty.following?.followDate
 
-                val dateString: String = following.content.streamingProperty.following?.followDate ?: SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
-                    Date()
-                )
-                val today = LocalDate.now()
+                return@replace when (followingDate) {
+                    null -> "0"
+                    else -> {
+                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        val pastDate = LocalDateTime.parse(followingDate, formatter)
+                        val today = LocalDateTime.now()
+                        val period = ChronoUnit.DAYS.between(pastDate, today)
 
-                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                // 문자열을 LocalDate 객체로 변환
-                val pastDate = LocalDate.parse(dateString, formatter)
-
-                val period = Period.between(pastDate, today)
-                period.days.toString()
+                        "$period"
+                    }
+                }
             } catch (e: Exception) {
-                logger.info(e.message)
-                return@replace "0"
+                logger.error(e.message)
+                "0"
             }
         }
 
