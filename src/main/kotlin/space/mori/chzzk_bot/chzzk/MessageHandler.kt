@@ -143,18 +143,24 @@ class MessageHandler(
         }
 
         result = followPattern.replace(result) {
-            val following = getFollowDate(listener.chatId, msg.userId)
-            val dateString: String = following.content.streamingProperty.following?.followDate ?: SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
-                Date()
-            )
-            val today = LocalDate.now()
+            try {
+                val following = getFollowDate(listener.chatId, msg.userId)
 
-            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-            // 문자열을 LocalDate 객체로 변환
-            val pastDate = LocalDate.parse(dateString, formatter)
+                val dateString: String = following.content.streamingProperty.following?.followDate ?: SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(
+                    Date()
+                )
+                val today = LocalDate.now()
 
-            val period = Period.between(pastDate, today)
-            period.days.toString()
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                // 문자열을 LocalDate 객체로 변환
+                val pastDate = LocalDate.parse(dateString, formatter)
+
+                val period = Period.between(pastDate, today)
+                period.days.toString()
+            } catch (e: Exception) {
+                logger.info(e.message)
+                return@replace "0"
+            }
         }
 
         result = counterPattern.replace(result) {
