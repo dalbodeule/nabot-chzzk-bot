@@ -118,7 +118,6 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent> {
         try {
             if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
             val body = response.body?.string()
-            println(body)
             val follow = gson.fromJson(body, object: TypeToken<IData<IFollowContent>>() {})
 
             return follow

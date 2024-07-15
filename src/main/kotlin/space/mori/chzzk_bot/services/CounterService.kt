@@ -81,8 +81,6 @@ object CounterService {
                 (DailyCounters.name eq name) and (DailyCounters.userId eq userId) and (DailyCounters.user eq user.id)
             }.singleOrNull()
 
-            println("$counter")
-
             if(counter == null) {
                 val newCounter = DailyCounter.new {
                     this.name = name
