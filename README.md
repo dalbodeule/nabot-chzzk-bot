@@ -15,6 +15,7 @@
 - [x] \<counter:counter_name>
 - [x] \<personal_counter:counter_name>
 - [x] \<daily_counter:counter_name>
+- [x] \<days:yyyy-mm-dd>
 
 ### 관리 명령어 (on Discord)
 - [x] /register chzzk_id: \[치지직 고유ID]
@@ -42,6 +43,8 @@
 - 바보
   - `/add label: 바보 content: 나 바보 아니다?`
   - `/add label: 바보 content: <counter:fool> 번째 바보? 나 바보 아니다?`
+- 첫방송
+  - `/add label: 첫방송 content: 24년 7월 23일부터 <days:2024-07-23>일 째 방송중!`
 
 ## 사용 기술스택
 - [Exposed](https://github.com/JetBrains/Exposed)
