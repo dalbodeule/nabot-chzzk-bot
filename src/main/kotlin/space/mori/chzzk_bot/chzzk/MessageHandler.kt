@@ -25,6 +25,7 @@ class MessageHandler(
     private val dailyCounterPattern = Regex("<daily_counter:([^>]+)>")
     private val namePattern = Regex("<name>")
     private val followPattern = Regex("<following>")
+    private val daysPattern = """<days:(\d{4})-(\d{2})-(\d{2})>""".toRegex()
 
     init {
         reloadCommand()
@@ -160,6 +161,16 @@ class MessageHandler(
                 logger.error(e.message)
                 "0"
             }
+        }
+
+        result = daysPattern.replace(result) {
+            val (year, month, day) = it.destructured
+            val pastDate = LocalDateTime.of(year.toInt(), month.toInt(), day.toInt(), 0, 0, 0)
+            val today = LocalDateTime.now()
+
+            val daysBetween = ChronoUnit.DAYS.between(pastDate, today)
+
+            daysBetween.toString()
         }
 
         result = counterPattern.replace(result) {
