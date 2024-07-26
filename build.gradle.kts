@@ -78,3 +78,7 @@ tasks.withType<Jar> {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+tasks.named<JavaExec>("run") {
+    systemProperty("logback.configurationFile", "logback-debug.xml")
+}

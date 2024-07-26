@@ -19,7 +19,7 @@ object Connector {
 
     init {
         Database.connect(dataSource)
-        val tables = listOf(Users, Commands, Counters, DailyCounters, PersonalCounters)
+        val tables = listOf(Users, Commands, Counters, DailyCounters, PersonalCounters, Managers)
 
         transaction {
             SchemaUtils.createMissingTablesAndColumns(* tables.toTypedArray())

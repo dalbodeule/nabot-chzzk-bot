@@ -39,6 +39,14 @@ object UserService {
         }
     }
 
+    fun getUserWithGuildId(discordGuildId: Long): User? {
+        return transaction {
+            val users = User.find(Users.liveAlertGuild eq discordGuildId)
+
+            users.firstOrNull()
+        }
+    }
+
     fun getAllUsers(): List<User> {
         return transaction {
             User.all().toList()
