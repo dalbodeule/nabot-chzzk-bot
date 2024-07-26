@@ -119,72 +119,75 @@ class MessageHandler(
         var result = chat.first
         var isFail = false
 
-        result = dailyCounterPattern.replace(result) {
-            val name = it.groupValues[1]
+        // Replace dailyCounterPattern
+        result = dailyCounterPattern.replace(result) { matchResult ->
+            val name = matchResult.groupValues[1]
             val dailyCounter = CounterService.getDailyCounterValue(name, msg.userId, user)
 
-            return@replace if(dailyCounter.second)
+            if (dailyCounter.second) {
                 CounterService.updateDailyCounterValue(name, msg.userId, 1, user).first.toString()
-            else {
+            } else {
                 isFail = true
                 dailyCounter.first.toString()
             }
         }
 
-        if(isFail && chat.second != "") {
+        // Handle fail case
+        if (isFail && chat.second.isNotEmpty()) {
             result = chat.second
-            result = dailyCounterPattern.replace(result) {
-                val name = it.groupValues[1]
+            result = dailyCounterPattern.replace(result) { matchResult ->
+                val name = matchResult.groupValues[1]
                 val dailyCounter = CounterService.getDailyCounterValue(name, msg.userId, user)
-
                 dailyCounter.first.toString()
             }
         }
 
-        result = followPattern.replace(result) {
+        // Replace followPattern
+        result = followPattern.replace(result) { matchResult ->
             try {
                 val followingDate = getFollowDate(listener.chatId, msg.userId)
                     .content.streamingProperty.following?.followDate
 
-                return@replace when (followingDate) {
-                    null -> "0"
-                    else -> {
-                        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                        val pastDate = LocalDateTime.parse(followingDate, formatter)
-                        val today = LocalDateTime.now()
-                        val period = ChronoUnit.DAYS.between(pastDate, today)
+                val period = followingDate?.let {
+                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                    val pastDate = LocalDateTime.parse(it, formatter)
+                    val today = LocalDateTime.now()
+                    ChronoUnit.DAYS.between(pastDate, today)
+                } ?: 0
 
-                        "$period"
-                    }
-                }
+                period.toString()
             } catch (e: Exception) {
                 logger.error(e.message)
                 "0"
             }
         }
 
-        result = daysPattern.replace(result) {
-            val (year, month, day) = it.destructured
+        // Replace daysPattern
+        result = daysPattern.replace(result) { matchResult ->
+            val (year, month, day) = matchResult.destructured
             val pastDate = LocalDateTime.of(year.toInt(), month.toInt(), day.toInt(), 0, 0, 0)
             val today = LocalDateTime.now()
 
             val daysBetween = ChronoUnit.DAYS.between(pastDate, today)
-
             daysBetween.toString()
         }
 
-        result = counterPattern.replace(result) {
-            val name = it.groupValues[1]
+        // Replace counterPattern
+        result = counterPattern.replace(result) { matchResult ->
+            val name = matchResult.groupValues[1]
             CounterService.updateCounterValue(name, 1, user).toString()
         }
 
-        result = personalCounterPattern.replace(result) {
-            val name = it.groupValues[1]
+        // Replace personalCounterPattern
+        result = personalCounterPattern.replace(result) { matchResult ->
+            val name = matchResult.groupValues[1]
             CounterService.updatePersonalCounterValue(name, msg.userId, 1, user).toString()
         }
 
+        // Replace namePattern
         result = namePattern.replace(result, userName)
 
         return result
     }
+
 }
