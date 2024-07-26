@@ -4,11 +4,13 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import space.mori.chzzk_bot.dotenv
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.discord.commands.*
+import space.mori.chzzk_bot.services.ManagerService
 
 class Discord: ListenerAdapter() {
     private lateinit var bot: JDA
@@ -22,6 +24,9 @@ class Discord: ListenerAdapter() {
         RegisterCommand,
         RemoveCommand,
         UpdateCommand,
+        AddManagerCommand,
+        ListManagerCommand,
+        RemoveManagerCommand,
     )
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
@@ -29,6 +34,10 @@ class Discord: ListenerAdapter() {
         val handler = commands.find { it.name == event.name }
         logger.debug("Handler: ${handler?.name ?: "undefined"} command")
         handler?.run(event, bot)
+    }
+
+    override fun onGuildMemberRemove(event: GuildMemberRemoveEvent) {
+        event.member?.let { ManagerService.deleteManager(event.guild.idLong, it.idLong) }
     }
 
     internal fun enable() {
