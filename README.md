@@ -21,12 +21,26 @@
 - [x] /register chzzk_id: \[치지직 고유ID]
 - [x] /alert channel: \[디스코드 Channel ID] content: \[알림 내용]
 - [x] /add label: \[명령어] content: \[내용]
+- [ ] /list
 - [x] /update label: \[명령어] content: \[내용]
 - [x] /delete label: \[명령어]
+### 매니저 명령어 (on Discord)
+- [x] /addmanager user: \[Discord user]
+- [x] /listmanager
+- [x] /removemanager user: \[Discord user]
 ### 관리 명령어 (on Chzzk chat)
 - [x] !명령어추가 \[명령어] \[내용]
 - [x] !명령어수정 \[명령어] \[내용]
 - [x] !명령어삭제 \[명령어]
+
+### Envs
+- DISCORD_TOKEN
+- DB_URL
+- DB_USER
+- DB_PASS
+- RUN_AGENT = `false`
+- NID_AUT
+- NID_SES
 
 ### 사용 예시
 - 팔로우
