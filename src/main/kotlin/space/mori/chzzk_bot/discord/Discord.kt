@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.events.guild.GuildJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
@@ -40,6 +41,26 @@ class Discord: ListenerAdapter() {
         event.member?.let { ManagerService.deleteManager(event.guild.idLong, it.idLong) }
     }
 
+    override fun onGuildJoin(event: GuildJoinEvent) {
+        commandUpdate(event.guild)
+    }
+
+    private fun commandUpdate(guild: Guild) {
+        guild.updateCommands().addCommands(* commands.map { it.command}.toTypedArray())
+            .onSuccess {
+                logger.info("Command update on guild success!")
+            }
+            .queue()
+    }
+
+    private fun commandUpdate(bot: JDA) {
+        bot.updateCommands().addCommands(* commands.map { it.command}.toTypedArray())
+            .onSuccess {
+                logger.info("Command update bot boot success!")
+            }
+            .queue()
+    }
+
     internal fun enable() {
         val thread = Thread {
             try {
@@ -50,18 +71,9 @@ class Discord: ListenerAdapter() {
 
                 guild = bot.getGuildById(dotenv["GUILD_ID"])
 
-                bot.updateCommands()
-                    .addCommands(* commands.map { it.command }.toTypedArray())
-                    .onSuccess {
-                        logger.info("Command update success!")
-                        logger.debug("Command list: ${commands.joinToString("/ ") { it.name }}")
-                    }
-                    .queue()
-
-
-                if (guild == null) {
-                    logger.info("No guild found!")
-                    this.disable()
+                commandUpdate(bot)
+                bot.guilds.forEach {
+                    commandUpdate(it)
                 }
             } catch (e: Exception) {
                 logger.info("Could not enable Discord!")
