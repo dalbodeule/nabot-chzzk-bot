@@ -96,6 +96,7 @@ object CounterService {
                 Pair(counter.value, false)
             else {
                 counter.value += increment
+                counter.updatedAt = today
                 Pair(counter.value, true)
             }
         }
