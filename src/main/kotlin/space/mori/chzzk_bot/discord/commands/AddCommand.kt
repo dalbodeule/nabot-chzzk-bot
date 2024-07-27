@@ -10,6 +10,7 @@ import space.mori.chzzk_bot.chzzk.ChzzkHandler
 import space.mori.chzzk_bot.chzzk.Connector
 import space.mori.chzzk_bot.discord.CommandInterface
 import space.mori.chzzk_bot.services.CommandService
+import space.mori.chzzk_bot.services.ManagerService
 import space.mori.chzzk_bot.services.UserService
 
 object AddCommand : CommandInterface {
@@ -30,10 +31,16 @@ object AddCommand : CommandInterface {
             return
         }
 
-        val user = UserService.getUser(event.user.idLong)
-        if(user == null) {
-            event.hook.sendMessage("치지직 계정을 찾을 수 없습니다.").queue()
+        var user = UserService.getUser(event.user.idLong)
+        val manager = event.guild?.idLong?.let { ManagerService.getUser(it, event.user.idLong) }
+        if(user == null && manager == null) {
+            event.hook.sendMessage("당신은 이 명령어를 사용할 수 없습니다.").queue()
             return
+        }
+
+        if (user == null) {
+            user = manager!!.user
+            ManagerService.updateManager(user, event.user.idLong, event.user.effectiveName)
         }
 
         val commands = CommandService.getCommands(user)

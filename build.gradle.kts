@@ -29,22 +29,23 @@ repositories {
 
 dependencies {
     // https://mvnrepository.com/artifact/net.dv8tion/JDA
-    implementation("net.dv8tion:JDA:5.0.0-beta.24") {
+    implementation("net.dv8tion:JDA:5.0.1") {
         exclude(module = "opus-java")
     }
     // https://mvnrepository.com/artifact/io.github.R2turnTrue/chzzk4j
-    implementation("io.github.R2turnTrue:chzzk4j:0.0.8")
+    implementation("io.github.R2turnTrue:chzzk4j:0.0.9")
 
-    implementation("ch.qos.logback:logback-classic:1.4.14")
+    // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+    implementation("ch.qos.logback:logback-classic:1.5.6")
 
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core
-    implementation("org.jetbrains.exposed:exposed-core:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-core:0.52.0")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
-    implementation("org.jetbrains.exposed:exposed-dao:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-dao:0.52.0")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-jdbc:0.52.0")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-kotlin-datetime
-    implementation("org.jetbrains.exposed:exposed-java-time:0.51.1")
+    implementation("org.jetbrains.exposed:exposed-java-time:0.52.0")
 
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     implementation("com.zaxxer:HikariCP:5.1.0")
@@ -54,11 +55,13 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
 
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
     implementation("com.google.code.gson:gson:2.11.0")
 
     // https://mvnrepository.com/artifact/org.mariadb.jdbc/mariadb-java-client
-    implementation("org.mariadb.jdbc:mariadb-java-client:3.4.0")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.4.1")
 
+    // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-kotlin
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
     kotlin("stdlib")
