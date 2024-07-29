@@ -38,12 +38,12 @@ object AddCommand : CommandInterface {
             return
         }
 
-        if (user == null) {
-            user = manager!!.user
+        if (manager != null) {
+            user = manager.user
             ManagerService.updateManager(user, event.user.idLong, event.user.effectiveName)
         }
 
-        val commands = CommandService.getCommands(user)
+        val commands = CommandService.getCommands(user!!)
         if (commands.any { it.command == label }) {
             event.hook.sendMessage("$label 명령어는 이미 있습니다! 업데이트 명령어를 써주세요.").queue()
             return
