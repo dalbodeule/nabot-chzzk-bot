@@ -30,12 +30,12 @@ object AlertCommand : CommandInterface {
             return
         }
 
-        if (user == null) {
-            user = manager!!.user
+        if (manager != null) {
+            user = manager.user
             ManagerService.updateManager(user, event.user.idLong, event.user.effectiveName)
         }
 
-        val chzzkChannel = Connector.getChannel(user.token)
+        val chzzkChannel = Connector.getChannel(user!!.token)
 
         try {
             val newUser = UserService.updateLiveAlert(user.id.value, channel?.guild?.idLong ?: 0L, channel?.idLong ?: 0L, content ?: "")

@@ -34,12 +34,12 @@ object RemoveCommand : CommandInterface {
             return
         }
 
-        if (user == null) {
-            user = manager!!.user
+        if (manager != null) {
+            user = manager.user
             ManagerService.updateManager(user, event.user.idLong, event.user.effectiveName)
         }
 
-        val chzzkChannel = Connector.getChannel(user.token)
+        val chzzkChannel = Connector.getChannel(user!!.token)
 
         try {
             CommandService.removeCommand(user, label)
