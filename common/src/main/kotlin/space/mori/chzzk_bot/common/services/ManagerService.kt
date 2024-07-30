@@ -1,5 +1,7 @@
 package space.mori.chzzk_bot.common.services
 
+import org.jetbrains.exposed.dao.load
+import org.jetbrains.exposed.dao.with
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -23,14 +25,16 @@ object ManagerService {
     }
 
     fun updateManager(user: User, discordId: Long, name: String): Manager {
-        if (user.liveAlertGuild == null)
-            throw RuntimeException("${user.username} has no liveAlertGuild")
+        return transaction {
+            if (user.liveAlertGuild == null)
+                throw RuntimeException("${user.username} has no liveAlertGuild")
 
-        val manager = getUser(user.liveAlertGuild!!, discordId) ?: throw RuntimeException("$name isn't manager.")
+            val manager = getUser(user.liveAlertGuild!!, discordId) ?: throw RuntimeException("$name isn't manager.")
 
-        manager.lastUserName = name
+            manager.lastUserName = name
 
-        return manager
+            manager
+        }
     }
 
     fun getUser(guildId: Long, discordId: Long): Manager? {
@@ -38,19 +42,19 @@ object ManagerService {
             val manager = Manager.find(
                 (Managers.discordGuildId eq guildId) and (Managers.managerId eq discordId),
             )
-
-            val result = manager.firstOrNull()
-
-            result?.eagerLoad()
-            result
+                .with(Manager::user)
+                .firstOrNull()
+            manager
         }
     }
 
     fun getAllUsers(guildId: Long): List<Manager> {
         return transaction {
-            val result = Manager.find(Managers.discordGuildId eq guildId).toList()
+            val result = Manager.find(Managers.discordGuildId eq guildId)
+                .with(Manager::user)
+                .toList()
 
-            result.forEach { it.eagerLoad() }
+            result.forEach { it.load(Manager::user) }
 
             result
         }
@@ -71,9 +75,5 @@ object ManagerService {
 
             managerRow
         }
-    }
-
-    fun Manager.eagerLoad() {
-        this.user
     }
 }
