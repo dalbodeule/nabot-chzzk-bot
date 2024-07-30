@@ -14,6 +14,13 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
         maven { url = uri("https://maven.covers1624.net") }
-        maven { url = uri("https://repo.spring.io/plugins-release/") }
+        maven { url = uri("https://jitpack.io") }
+
     }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
+}
+include("common")
+include("chatbot")
+include("webserver")
