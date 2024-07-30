@@ -5,9 +5,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import space.mori.chzzk_bot.chzzk.ChzzkHandler
-import space.mori.chzzk_bot.discord.Discord
-import space.mori.chzzk_bot.chzzk.Connector as ChzzkConnector
+import space.mori.chzzk_bot.chatbot.chzzk.ChzzkHandler
+import space.mori.chzzk_bot.chatbot.discord.Discord
+import space.mori.chzzk_bot.chatbot.chzzk.Connector as ChzzkConnector
+import space.mori.chzzk_bot.common.Connector
+import space.mori.chzzk_bot.webserver.start
+import space.mori.chzzk_bot.webserver.stop
 import java.util.concurrent.TimeUnit
 import kotlin.system.exitProcess
 
@@ -26,6 +29,7 @@ fun main(args: Array<String>) {
     discord.enable()
     chzzkHandler.enable()
     chzzkHandler.runStreamInfo()
+    start()
 
     if(dotenv.get("RUN_AGENT", "false").toBoolean()) {
         runBlocking {
@@ -36,6 +40,8 @@ fun main(args: Array<String>) {
 
     Runtime.getRuntime().addShutdownHook(Thread {
         logger.info("Shutting down...")
+        stop()
+
         chzzkHandler.stopStreamInfo()
         chzzkHandler.disable()
         discord.disable()
