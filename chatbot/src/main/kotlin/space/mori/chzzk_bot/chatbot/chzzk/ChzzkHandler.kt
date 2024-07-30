@@ -12,6 +12,7 @@ import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
 import java.lang.Exception
 import java.net.SocketTimeoutException
+import java.time.LocalDateTime
 
 object ChzzkHandler {
     private val handlers = mutableListOf<UserHandler>()
@@ -19,7 +20,7 @@ object ChzzkHandler {
     @Volatile private var running: Boolean = false
 
     fun addUser(chzzkChannel: ChzzkChannel, user: User) {
-        handlers.add(UserHandler(chzzkChannel, logger, user))
+        handlers.add(UserHandler(chzzkChannel, logger, user, streamStartTime = null))
     }
 
     fun enable() {
@@ -82,18 +83,19 @@ object ChzzkHandler {
 
 class UserHandler(
     val channel: ChzzkChannel,
-    private val logger: Logger,
+    val logger: Logger,
     private var user: User,
-    private var _isActive: Boolean = false
+    private var _isActive: Boolean = false,
+    var streamStartTime: LocalDateTime?,
 ) {
     private lateinit var messageHandler: MessageHandler
 
-    private var listener: ChzzkChat = chzzk.chat(channel.channelId)
+    var listener: ChzzkChat = chzzk.chat(channel.channelId)
         .withAutoReconnect(true)
         .withChatListener(object : ChatEventListener {
             override fun onConnect(chat: ChzzkChat, isReconnecting: Boolean) {
                 logger.info("ChzzkChat connected. ${channel.channelName} - ${channel.channelId} / reconnected: $isReconnecting")
-                messageHandler = MessageHandler(channel, logger, chat)
+                messageHandler = MessageHandler(this@UserHandler)
             }
 
             override fun onError(ex: Exception) {
@@ -137,11 +139,13 @@ class UserHandler(
             listener.connectBlocking()
 
             Discord.sendDiscord(user, status)
+            streamStartTime = LocalDateTime.now()
 
             listener.sendChat("${user.username} 님의 방송이 감지되었습니다.")
 
         } else {
             logger.info("${user.username} is offline.")
+            streamStartTime = null
             listener.closeAsync()
         }
     }
