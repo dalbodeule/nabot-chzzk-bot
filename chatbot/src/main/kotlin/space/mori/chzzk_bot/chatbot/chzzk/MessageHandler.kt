@@ -38,7 +38,7 @@ class MessageHandler(
         val user = UserService.getUser(channel.channelId)
             ?: throw RuntimeException("User not found. it's bug? ${channel.channelName} - ${channel.channelId}")
         val commands = CommandService.getCommands(user)
-        val manageCommands = mapOf("!명령어추가" to this::manageAddCommand, "!명령어삭제" to this::manageRemoveCommand, "!명령어수정" to this::manageUpdateCommand)
+        val manageCommands = mapOf("!명령어추가" to this::manageAddCommand, "!명령어삭제" to this::manageRemoveCommand, "!명령어수정" to this::manageUpdateCommand, "!시간" to this::timerCommand)
 
         manageCommands.forEach { (commandName, command) ->
             this.commands[commandName] = command
@@ -112,7 +112,7 @@ class MessageHandler(
         listener.sendChat("명령어 '$command' 삭제되었습니다.")
     }
 
-    private suspend fun timerCommand(msg: ChatMessage, user: User) {
+    private fun timerCommand(msg: ChatMessage, user: User) {
         if (msg.profile?.userRoleCode == "common_user") {
             listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
