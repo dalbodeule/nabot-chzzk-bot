@@ -1,6 +1,7 @@
 package space.mori.chzzk_bot.webserver
 
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
@@ -12,9 +13,18 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
 import space.mori.chzzk_bot.webserver.routes.apiRoutes
+import space.mori.chzzk_bot.webserver.routes.wsTimerRoutes
+import java.time.Duration
 
 val server = embeddedServer(Netty, port = 8080) {
-    install(WebSockets)
+    install(WebSockets) {
+        pingPeriod = Duration.ofSeconds(15)
+        timeout = Duration.ofSeconds(15)
+        maxFrameSize = Long.MAX_VALUE
+        masking = false
+        contentConverter = KotlinxWebsocketSerializationConverter(Json)
+    }
+
     install(ContentNegotiation) {
         json(Json {
             prettyPrint = true
@@ -27,6 +37,7 @@ val server = embeddedServer(Netty, port = 8080) {
     }
     routing {
         apiRoutes()
+        wsTimerRoutes()
         swaggerUI("swagger-ui/index.html", "openapi/documentation.yaml") {
             options {
                 version = "1.1.0"

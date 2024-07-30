@@ -1,22 +1,21 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
-import org.slf4j.Logger
+import space.mori.chzzk_bot.common.events.EventDispatcher
+import space.mori.chzzk_bot.common.events.TimerEvent
+import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.CommandService
 import space.mori.chzzk_bot.common.services.CounterService
 import space.mori.chzzk_bot.common.services.UserService
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
-import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
 
 class MessageHandler(
-    private val channel: ChzzkChannel,
-    private val logger: Logger,
-    private val listener: ChzzkChat
+    private val handler: UserHandler
 ) {
     private val commands = mutableMapOf<String, (msg: ChatMessage, user: User) -> Unit>()
 
@@ -26,6 +25,10 @@ class MessageHandler(
     private val namePattern = Regex("<name>")
     private val followPattern = Regex("<following>")
     private val daysPattern = """<days:(\d{4})-(\d{2})-(\d{2})>""".toRegex()
+
+    private val channel = handler.channel
+    private val logger = handler.logger
+    private val listener = handler.listener
 
     init {
         reloadCommand()
@@ -107,6 +110,50 @@ class MessageHandler(
         val command = parts[1]
         CommandService.removeCommand(user, command)
         listener.sendChat("명령어 '$command' 삭제되었습니다.")
+    }
+
+    private suspend fun timerCommand(msg: ChatMessage, user: User) {
+        if (msg.profile?.userRoleCode == "common_user") {
+            listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+            return
+        }
+
+        val parts = msg.content.split("/", limit = 2)
+        if (parts.size < 2) {
+            listener.sendChat("타이머 명령어 형식을 잘 찾아봐주세요!")
+            return
+        }
+
+        val command = parts[1]
+        val dispatcher = EventDispatcher
+        when(command) {
+            "업타임" -> {
+                val currentTime = LocalDateTime.now()
+                val streamOnTime = handler.streamStartTime
+
+                val hours = ChronoUnit.HOURS.between(currentTime, streamOnTime)
+                val minutes = ChronoUnit.MINUTES.between(currentTime.plusHours(hours), streamOnTime)
+                val seconds = ChronoUnit.MINUTES.between(currentTime.plusHours(hours).plusMinutes(minutes), streamOnTime)
+
+                dispatcher.dispatch(TimerEvent(
+                    user.token,
+                    TimerType.TIMER,
+                    String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                ))
+            }
+            "삭제" -> dispatcher.dispatch(TimerEvent(user.token, TimerType.REMOVE, ""))
+            else -> {
+                try {
+                    val time = command.toInt()
+                    val currentTime = LocalDateTime.now()
+                    val timestamp = ChronoUnit.MINUTES.addTo(currentTime, time.toLong())
+
+                    dispatcher.dispatch(TimerEvent(user.token, TimerType.TIMER, timestamp.toString()))
+                } catch(_: Exception) {
+                    listener.sendChat("!타이머/숫자 형식으로 적어주세요! 단위: 분")
+                }
+            }
+        }
     }
 
     internal fun handle(msg: ChatMessage, user: User) {
