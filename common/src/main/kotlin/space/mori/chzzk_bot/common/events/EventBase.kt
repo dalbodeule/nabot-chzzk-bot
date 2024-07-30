@@ -3,7 +3,7 @@ package space.mori.chzzk_bot.common.events
 interface Event
 
 interface EventHandler<E: Event> {
-    suspend fun handle(event: E)
+    fun handle(event: E)
 }
 
 object EventDispatcher {
@@ -13,7 +13,7 @@ object EventDispatcher {
         handlers.computeIfAbsent(eventClass) { mutableListOf() }.add(handler)
     }
 
-    suspend fun <E : Event> dispatch(event: E) {
+    fun <E : Event> dispatch(event: E) {
         handlers[event::class.java]?.forEach { (it as EventHandler<E>).handle(event) }
     }
 }

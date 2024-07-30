@@ -3,7 +3,10 @@ package space.mori.chzzk_bot.webserver.routes
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.events.Event
 import space.mori.chzzk_bot.common.events.TimerType
@@ -52,8 +55,10 @@ fun Routing.wsTimerRoutes() {
         val dispatcher = EventDispatcher
 
         dispatcher.register(TimerEvent::class.java, object : EventHandler<TimerEvent> {
-            override suspend fun handle(event: TimerEvent) {
-                sessions[event.uid]?.sendSerialized(TimerResponse(event.type, event.time ?: ""))
+            override fun handle(event: TimerEvent) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    sessions[event.uid]?.sendSerialized(TimerResponse(event.type, event.time ?: ""))
+                }
             }
         })
     }
