@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.ChzzkHandler
 import space.mori.chzzk_bot.chatbot.chzzk.Connector
@@ -31,14 +32,21 @@ object AlertCommand : CommandInterface {
         }
 
         if (manager != null) {
-            user = manager.user
-            ManagerService.updateManager(user, event.user.idLong, event.user.effectiveName)
+            transaction {
+                user = manager.user
+            }
+            user?.let { ManagerService.updateManager(it, event.user.idLong, event.user.effectiveName) }
+        }
+
+        if (user == null) {
+            event.hook.sendMessage("에러가 발생했습니다.").queue()
+            return
         }
 
         val chzzkChannel = Connector.getChannel(user!!.token)
 
         try {
-            val newUser = UserService.updateLiveAlert(user.id.value, channel?.guild?.idLong ?: 0L, channel?.idLong ?: 0L, content ?: "")
+            val newUser = UserService.updateLiveAlert(user!!.id.value, channel?.guild?.idLong ?: 0L, channel?.idLong ?: 0L, content ?: "")
             try {
                 ChzzkHandler.reloadUser(chzzkChannel!!, newUser)
             } catch (_: Exception) {}

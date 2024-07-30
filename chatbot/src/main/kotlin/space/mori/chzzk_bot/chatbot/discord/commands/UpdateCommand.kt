@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.commands.OptionType
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.OptionData
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.ChzzkHandler
 import space.mori.chzzk_bot.chatbot.chzzk.Connector
@@ -39,14 +40,21 @@ object UpdateCommand : CommandInterface {
         }
 
         if (manager != null) {
-            user = manager.user
-            ManagerService.updateManager(user, event.user.idLong, event.user.effectiveName)
+            transaction {
+                user = manager.user
+            }
+            user?.let { ManagerService.updateManager(it, event.user.idLong, event.user.effectiveName) }
+        }
+
+        if (user == null) {
+            event.hook.sendMessage("에러가 발생했습니다.").queue()
+            return
         }
 
         val chzzkChannel = Connector.getChannel(user!!.token)
 
         try {
-            CommandService.updateCommand(user, label, content, failContent ?: "")
+            CommandService.updateCommand(user!!, label, content, failContent ?: "")
             chzzkChannel?.let { ChzzkHandler.reloadCommand(it) }
             event.hook.sendMessage("등록이 완료되었습니다. $label = $content").queue()
         } catch (e: Exception) {
