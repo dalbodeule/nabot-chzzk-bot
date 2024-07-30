@@ -26,10 +26,8 @@ object ManagerService {
         if (user.liveAlertGuild == null)
             throw RuntimeException("${user.username} has no liveAlertGuild")
 
-        val manager = getUser(user.liveAlertGuild!!, discordId)
+        val manager = getUser(user.liveAlertGuild!!, discordId) ?: throw RuntimeException("$name isn't manager.")
 
-        if (manager == null)
-            throw RuntimeException("$name isn't manager.")
         manager.lastUserName = name
 
         return manager
@@ -38,16 +36,23 @@ object ManagerService {
     fun getUser(guildId: Long, discordId: Long): Manager? {
         return transaction {
             val manager = Manager.find(
-                (Managers.discordGuildId eq guildId) and (Managers.managerId eq discordId)
+                (Managers.discordGuildId eq guildId) and (Managers.managerId eq discordId),
             )
 
-            manager.firstOrNull()
+            val result = manager.firstOrNull()
+
+            result?.eagerLoad()
+            result
         }
     }
 
     fun getAllUsers(guildId: Long): List<Manager> {
         return transaction {
-            Manager.find(Managers.discordGuildId eq guildId).toList()
+            val result = Manager.find(Managers.discordGuildId eq guildId).toList()
+
+            result.forEach { it.eagerLoad() }
+
+            result
         }
     }
 
@@ -66,5 +71,9 @@ object ManagerService {
 
             managerRow
         }
+    }
+
+    fun Manager.eagerLoad() {
+        this.user
     }
 }
