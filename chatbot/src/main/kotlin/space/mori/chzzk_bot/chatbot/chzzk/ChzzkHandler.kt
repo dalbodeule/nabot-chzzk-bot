@@ -1,5 +1,9 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.chzzk
@@ -138,11 +142,14 @@ class UserHandler(
             logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
             listener.connectBlocking()
 
-            Discord.sendDiscord(user, status)
             streamStartTime = LocalDateTime.now()
 
             listener.sendChat("${user.username} 님의 방송이 감지되었습니다.")
 
+            CoroutineScope(Dispatchers.Default).launch {
+                delay(5000L)
+                Discord.sendDiscord(user, status)
+            }
         } else {
             logger.info("${user.username} is offline.")
             streamStartTime = null

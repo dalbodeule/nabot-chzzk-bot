@@ -29,6 +29,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
     implementation("org.jetbrains.kotlin:kotlin-reflect:2.0.0")
 
+    // https://mvnrepository.com/artifact/io.insert-koin/koin-core
+    implementation("io.insert-koin:koin-core:4.0.0-RC1")
+
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
