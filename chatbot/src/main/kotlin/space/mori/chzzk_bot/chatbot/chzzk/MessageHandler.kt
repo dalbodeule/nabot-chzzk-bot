@@ -130,7 +130,8 @@ class MessageHandler(
             return
         }
 
-        when (val command = parts[1]) {
+        val command = parts[1]
+        when (parts[1]) {
             "업타임" -> {
                 logger.debug("${user.token} / 업타임")
                 val currentTime = LocalDateTime.now()
