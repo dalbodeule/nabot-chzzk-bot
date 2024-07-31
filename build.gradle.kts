@@ -27,11 +27,6 @@ repositories {
 }
 
 dependencies {
-    // https://mvnrepository.com/artifact/net.dv8tion/JDA
-    implementation("net.dv8tion:JDA:5.0.1") {
-        exclude(module = "opus-java")
-    }
-
     // https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
     implementation("ch.qos.logback:logback-classic:1.5.6")
 
@@ -45,6 +40,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-kotlin
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
+
+    // https://mvnrepository.com/artifact/io.insert-koin/koin-core
+    implementation("io.insert-koin:koin-core:4.0.0-RC1")
 
     kotlin("stdlib")
 

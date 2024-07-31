@@ -1,19 +1,32 @@
 package space.mori.chzzk_bot.common.events
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
+
 interface Event
 
-interface EventHandler<E: Event> {
-    fun handle(event: E)
+interface EventBus {
+    suspend fun <T: Event> post(event: T)
+    fun <T: Event> subscribe(eventClass: KClass<T>, listener: (T) -> Unit)
 }
 
-object EventDispatcher {
-    private val handlers = mutableMapOf<Class<out Event>, MutableList<EventHandler<out Event>>>()
+class CoroutinesEventBus: EventBus {
+    private val _events = MutableSharedFlow<Event>()
+    val events: SharedFlow<Event> get() = _events
 
-    fun <E : Event> register(eventClass: Class<E>, handler: EventHandler<E>) {
-        handlers.computeIfAbsent(eventClass) { mutableListOf() }.add(handler)
-    }
+    override suspend fun<T: Event> post(event: T) = _events.emit(event)
 
-    fun <E : Event> dispatch(event: E) {
-        handlers[event::class.java]?.forEach { (it as EventHandler<E>).handle(event) }
+    override fun <T: Event> subscribe(eventClass: KClass<T>, listener: (T) -> Unit) {
+        CoroutineScope(Dispatchers.Default).launch {
+            events.filterIsInstance(eventClass)
+                .collect {
+                    listener(it)
+                }
+        }
     }
 }

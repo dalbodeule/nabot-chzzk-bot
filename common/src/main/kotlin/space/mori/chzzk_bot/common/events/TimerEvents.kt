@@ -8,4 +8,6 @@ class TimerEvent(
     val uid: String,
     val type: TimerType,
     val time: String?
-): Event
+): Event {
+    var TAG = javaClass.simpleName
+}

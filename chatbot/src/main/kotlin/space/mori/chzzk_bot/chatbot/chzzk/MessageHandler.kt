@@ -1,6 +1,10 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
-import space.mori.chzzk_bot.common.events.EventDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
+import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.events.TimerEvent
 import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
@@ -29,6 +33,8 @@ class MessageHandler(
     private val channel = handler.channel
     private val logger = handler.logger
     private val listener = handler.listener
+
+    private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     init {
         reloadCommand()
@@ -118,39 +124,53 @@ class MessageHandler(
             return
         }
 
-        val parts = msg.content.split("/", limit = 2)
+        val parts = msg.content.split(" ", limit = 2)
         if (parts.size < 2) {
             listener.sendChat("타이머 명령어 형식을 잘 찾아봐주세요!")
             return
         }
 
-        val command = parts[1]
-        val dispatcher = EventDispatcher
-        when(command) {
+        when (val command = parts[1]) {
             "업타임" -> {
+                logger.debug("${user.token} / 업타임")
                 val currentTime = LocalDateTime.now()
                 val streamOnTime = handler.streamStartTime
 
-                val hours = ChronoUnit.HOURS.between(currentTime, streamOnTime)
-                val minutes = ChronoUnit.MINUTES.between(currentTime.plusHours(hours), streamOnTime)
-                val seconds = ChronoUnit.MINUTES.between(currentTime.plusHours(hours).plusMinutes(minutes), streamOnTime)
+                val hours = ChronoUnit.HOURS.between(streamOnTime, currentTime)
+                val minutes = ChronoUnit.MINUTES.between(streamOnTime?.plusHours(hours), currentTime)
+                val seconds = ChronoUnit.SECONDS.between(streamOnTime?.plusHours(hours)?.plusMinutes(minutes), currentTime)
 
-                dispatcher.dispatch(TimerEvent(
-                    user.token,
-                    TimerType.TIMER,
-                    String.format("%02d:%02d:%02d", hours, minutes, seconds)
-                ))
+                CoroutineScope(Dispatchers.Default).launch {
+                    dispatcher.post(
+                        TimerEvent(
+                            user.token,
+                            TimerType.TIMER,
+                            String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                        )
+                    )
+                }
             }
-            "삭제" -> dispatcher.dispatch(TimerEvent(user.token, TimerType.REMOVE, ""))
+            "삭제" -> {
+                logger.debug("${user.token} / 삭제")
+                CoroutineScope(Dispatchers.Default).launch {
+                    dispatcher.post(TimerEvent(user.token, TimerType.REMOVE, ""))
+                }
+            }
             else -> {
+                logger.debug("${user.token} / 그외")
                 try {
                     val time = command.toInt()
                     val currentTime = LocalDateTime.now()
-                    val timestamp = ChronoUnit.MINUTES.addTo(currentTime, time.toLong())
+                    val timestamp = currentTime.plus(time.toLong(), ChronoUnit.MINUTES)
 
-                    dispatcher.dispatch(TimerEvent(user.token, TimerType.TIMER, timestamp.toString()))
-                } catch(_: Exception) {
+                    CoroutineScope(Dispatchers.Default).launch {
+                        dispatcher.post(TimerEvent(user.token, TimerType.TIMER, timestamp.toString()))
+                    }
+                } catch (e: NumberFormatException) {
                     listener.sendChat("!타이머/숫자 형식으로 적어주세요! 단위: 분")
+                } catch (e: Exception) {
+                    listener.sendChat("타이머 설정 중 오류가 발생했습니다.")
+                    logger.error("Error processing timer command: ${e.message}", e)
                 }
             }
         }
@@ -190,7 +210,7 @@ class MessageHandler(
         }
 
         // Replace followPattern
-        result = followPattern.replace(result) { matchResult ->
+        result = followPattern.replace(result) { _ ->
             try {
                 val followingDate = getFollowDate(listener.chatId, msg.userId)
                     .content.streamingProperty.following?.followDate

@@ -11,7 +11,7 @@ repositories {
 
 dependencies {
     // https://mvnrepository.com/artifact/net.dv8tion/JDA
-    implementation("net.dv8tion:JDA:5.0.1") {
+    api("net.dv8tion:JDA:5.0.1") {
         exclude(module = "opus-java")
     }
 
@@ -34,6 +34,9 @@ dependencies {
 
     // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // https://mvnrepository.com/artifact/io.insert-koin/koin-core
+    implementation("io.insert-koin:koin-core:4.0.0-RC1")
 
     testImplementation(kotlin("test"))
 
