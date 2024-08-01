@@ -145,7 +145,7 @@ class MessageHandler(
                     dispatcher.post(
                         TimerEvent(
                             user.token,
-                            TimerType.TIMER,
+                            TimerType.UPTIME,
                             String.format("%02d:%02d:%02d", hours, minutes, seconds)
                         )
                     )
