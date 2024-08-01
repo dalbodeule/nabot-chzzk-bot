@@ -60,13 +60,13 @@ fun Routing.wsTimerRoutes() {
     dispatcher.subscribe(TimerEvent::class) {
         logger.debug("TimerEvent: {} / {}", it.uid, it.type)
         CoroutineScope(Dispatchers.Default).launch {
-            sessions[it.uid]?.sendSerialized(TimerResponse(it.type, it.time ?: ""))
+            sessions[it.uid]?.sendSerialized(TimerResponse(it.type.value, it.time ?: ""))
         }
     }
 }
 
 @Serializable
 data class TimerResponse(
-    val type: TimerType,
+    val type: Int,
     val time: String?
 )
