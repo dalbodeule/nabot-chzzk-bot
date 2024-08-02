@@ -14,12 +14,24 @@ import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.services.UserService
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.ConcurrentLinkedQueue
 
 val logger: Logger = LoggerFactory.getLogger("WSTimerRoutes")
 
 fun Routing.wsTimerRoutes() {
-    val sessions = ConcurrentHashMap<String, WebSocketServerSession>()
+    val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, TimerType>()
+
+    fun addSession(uid: String, session: WebSocketServerSession) {
+        sessions.computeIfAbsent(uid) { ConcurrentLinkedQueue() }.add(session)
+    }
+
+    fun removeSession(uid: String, session: WebSocketServerSession) {
+        sessions[uid]?.remove(session)
+        if(sessions[uid]?.isEmpty() == true) {
+            sessions.remove(uid)
+        }
+    }
 
     webSocket("/timer/{uid}") {
         val uid = call.parameters["uid"]
@@ -33,7 +45,8 @@ fun Routing.wsTimerRoutes() {
             return@webSocket
         }
 
-        sessions[uid] = this
+        addSession(uid, this)
+
         if(status[uid] == TimerType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, ""))
@@ -52,10 +65,10 @@ fun Routing.wsTimerRoutes() {
                     }
                 }
             }
-        } catch(_: ClosedReceiveChannelException) {
-
+        } catch(e: ClosedReceiveChannelException) {
+            logger.error("Error in WebSocket: ${e.message}")
         } finally {
-            sessions.remove(uid)
+            removeSession(uid, this)
         }
     }
 
@@ -65,7 +78,9 @@ fun Routing.wsTimerRoutes() {
         logger.debug("TimerEvent: {} / {}", it.uid, it.type)
         status[it.uid] = it.type
         CoroutineScope(Dispatchers.Default).launch {
-            sessions[it.uid]?.sendSerialized(TimerResponse(it.type.value, it.time ?: ""))
+            sessions[it.uid]?.forEach { ws ->
+                ws.sendSerialized(TimerResponse(it.type.value, it.time ?: ""))
+            }
         }
     }
 }
