@@ -3,7 +3,9 @@ package space.mori.chzzk_bot.common.events
 enum class TimerType(var value: Int) {
     UPTIME(0),
     TIMER(1),
-    REMOVE(2)
+    REMOVE(2),
+
+    STREAM_OFF(50)
 }
 
 class TimerEvent(
