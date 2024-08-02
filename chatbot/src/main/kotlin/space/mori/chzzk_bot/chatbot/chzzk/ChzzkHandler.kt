@@ -4,12 +4,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.chzzk
 import space.mori.chzzk_bot.chatbot.discord.Discord
+import space.mori.chzzk_bot.common.events.CoroutinesEventBus
+import space.mori.chzzk_bot.common.events.TimerEvent
+import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.utils.getUptime
 import xyz.r2turntrue.chzzk4j.chat.ChatEventListener
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
@@ -93,6 +98,7 @@ class UserHandler(
     var streamStartTime: LocalDateTime?,
 ) {
     private lateinit var messageHandler: MessageHandler
+    private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     var listener: ChzzkChat = chzzk.chat(channel.channelId)
         .withAutoReconnect(true)
@@ -144,16 +150,28 @@ class UserHandler(
 
             streamStartTime = LocalDateTime.now()
 
-            listener.sendChat("${user.username} 님의 방송이 감지되었습니다.")
-
             CoroutineScope(Dispatchers.Default).launch {
+                dispatcher.post(TimerEvent(
+                    channel.channelId,
+                    TimerType.UPTIME,
+                    getUptime(streamStartTime!!)
+                ))
                 delay(5000L)
+                listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
                 Discord.sendDiscord(user, status)
             }
         } else {
             logger.info("${user.username} is offline.")
             streamStartTime = null
             listener.closeAsync()
+
+            CoroutineScope(Dispatchers.Default).launch {
+                dispatcher.post(TimerEvent(
+                    channel.channelId,
+                    TimerType.STREAM_OFF,
+                    ""
+                ))
+            }
         }
     }
 }

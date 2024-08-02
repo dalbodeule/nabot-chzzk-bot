@@ -11,6 +11,7 @@ import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.CommandService
 import space.mori.chzzk_bot.common.services.CounterService
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.utils.getUptime
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import java.time.LocalDateTime
@@ -134,19 +135,13 @@ class MessageHandler(
         when (parts[1]) {
             "업타임" -> {
                 logger.debug("${user.token} / 업타임")
-                val currentTime = LocalDateTime.now()
-                val streamOnTime = handler.streamStartTime
-
-                val hours = ChronoUnit.HOURS.between(streamOnTime, currentTime)
-                val minutes = ChronoUnit.MINUTES.between(streamOnTime?.plusHours(hours), currentTime)
-                val seconds = ChronoUnit.SECONDS.between(streamOnTime?.plusHours(hours)?.plusMinutes(minutes), currentTime)
 
                 CoroutineScope(Dispatchers.Default).launch {
                     dispatcher.post(
                         TimerEvent(
                             user.token,
                             TimerType.UPTIME,
-                            String.format("%02d:%02d:%02d", hours, minutes, seconds)
+                            getUptime(handler.streamStartTime!!)
                         )
                     )
                 }

@@ -6,21 +6,20 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.flow.forEach
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.java.KoinJavaComponent.inject
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
-import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.services.UserService
 import java.util.concurrent.ConcurrentHashMap
 
-val logger = LoggerFactory.getLogger("WSTimerRoutes")
+val logger: Logger = LoggerFactory.getLogger("WSTimerRoutes")
 
 fun Routing.wsTimerRoutes() {
     val sessions = ConcurrentHashMap<String, WebSocketServerSession>()
+    val status = ConcurrentHashMap<String, TimerType>()
 
     webSocket("/timer/{uid}") {
         val uid = call.parameters["uid"]
@@ -35,6 +34,11 @@ fun Routing.wsTimerRoutes() {
         }
 
         sessions[uid] = this
+        if(status[uid] == TimerType.STREAM_OFF) {
+            CoroutineScope(Dispatchers.Default).launch {
+                sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, ""))
+            }
+        }
 
         try {
             for (frame in incoming) {
@@ -59,6 +63,7 @@ fun Routing.wsTimerRoutes() {
 
     dispatcher.subscribe(TimerEvent::class) {
         logger.debug("TimerEvent: {} / {}", it.uid, it.type)
+        status[it.uid] = it.type
         CoroutineScope(Dispatchers.Default).launch {
             sessions[it.uid]?.sendSerialized(TimerResponse(it.type.value, it.time ?: ""))
         }
