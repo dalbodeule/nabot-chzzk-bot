@@ -14,6 +14,7 @@ import space.mori.chzzk_bot.common.events.TimerEvent
 import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.utils.convertChzzkDateToLocalDateTime
 import space.mori.chzzk_bot.common.utils.getUptime
 import xyz.r2turntrue.chzzk4j.chat.ChatEventListener
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
@@ -148,7 +149,7 @@ class UserHandler(
             logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
             listener.connectBlocking()
 
-            streamStartTime = LocalDateTime.now()
+            streamStartTime = convertChzzkDateToLocalDateTime(status.content.openDate)
 
             CoroutineScope(Dispatchers.Default).launch {
                 dispatcher.post(TimerEvent(
