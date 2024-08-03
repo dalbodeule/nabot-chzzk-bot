@@ -10,6 +10,7 @@ import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.CommandService
 import space.mori.chzzk_bot.common.services.CounterService
+import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getUptime
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
@@ -125,7 +126,7 @@ class MessageHandler(
             return
         }
 
-        val parts = msg.content.split(" ", limit = 2)
+        val parts = msg.content.split(" ", limit = 3)
         if (parts.size < 2) {
             listener.sendChat("타이머 명령어 형식을 잘 찾아봐주세요!")
             return
@@ -150,6 +151,19 @@ class MessageHandler(
                 logger.debug("${user.token} / 삭제")
                 CoroutineScope(Dispatchers.Default).launch {
                     dispatcher.post(TimerEvent(user.token, TimerType.REMOVE, ""))
+                }
+            }
+            "설정" -> {
+                when (parts[2]) {
+                    "업타임" -> {
+                        TimerConfigService.saveOrUpdateConfig(user, TimerType.UPTIME)
+                        listener.sendChat("기본 타이머 설정이 업타임으로 바뀌었습니다.")
+                    }
+                    "삭제" -> {
+                        TimerConfigService.saveOrUpdateConfig(user, TimerType.REMOVE)
+                        listener.sendChat("기본 타이머 설정이 삭제로 바뀌었습니다.")
+                    }
+                    else -> listener.sendChat("!타이머 설정 (업타임/삭제) 형식으로 써주세요!")
                 }
             }
             else -> {

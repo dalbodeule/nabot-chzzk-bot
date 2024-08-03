@@ -13,6 +13,7 @@ import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.events.TimerEvent
 import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
+import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.convertChzzkDateToLocalDateTime
 import space.mori.chzzk_bot.common.utils.getUptime
@@ -152,11 +153,19 @@ class UserHandler(
             streamStartTime = convertChzzkDateToLocalDateTime(status.content.openDate)
 
             CoroutineScope(Dispatchers.Default).launch {
-                dispatcher.post(TimerEvent(
-                    channel.channelId,
-                    TimerType.UPTIME,
-                    getUptime(streamStartTime!!)
-                ))
+                when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
+                     TimerType.UPTIME.value ->  dispatcher.post(TimerEvent(
+                        channel.channelId,
+                        TimerType.UPTIME,
+                        getUptime(streamStartTime!!)
+                    ))
+                    else -> dispatcher.post(TimerEvent(
+                        channel.channelId,
+                        TimerType.REMOVE,
+                        ""
+                    ))
+                }
+
                 delay(5000L)
                 listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
                 Discord.sendDiscord(user, status)

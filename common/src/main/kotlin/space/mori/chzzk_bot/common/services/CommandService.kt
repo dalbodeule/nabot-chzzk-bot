@@ -11,7 +11,7 @@ import space.mori.chzzk_bot.common.models.User
 object CommandService {
     fun saveCommand(user: User, command: String, content: String, failContent: String): Command {
         return transaction {
-            return@transaction Command.new {
+            Command.new {
                 this.user = user
                 this.command = command
                 this.content = content
