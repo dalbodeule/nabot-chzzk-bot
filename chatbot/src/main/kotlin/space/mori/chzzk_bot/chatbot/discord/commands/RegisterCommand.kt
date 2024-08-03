@@ -1,5 +1,8 @@
 package space.mori.chzzk_bot.chatbot.discord.commands
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.interactions.commands.OptionType
@@ -38,9 +41,12 @@ object RegisterCommand: CommandInterface {
         }
 
         try {
+
             val user = UserService.saveUser(chzzkChannel.channelName, chzzkChannel.channelId, event.user.idLong)
+            CoroutineScope(Dispatchers.Main).launch {
+                ChzzkHandler.addUser(chzzkChannel, user)
+            }
             event.hook.sendMessage("등록이 완료되었습니다. `${chzzkChannel.channelId}` - `${chzzkChannel.channelName}`")
-            ChzzkHandler.addUser(chzzkChannel, user)
         } catch(e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
             logger.debug(e.stackTraceToString())
