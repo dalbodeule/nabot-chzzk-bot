@@ -40,7 +40,6 @@ class Discord: ListenerAdapter() {
                 val embed = EmbedBuilder()
                 embed.setTitle(status.content.liveTitle, "https://chzzk.naver.com/live/${user.token}")
                 embed.setDescription("${user.username} 님이 방송을 시작했습니다.")
-                embed.setUrl(status.content.channel.channelImageUrl)
                 embed.setTimestamp(Instant.now())
                 embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}", status.content.channel.channelImageUrl)
                 embed.addField("카테고리", status.content.liveCategoryValue, true)

@@ -31,7 +31,8 @@ object Connector {
             DailyCounters,
             PersonalCounters,
             Managers,
-            TimerConfigs
+            TimerConfigs,
+            LiveStatuses
         )
 
         transaction {

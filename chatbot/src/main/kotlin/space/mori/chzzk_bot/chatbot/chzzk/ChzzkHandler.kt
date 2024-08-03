@@ -13,6 +13,7 @@ import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.events.TimerEvent
 import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.models.User
+import space.mori.chzzk_bot.common.services.LiveStatusService
 import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.convertChzzkDateToLocalDateTime
@@ -96,11 +97,15 @@ class UserHandler(
     val channel: ChzzkChannel,
     val logger: Logger,
     private var user: User,
-    private var _isActive: Boolean = false,
     var streamStartTime: LocalDateTime?,
 ) {
     private lateinit var messageHandler: MessageHandler
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
+    private var _isActive: Boolean
+        get() = LiveStatusService.getLiveStatus(user)?.status ?: false
+        set(value) {
+            LiveStatusService.updateOrCreate(user, value)
+        }
 
     var listener: ChzzkChat = chzzk.chat(channel.channelId)
         .withAutoReconnect(true)
