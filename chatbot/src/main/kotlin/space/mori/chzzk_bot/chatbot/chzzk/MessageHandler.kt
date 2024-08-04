@@ -4,15 +4,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
-import space.mori.chzzk_bot.common.events.CoroutinesEventBus
-import space.mori.chzzk_bot.common.events.TimerEvent
-import space.mori.chzzk_bot.common.events.TimerType
+import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
-import space.mori.chzzk_bot.common.services.CommandService
-import space.mori.chzzk_bot.common.services.CounterService
-import space.mori.chzzk_bot.common.services.TimerConfigService
-import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.services.*
 import space.mori.chzzk_bot.common.utils.getUptime
+import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import java.time.LocalDateTime
@@ -46,7 +42,13 @@ class MessageHandler(
         val user = UserService.getUser(channel.channelId)
             ?: throw RuntimeException("User not found. it's bug? ${channel.channelName} - ${channel.channelId}")
         val commands = CommandService.getCommands(user)
-        val manageCommands = mapOf("!명령어추가" to this::manageAddCommand, "!명령어삭제" to this::manageRemoveCommand, "!명령어수정" to this::manageUpdateCommand, "!시간" to this::timerCommand)
+        val manageCommands = mapOf(
+            "!명령어추가" to this::manageAddCommand,
+            "!명령어삭제" to this::manageRemoveCommand,
+            "!명령어수정" to this::manageUpdateCommand,
+            "!시간" to this::timerCommand,
+            "!노래추가" to this::songAddCommand
+        )
 
         manageCommands.forEach { (commandName, command) ->
             this.commands[commandName] = command
@@ -184,6 +186,50 @@ class MessageHandler(
                 }
             }
         }
+    }
+
+    // songs
+    fun songAddCommand(msg: ChatMessage, user: User) {
+        val parts = msg.content.split(" ", limit = 3)
+        if (parts.size < 2) {
+            listener.sendChat("유튜브 URL을 입력해주세요!")
+            return
+        }
+
+        val url = parts[1]
+        val songs = SongListService.getSong(user)
+
+        if (songs.any { it.url == url }) {
+            listener.sendChat("같은 노래가 이미 신청되어 있습니다.")
+            return
+        }
+
+        val video = getYoutubeVideo(url)
+        if (video == null) {
+            listener.sendChat("유튜브에서 찾을 수 없어요!")
+            return
+        }
+
+        SongListService.saveSong(
+            user,
+            msg.userId,
+            video.url,
+            video.name,
+            video.author,
+            video.length
+        )
+        CoroutineScope(Dispatchers.Main).launch {
+            dispatcher.post(SongEvent(
+                user.token,
+                SongType.ADD,
+                msg.userId,
+                video.name,
+                video.author,
+                video.length
+            ))
+        }
+
+        listener.sendChat("노래가 추가되었습니다.")
     }
 
     internal fun handle(msg: ChatMessage, user: User) {

@@ -31,6 +31,9 @@ dependencies {
     // https://mvnrepository.com/artifact/io.github.cdimascio/dotenv-kotlin
     implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     testImplementation(kotlin("test"))
 }
 
