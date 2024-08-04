@@ -1,10 +1,8 @@
 package space.mori.chzzk_bot.common.utils
 
-import com.google.gson.Gson
 import com.google.gson.JsonObject
 import io.github.cdimascio.dotenv.dotenv
 import okhttp3.HttpUrl
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 
@@ -17,9 +15,6 @@ data class YoutubeVideo(
 
 val regex = ".*(?:youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=)([^#&?]*).*".toRegex()
 val durationRegex = """PT(\d+H)?(\d+M)?(\d+S)?""".toRegex()
-
-val client = OkHttpClient()
-val gson = Gson()
 
 val dotenv = dotenv {
     ignoreIfMissing = true

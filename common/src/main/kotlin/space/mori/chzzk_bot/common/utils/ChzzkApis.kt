@@ -1,4 +1,4 @@
-package space.mori.chzzk_bot.chatbot.chzzk
+package space.mori.chzzk_bot.common.utils
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -108,7 +108,7 @@ val client = OkHttpClient.Builder()
     .build()
 val gson = Gson()
 
-fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent> {
+fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent?> {
     val url = "https://comm-api.game.naver.com/nng_main/v1/chats/$chatID/users/$userId/profile-card?chatType=STREAMING"
     val request = Request.Builder()
         .url(url)
@@ -118,7 +118,7 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent> {
         try {
             if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
             val body = response.body?.string()
-            val follow = gson.fromJson(body, object: TypeToken<IData<IFollowContent>>() {})
+            val follow = gson.fromJson(body, object: TypeToken<IData<IFollowContent?>>() {})
 
             return follow
         } catch(e: Exception) {
@@ -128,7 +128,7 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent> {
     }
 }
 
-fun getStreamInfo(userId: String) : IData<IStreamInfo> {
+fun getStreamInfo(userId: String) : IData<IStreamInfo?> {
     val url = "https://api.chzzk.naver.com/service/v2/channels/${userId}/live-detail"
     val request = Request.Builder()
         .url(url)
@@ -138,7 +138,7 @@ fun getStreamInfo(userId: String) : IData<IStreamInfo> {
         try {
             if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
             val body = response.body?.string()
-            val follow = gson.fromJson(body, object: TypeToken<IData<IStreamInfo>>() {})
+            val follow = gson.fromJson(body, object: TypeToken<IData<IStreamInfo?>>() {})
 
             return follow
         } catch(e: Exception) {

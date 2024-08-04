@@ -7,6 +7,7 @@ import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.*
+import space.mori.chzzk_bot.common.utils.getFollowDate
 import space.mori.chzzk_bot.common.utils.getUptime
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
@@ -280,7 +281,7 @@ class MessageHandler(
         result = followPattern.replace(result) { _ ->
             try {
                 val followingDate = getFollowDate(listener.chatId, msg.userId)
-                    .content.streamingProperty.following?.followDate
+                    .content?.streamingProperty?.following?.followDate
 
                 val period = followingDate?.let {
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
