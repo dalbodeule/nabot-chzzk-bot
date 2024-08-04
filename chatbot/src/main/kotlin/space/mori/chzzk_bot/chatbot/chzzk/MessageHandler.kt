@@ -56,7 +56,8 @@ class MessageHandler(
             "!명령어삭제" to this::manageRemoveCommand,
             "!명령어수정" to this::manageUpdateCommand,
             "!시간" to this::timerCommand,
-            "!노래추가" to this::songAddCommand
+            "!노래추가" to this::songAddCommand,
+            "!노래목록" to this::songListCommand
         )
 
         manageCommands.forEach { (commandName, command) ->
@@ -198,7 +199,7 @@ class MessageHandler(
     }
 
     // songs
-    fun songAddCommand(msg: ChatMessage, user: User) {
+    private fun songAddCommand(msg: ChatMessage, user: User) {
         val parts = msg.content.split(" ", limit = 3)
         if (parts.size < 2) {
             listener.sendChat("유튜브 URL을 입력해주세요!")
@@ -241,6 +242,10 @@ class MessageHandler(
         }
 
         listener.sendChat("노래가 추가되었습니다.")
+    }
+
+    private fun songListCommand(msg: ChatMessage, user: User) {
+        listener.sendChat("리스트는 여기입니다. https://nabot.mori.space/songs/${user.token}")
     }
 
     internal fun handle(msg: ChatMessage, user: User) {
