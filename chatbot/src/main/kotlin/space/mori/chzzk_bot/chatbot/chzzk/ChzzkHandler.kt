@@ -9,9 +9,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.chzzk
 import space.mori.chzzk_bot.chatbot.discord.Discord
-import space.mori.chzzk_bot.common.events.CoroutinesEventBus
-import space.mori.chzzk_bot.common.events.TimerEvent
-import space.mori.chzzk_bot.common.events.TimerType
+import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
 import space.mori.chzzk_bot.common.services.TimerConfigService
@@ -38,6 +36,11 @@ object ChzzkHandler {
     fun enable() {
         UserService.getAllUsers().map {
             chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
+        }
+
+        handlers.forEach { handler ->
+            val streamInfo = getStreamInfo(handler.listener.channelId)
+            if (streamInfo.content.status == "OPEN") handler.isActive(true, streamInfo)
         }
     }
 
@@ -148,7 +151,6 @@ class UserHandler(
         get() = _isActive
 
     internal fun isActive(value: Boolean, status: IData<IStreamInfo>) {
-        _isActive = value
         if(value) {
             logger.info("${user.username} is live.")
 
@@ -170,10 +172,11 @@ class UserHandler(
                         ""
                     ))
                 }
-
-                delay(5000L)
-                listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
-                Discord.sendDiscord(user, status)
+                if(!_isActive) {
+                    delay(5000L)
+                    listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
+                    Discord.sendDiscord(user, status)
+                }
             }
         } else {
             logger.info("${user.username} is offline.")
@@ -181,12 +184,25 @@ class UserHandler(
             listener.closeAsync()
 
             CoroutineScope(Dispatchers.Default).launch {
-                dispatcher.post(TimerEvent(
-                    channel.channelId,
-                    TimerType.STREAM_OFF,
-                    ""
-                ))
+                val events = listOf(
+                    TimerEvent(
+                        channel.channelId,
+                        TimerType.STREAM_OFF,
+                        null
+                    ),
+                    SongEvent(
+                        channel.channelId,
+                        SongType.STREAM_OFF,
+                        null,
+                        null,
+                        null,
+                        null,
+                        null
+                    )
+                )
+                events.forEach { dispatcher.post(it) }
             }
         }
+        _isActive = value
     }
 }

@@ -5,15 +5,17 @@ import org.jetbrains.exposed.dao.IntEntityClass
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.javatime.datetime
+import java.time.LocalDateTime
 
 object SongLists: IntIdTable("song_list") {
     val user = reference("user", Users)
     val uid = varchar("uid", 64)
     val url = varchar("url", 128)
     val name = text("name")
+    val reqName = varchar("req_name", 20)
     val author = text("author")
     val time = integer("time")
-    val created_at = datetime("created_at")
+    val created_at = datetime("created_at").default(LocalDateTime.now())
 }
 
 class SongList(id: EntityID<Int>) : IntEntity(id) {
@@ -27,4 +29,5 @@ class SongList(id: EntityID<Int>) : IntEntity(id) {
 
     var user by User referencedOn SongLists.user
     var uid by SongLists.uid
+    var reqName by SongLists.reqName
 }

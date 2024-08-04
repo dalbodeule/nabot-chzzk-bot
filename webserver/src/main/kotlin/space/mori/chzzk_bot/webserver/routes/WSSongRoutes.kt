@@ -86,7 +86,7 @@ fun Routing.wsSongRoutes() {
                 ws.sendSerialized(SongResponse(
                     it.type.value,
                     it.uid,
-                    it.req_uid,
+                    it.reqUid,
                     it.name,
                     it.author,
                     it.time

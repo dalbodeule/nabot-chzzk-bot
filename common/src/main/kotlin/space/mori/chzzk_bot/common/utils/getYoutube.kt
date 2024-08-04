@@ -16,7 +16,7 @@ data class YoutubeVideo(
 )
 
 val regex = ".*(?:youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=)([^#&?]*).*".toRegex()
-val durationRegex = """PT(\d+H)?(\d+m)?(\d+S)?""".toRegex()
+val durationRegex = """PT(\d+H)?(\d+M)?(\d+S)?""".toRegex()
 
 val client = OkHttpClient()
 val gson = Gson()
@@ -33,6 +33,7 @@ fun getYoutubeVideoId(url: String): String? {
 }
 
 fun parseDuration(duration: String): Int {
+    println(duration)
     val matchResult = durationRegex.find(duration)
     val (hours, minutes, seconds) = matchResult?.destructured ?: return 0
 
@@ -54,7 +55,7 @@ fun getYoutubeVideo(url: String): YoutubeVideo? {
         .addPathSegment("videos")
         .addQueryParameter("id", videoId)
         .addQueryParameter("key", dotenv["YOUTUBE_API_KEY"])
-        .addQueryParameter("part", "snippet")
+        .addQueryParameter("part", "snippet,contentDetails,status")
         .build()
 
 
@@ -71,10 +72,12 @@ fun getYoutubeVideo(url: String): YoutubeVideo? {
 
         if (items == null || items.size() == 0) return null
 
+        println(json)
+
         val item = items[0].asJsonObject
         val snippet = item.getAsJsonObject("snippet")
-        val contentDetail = item.asJsonObject.getAsJsonObject("contentDetail")
-        val status = contentDetail.getAsJsonObject("status")
+        val contentDetail = item.getAsJsonObject("contentDetails")
+        val status = item.getAsJsonObject("status")
 
         if (!status.get("embeddable").asBoolean) return null
 

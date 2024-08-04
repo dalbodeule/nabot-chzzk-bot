@@ -8,8 +8,7 @@ servers:
 paths:
   /:
     get:
-      summary: "Webroot"
-      description: "Main page of this api"
+      description: ""
       responses:
         "200":
           description: "OK"
@@ -22,7 +21,7 @@ paths:
                   value: "Hello World!"
   /health:
     get:
-      description: "Health Check endpoint"
+      description: ""
       responses:
         "200":
           description: "OK"
@@ -33,3 +32,151 @@ paths:
               examples:
                 Example#1:
                   value: "OK"
+  /song/{uid}:
+    get:
+      description: ""
+      parameters:
+      - name: "uid"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "Connection"
+        in: "header"
+        required: true
+        description: "Websocket Connection parameter"
+        schema:
+          type: "string"
+      - name: "Upgrade"
+        in: "header"
+        required: true
+        description: "Websocket Upgrade parameter"
+        schema:
+          type: "string"
+      - name: "Sec-WebSocket-Key"
+        in: "header"
+        required: true
+        description: "Websocket Sec-WebSocket-Key parameter"
+        schema:
+          type: "string"
+      responses:
+        "101":
+          description: "Switching Protocols"
+          headers:
+            Connection:
+              required: true
+              schema:
+                type: "string"
+            Upgrade:
+              required: true
+              schema:
+                type: "string"
+            Sec-WebSocket-Accept:
+              required: true
+              schema:
+                type: "string"
+  /songs:
+    get:
+      description: ""
+      responses:
+        "400":
+          description: "Bad Request"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "Require UID"
+  /songs/{uid}:
+    get:
+      description: ""
+      parameters:
+      - name: "uid"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      responses:
+        "404":
+          description: "Not Found"
+          content:
+            text/plain:
+              schema:
+                type: "string"
+              examples:
+                Example#1:
+                  value: "No user found"
+        "200":
+          description: "OK"
+          content:
+            '*/*':
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/SongList"
+  /timer/{uid}:
+    get:
+      description: ""
+      parameters:
+      - name: "uid"
+        in: "path"
+        required: true
+        schema:
+          type: "string"
+      - name: "Connection"
+        in: "header"
+        required: true
+        description: "Websocket Connection parameter"
+        schema:
+          type: "string"
+      - name: "Upgrade"
+        in: "header"
+        required: true
+        description: "Websocket Upgrade parameter"
+        schema:
+          type: "string"
+      - name: "Sec-WebSocket-Key"
+        in: "header"
+        required: true
+        description: "Websocket Sec-WebSocket-Key parameter"
+        schema:
+          type: "string"
+      responses:
+        "101":
+          description: "Switching Protocols"
+          headers:
+            Connection:
+              required: true
+              schema:
+                type: "string"
+            Upgrade:
+              required: true
+              schema:
+                type: "string"
+            Sec-WebSocket-Accept:
+              required: true
+              schema:
+                type: "string"
+components:
+  schemas:
+    Object:
+      type: "object"
+      properties: {}
+    ResultRow:
+      type: "object"
+      properties:
+        fieldIndex:
+          type: "object"
+      required:
+      - "fieldIndex"
+    SongList:
+      type: "object"
+      properties:
+        writeValues:
+          $ref: "#/components/schemas/Object"
+        _readValues:
+          $ref: "#/components/schemas/ResultRow"
+      required:
+      - "id"
+      - "writeValues"

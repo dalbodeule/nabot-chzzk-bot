@@ -8,7 +8,7 @@ import space.mori.chzzk_bot.common.models.SongLists
 import space.mori.chzzk_bot.common.models.User
 
 object SongListService {
-    fun saveSong(user: User, uid: String, url: String, name: String, author: String, time: Int) {
+    fun saveSong(user: User, uid: String, url: String, name: String, author: String, time: Int, reqName: String) {
         return transaction {
             SongList.new {
                 this.user = user
@@ -17,6 +17,7 @@ object SongListService {
                 this.name = name
                 this.author = author
                 this.time = time
+                this.reqName = reqName
             }
         }
     }
@@ -32,7 +33,7 @@ object SongListService {
 
     fun getSong(user: User): List<SongList> {
         return transaction {
-            SongList.find(SongLists.user eq user.id).toList()
+            SongList.find(SongLists.user eq user.id).toList().sortedBy { it.created_at }
         }
     }
 
@@ -48,6 +49,15 @@ object SongListService {
 
             songRow.delete()
             songRow
+        }
+    }
+
+    fun deleteUser(user: User): Boolean {
+        return transaction {
+            val songRow = SongList.find(SongLists.user eq user.id).toList()
+
+            songRow.forEach { it.delete() }
+            true
         }
     }
 }
