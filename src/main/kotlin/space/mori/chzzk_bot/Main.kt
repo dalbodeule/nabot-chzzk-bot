@@ -22,12 +22,6 @@ val dotenv = dotenv {
 }
 val logger: Logger = LoggerFactory.getLogger("main")
 
-val discord = Discord()
-
-val connector = Connector
-val chzzkConnector = ChzzkConnector
-val chzzkHandler = ChzzkHandler
-
 fun main(args: Array<String>) {
     val dispatcher = module {
         single { CoroutinesEventBus() }
@@ -35,6 +29,12 @@ fun main(args: Array<String>) {
     startKoin {
         modules(dispatcher)
     }
+
+    val discord = Discord()
+
+    val connector = Connector
+    val chzzkConnector = ChzzkConnector
+    val chzzkHandler = ChzzkHandler
 
     discord.enable()
     chzzkHandler.enable()
