@@ -64,7 +64,7 @@ object AddCommand : CommandInterface {
             try {
                 ChzzkHandler.reloadCommand(chzzkChannel!!)
             } catch (_: Exception) {}
-            event.hook.sendMessage("등록이 완료되었습니다. $label = $content/$failContent").queue()
+            event.hook.sendMessage("등록이 완료되었습니다. $label = $content / $failContent").queue()
         } catch (e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
             logger.debug(e.stackTraceToString())
