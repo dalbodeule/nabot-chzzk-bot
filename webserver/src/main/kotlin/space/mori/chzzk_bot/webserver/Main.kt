@@ -13,6 +13,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
 import space.mori.chzzk_bot.webserver.routes.apiRoutes
+import space.mori.chzzk_bot.webserver.routes.wsSongRoutes
 import space.mori.chzzk_bot.webserver.routes.wsTimerRoutes
 import java.time.Duration
 
@@ -38,9 +39,10 @@ val server = embeddedServer(Netty, port = 8080) {
     routing {
         apiRoutes()
         wsTimerRoutes()
+        wsSongRoutes()
         swaggerUI("swagger-ui/index.html", "openapi/documentation.yaml") {
             options {
-                version = "1.1.0"
+                version = "1.2.0"
             }
         }
     }

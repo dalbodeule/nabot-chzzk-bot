@@ -32,7 +32,9 @@ object Connector {
             PersonalCounters,
             Managers,
             TimerConfigs,
-            LiveStatuses
+            LiveStatuses,
+            SongLists,
+            SongConfigs
         )
 
         transaction {

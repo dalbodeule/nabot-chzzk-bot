@@ -16,7 +16,7 @@ import space.mori.chzzk_bot.common.services.UserService
 object AlertCommand : CommandInterface {
     private val logger = LoggerFactory.getLogger(this::class.java)
     override val name: String = "alert"
-    override val command = Commands.slash(name, "명령어를 추가합니다.")
+    override val command = Commands.slash(name, "방송알람 채널을 설정합니다. / 알람 취소도 이 명령어를 이용하세요!")
         .addOptions(OptionData(OptionType.CHANNEL, "channel", "알림을 보낼 채널을 입력하세요."))
         .addOptions(OptionData(OptionType.STRING, "content", "표시될 텍스트를 입력하세요. 비워두면 알람이 취소됩니다."))
 

@@ -15,7 +15,7 @@ import space.mori.chzzk_bot.common.services.UserService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
-fun Routing.wsTimerRoutes() {
+fun Routing.wsSongRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, TimerType>()
     val logger = LoggerFactory.getLogger(this.javaClass.name)
@@ -31,7 +31,7 @@ fun Routing.wsTimerRoutes() {
         }
     }
 
-    webSocket("/timer/{uid}") {
+    webSocket("/song/{uid}") {
         val uid = call.parameters["uid"]
         val user = uid?.let { UserService.getUser(it) }
         if (uid == null) {
@@ -47,7 +47,14 @@ fun Routing.wsTimerRoutes() {
 
         if(status[uid] == TimerType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
-                sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, null))
+                sendSerialized(SongResponse(
+                    SongType.STREAM_OFF.value,
+                    uid,
+                    null,
+                    null,
+                    null,
+                    null
+                ))
             }
         }
 
@@ -72,19 +79,29 @@ fun Routing.wsTimerRoutes() {
 
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
-    dispatcher.subscribe(TimerEvent::class) {
-        logger.debug("TimerEvent: {} / {}", it.uid, it.type)
-        status[it.uid] = it.type
+    dispatcher.subscribe(SongEvent::class) {
+        logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.name)
         CoroutineScope(Dispatchers.Default).launch {
             sessions[it.uid]?.forEach { ws ->
-                ws.sendSerialized(TimerResponse(it.type.value, it.time ?: ""))
+                ws.sendSerialized(SongResponse(
+                    it.type.value,
+                    it.uid,
+                    it.req_uid,
+                    it.name,
+                    it.author,
+                    it.time
+                ))
             }
         }
     }
 }
 
 @Serializable
-data class TimerResponse(
+data class SongResponse(
     val type: Int,
-    val time: String?
+    val uid: String,
+    val reqUid: String?,
+    val name: String?,
+    val author: String?,
+    val time: Int?
 )
