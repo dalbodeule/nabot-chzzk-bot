@@ -53,7 +53,7 @@ fun Routing.wsTimerRoutes() {
         } else {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(TimerResponse(
-                    TimerConfigService.getConfig(user)?.option ?: TimerType.STREAM_OFF.value,
+                    TimerConfigService.getConfig(user)?.option ?: TimerType.REMOVE.value,
                     null
                 ))
             }
