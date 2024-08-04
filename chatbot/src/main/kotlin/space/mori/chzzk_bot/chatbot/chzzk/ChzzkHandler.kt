@@ -14,8 +14,7 @@ import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
 import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
-import space.mori.chzzk_bot.common.utils.convertChzzkDateToLocalDateTime
-import space.mori.chzzk_bot.common.utils.getUptime
+import space.mori.chzzk_bot.common.utils.*
 import xyz.r2turntrue.chzzk4j.chat.ChatEventListener
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
@@ -42,7 +41,7 @@ object ChzzkHandler {
 
         handlers.forEach { handler ->
             val streamInfo = getStreamInfo(handler.listener.channelId)
-            if (streamInfo.content.status == "OPEN") handler.isActive(true, streamInfo)
+            if (streamInfo.content?.status == "OPEN") handler.isActive(true, streamInfo)
         }
     }
 
@@ -76,8 +75,8 @@ object ChzzkHandler {
                     if (!running) return@forEach
                     try {
                         val streamInfo = getStreamInfo(it.channel.channelId)
-                        if (streamInfo.content.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
-                        if (streamInfo.content.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
+                        if (streamInfo.content?.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
+                        if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
                     } catch(e: SocketTimeoutException) {
                         logger.info("Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
@@ -152,14 +151,14 @@ class UserHandler(
     internal val isActive: Boolean
         get() = _isActive
 
-    internal fun isActive(value: Boolean, status: IData<IStreamInfo>) {
+    internal fun isActive(value: Boolean, status: IData<IStreamInfo?>) {
         if(value) {
             logger.info("${user.username} is live.")
 
             logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
             listener.connectBlocking()
 
-            streamStartTime = convertChzzkDateToLocalDateTime(status.content.openDate)
+            streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
 
             CoroutineScope(Dispatchers.Default).launch {
                 when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
