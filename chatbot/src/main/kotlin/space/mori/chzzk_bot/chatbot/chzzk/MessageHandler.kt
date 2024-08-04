@@ -243,8 +243,9 @@ class MessageHandler(
     }
 
     internal fun handle(msg: ChatMessage, user: User) {
-        val commandKey = msg.content.split(' ')[0]
+        if(msg.userId == ChzzkHandler.botUid) return
 
+        val commandKey = msg.content.split(' ')[0]
         commands[commandKey.lowercase()]?.let { it(msg, user) }
     }
 

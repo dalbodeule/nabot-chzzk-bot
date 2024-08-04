@@ -27,6 +27,7 @@ import java.time.LocalDateTime
 object ChzzkHandler {
     private val handlers = mutableListOf<UserHandler>()
     private val logger = LoggerFactory.getLogger(this::class.java)
+    lateinit var botUid: String
     @Volatile private var running: Boolean = false
 
     fun addUser(chzzkChannel: ChzzkChannel, user: User) {
@@ -34,6 +35,7 @@ object ChzzkHandler {
     }
 
     fun enable() {
+        botUid = chzzk.loggedUser.userId
         UserService.getAllUsers().map {
             chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
         }
