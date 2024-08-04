@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
+import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -48,6 +49,13 @@ fun Routing.wsTimerRoutes() {
         if(status[uid] == TimerType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, null))
+            }
+        } else {
+            CoroutineScope(Dispatchers.Default).launch {
+                sendSerialized(TimerResponse(
+                    TimerConfigService.getConfig(user)?.option ?: TimerType.STREAM_OFF.value,
+                    null
+                ))
             }
         }
 
