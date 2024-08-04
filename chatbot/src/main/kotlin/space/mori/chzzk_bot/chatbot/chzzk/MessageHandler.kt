@@ -36,6 +36,14 @@ class MessageHandler(
 
     init {
         reloadCommand()
+        dispatcher.subscribe(SongEvent::class) {
+            if(it.type == SongType.STREAM_OFF) {
+                val user = UserService.getUser(channel.channelId)
+                if(! user?.let { usr -> SongListService.getSong(usr) }.isNullOrEmpty()) {
+                    SongListService.deleteUser(user!!)
+                }
+            }
+        }
     }
 
     internal fun reloadCommand() {
@@ -199,14 +207,14 @@ class MessageHandler(
         val url = parts[1]
         val songs = SongListService.getSong(user)
 
-        if (songs.any { it.url == url }) {
-            listener.sendChat("같은 노래가 이미 신청되어 있습니다.")
-            return
-        }
-
         val video = getYoutubeVideo(url)
         if (video == null) {
             listener.sendChat("유튜브에서 찾을 수 없어요!")
+            return
+        }
+
+        if (songs.any { it.url == video.url }) {
+            listener.sendChat("같은 노래가 이미 신청되어 있습니다.")
             return
         }
 
@@ -216,16 +224,18 @@ class MessageHandler(
             video.url,
             video.name,
             video.author,
-            video.length
+            video.length,
+            msg.profile?.nickname ?: ""
         )
-        CoroutineScope(Dispatchers.Main).launch {
+        CoroutineScope(Dispatchers.Default).launch {
             dispatcher.post(SongEvent(
                 user.token,
                 SongType.ADD,
                 msg.userId,
+                msg.profile?.nickname ?: "",
                 video.name,
                 video.author,
-                video.length
+                video.length,
             ))
         }
 

@@ -4,10 +4,29 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
+import space.mori.chzzk_bot.common.models.SongList
 import space.mori.chzzk_bot.common.services.SongListService
 import space.mori.chzzk_bot.common.services.UserService
 
-fun Routing.songRoutes() {
+@Serializable
+data class SongsDTO(
+    val url: String,
+    val name: String,
+    val author: String,
+    val time: Int,
+    val reqName: String
+)
+
+fun SongList.toDTO(): SongsDTO = SongsDTO(
+    this.url,
+    this.name,
+    this.author,
+    this.time,
+    this.reqName
+)
+
+fun Routing.apiSongRoutes() {
     route("/songs/{uid}") {
         get {
             val uid = call.parameters["uid"]
@@ -18,7 +37,7 @@ fun Routing.songRoutes() {
             }
 
             val songs = SongListService.getSong(user)
-            call.respond(songs)
+            call.respond(HttpStatusCode.OK, songs.map { it.toDTO() })
         }
     }
     route("/songs") {

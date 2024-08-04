@@ -11,7 +11,8 @@ enum class SongType(var value: Int) {
 class SongEvent(
     val uid: String,
     val type: SongType,
-    val req_uid: String?,
+    val reqUid: String?,
+    val reqName: String?,
     val name: String?,
     val author: String?,
     val time: Int?,
