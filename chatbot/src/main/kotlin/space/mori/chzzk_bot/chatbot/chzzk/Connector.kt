@@ -30,7 +30,6 @@ object Connector {
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     fun getChannel(channelId: String): ChzzkChannel? = chzzk.getChannel(channelId)
-    fun getChannelAndUser(channelId: String): Pair<ChzzkChannel, User?>? = pair(chzzk.getChannel(channelId), UserService.getUser(channelId))
 
 
     init {
@@ -38,17 +37,22 @@ object Connector {
         dispatcher.subscribe(GetUserEvents::class) {
             if (it.type == GetUserType.REQUEST) {
                 CoroutineScope(Dispatchers.Default).launch {
-                    val channel = getChannelAndUser(it.uid ?: "")
+                    val channel = getChannel(it.uid ?: "")
                     if(channel == null) dispatcher.post(GetUserEvents(
                         GetUserType.NOTFOUND, null, null, null, null
                     ))
-                    else dispatcher.post(GetUserEvents(
-                        GetUserType.RESPONSE,
-                        channel.first.channelId,
-                        channel.first.channelName,
-                        LiveStatusService.getLiveStatus(channel.second!!)?.status ?: false,
-                        channel.first.channelImageUrl
-                    ))
+                    else {
+                        val user = UserService.getUser(channel.channelId)
+                        dispatcher.post(
+                            GetUserEvents(
+                                GetUserType.RESPONSE,
+                                channel.channelId,
+                                channel.channelName,
+                                LiveStatusService.getLiveStatus(user!!)?.status ?: false,
+                                channel.channelImageUrl
+                            )
+                        )
+                    }
                 }
             }
         }
