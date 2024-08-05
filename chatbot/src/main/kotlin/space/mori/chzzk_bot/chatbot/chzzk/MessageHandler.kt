@@ -241,6 +241,7 @@ class MessageHandler(
                 video.name,
                 video.author,
                 video.length,
+                video.url
             ))
         }
 

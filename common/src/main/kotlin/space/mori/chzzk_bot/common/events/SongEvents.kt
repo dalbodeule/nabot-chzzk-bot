@@ -16,6 +16,7 @@ class SongEvent(
     val name: String?,
     val author: String?,
     val time: Int?,
+    val url: String?
 ): Event {
     var TAG = javaClass.simpleName
 }

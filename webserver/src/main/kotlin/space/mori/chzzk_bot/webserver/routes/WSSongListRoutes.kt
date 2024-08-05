@@ -60,9 +60,11 @@ fun Routing.wsSongListRoutes() {
                     null,
                     null,
                     null,
+                    null,
                     null
                 ))
             }
+            removeSession(sid, this)
         }
 
         try {
@@ -87,7 +89,8 @@ fun Routing.wsSongListRoutes() {
                                         user.username,
                                         youtubeVideo.name,
                                         youtubeVideo.author,
-                                        youtubeVideo.length
+                                        youtubeVideo.length,
+                                        youtubeVideo.url
                                     ))
                                 }
                             }
@@ -106,7 +109,8 @@ fun Routing.wsSongListRoutes() {
                                         user.username,
                                         song.name,
                                         song.author,
-                                        0
+                                        0,
+                                        song.url
                                     )
                                 )
                             }
@@ -121,6 +125,7 @@ fun Routing.wsSongListRoutes() {
                                 null,
                                 null,
                                 null,
+                                null
                             ))
                         }
                     }
@@ -151,7 +156,8 @@ fun Routing.wsSongListRoutes() {
                             it.reqUid,
                             it.name,
                             it.author,
-                            it.time
+                            it.time,
+                            it.url
                         )
                     )
                 }
@@ -174,8 +180,10 @@ fun Routing.wsSongListRoutes() {
                                 null,
                                 null,
                                 null,
+                                null
                             )
                         )
+                        removeSession(session.token ?: "", ws)
                     }
                 }
             }
