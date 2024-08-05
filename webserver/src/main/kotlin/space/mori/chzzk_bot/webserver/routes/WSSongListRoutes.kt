@@ -26,14 +26,14 @@ fun Routing.wsSongListRoutes() {
 
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
-    fun addSession(uid: String, session: WebSocketServerSession) {
-        sessions.computeIfAbsent(uid) { ConcurrentLinkedQueue() }.add(session)
+    fun addSession(sid: String, session: WebSocketServerSession) {
+        sessions.computeIfAbsent(sid) { ConcurrentLinkedQueue() }.add(session)
     }
 
-    fun removeSession(uid: String, session: WebSocketServerSession) {
-        sessions[uid]?.remove(session)
-        if(sessions[uid]?.isEmpty() == true) {
-            sessions.remove(uid)
+    fun removeSession(sid: String, session: WebSocketServerSession) {
+        sessions[sid]?.remove(session)
+        if(sessions[sid]?.isEmpty() == true) {
+            sessions.remove(sid)
         }
     }
 
@@ -75,7 +75,7 @@ fun Routing.wsSongListRoutes() {
                         if(data.maxUserLimit != null && data.maxUserLimit > 0) SongConfigService.updatePersonalLimit(user, data.maxUserLimit)
                         if(data.isStreamerOnly != null) SongConfigService.updateStreamerOnly(user, data.isStreamerOnly)
 
-                        if(data.url != null) {
+                        if(data.type == SongType.ADD.value && data.url != null) {
                             val youtubeVideo = getYoutubeVideo(data.url)
                             if(youtubeVideo != null) {
                                 CoroutineScope(Dispatchers.Default).launch {
@@ -92,7 +92,7 @@ fun Routing.wsSongListRoutes() {
                                 }
                             }
                         }
-                        if(data.remove != null && data.remove > 0) {
+                        else if(data.type == SongType.REMOVE.value && data.remove != null && data.remove > 0) {
                             val songs = SongListService.getSong(user)
                             if(songs.size < data.remove) {
                                 val song = songs[data.remove]
@@ -110,6 +110,18 @@ fun Routing.wsSongListRoutes() {
                                     )
                                 )
                             }
+                        } else if(data.type == SongType.NEXT.value) {
+                            val song = SongListService.getSong(user)[0]
+                            SongListService.deleteSong(user, song.uid, song.name)
+                            dispatcher.post(SongEvent(
+                                user.token,
+                                SongType.NEXT,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                            ))
                         }
                     }
                     is Frame.Ping -> send(Frame.Pong(frame.data))
@@ -131,7 +143,7 @@ fun Routing.wsSongListRoutes() {
             val user = UserService.getUser(it.uid)
             if(user != null) {
                 val session = SongConfigService.getConfig(user)
-                sessions[session.token]?.forEach { ws ->
+                sessions[session.token ?: ""]?.forEach { ws ->
                     ws.sendSerialized(
                         SongResponse(
                             it.type.value,
@@ -148,18 +160,23 @@ fun Routing.wsSongListRoutes() {
     }
     dispatcher.subscribe(TimerEvent::class) {
         if(it.type == TimerType.STREAM_OFF) {
-            val user = UserService.getUser(it.uid)
-            SongConfigService.updateSession(user!!, null)
             CoroutineScope(Dispatchers.Default).launch {
-                sessions[it.uid]?.forEach { ws ->
-                    ws.sendSerialized(SongResponse(
-                        it.type.value,
-                        it.uid,
-                        null,
-                        null,
-                        null,
-                        null,
-                    ))
+                val user = UserService.getUser(it.uid)
+                if(user != null) {
+                    val session = SongConfigService.getConfig(user)
+
+                    sessions[session.token ?: ""]?.forEach { ws ->
+                        ws.sendSerialized(
+                            SongResponse(
+                                it.type.value,
+                                it.uid,
+                                null,
+                                null,
+                                null,
+                                null,
+                            )
+                        )
+                    }
                 }
             }
         }
