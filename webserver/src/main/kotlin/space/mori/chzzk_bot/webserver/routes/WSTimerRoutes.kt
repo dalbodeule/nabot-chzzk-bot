@@ -19,7 +19,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 fun Routing.wsTimerRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, TimerType>()
-    val logger = LoggerFactory.getLogger(this.javaClass.name)
+    val logger = LoggerFactory.getLogger("WSTimerRoutes")
 
     fun addSession(uid: String, session: WebSocketServerSession) {
         sessions.computeIfAbsent(uid) { ConcurrentLinkedQueue() }.add(session)
