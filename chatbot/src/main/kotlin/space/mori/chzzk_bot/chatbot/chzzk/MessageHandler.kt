@@ -211,8 +211,24 @@ class MessageHandler(
             return
         }
 
+        val config = SongConfigService.getConfig(user)
+
+        if(config.streamerOnly && msg.profile?.userRoleCode == "common_user") {
+            listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+            return
+        }
+
         val url = parts[1]
         val songs = SongListService.getSong(user)
+
+        if(songs.size >= config.queueLimit) {
+            listener.sendChat("더이상 노래를 신청할 수 없습니다. 잠시 뒤 다시 시도해주세요!")
+            return
+        }
+        if(songs.filter { it.uid == msg.userId }.size  >= config.personalLimit) {
+            listener.sendChat("더이상 노래를 신청할 수 없습니다. 잠시 뒤 다시 시도해주세요!")
+            return
+        }
 
         val video = getYoutubeVideo(url)
         if (video == null) {
