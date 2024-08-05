@@ -263,13 +263,13 @@ class MessageHandler(
 
         SongConfigService.updateSession(user, session, password)
 
-        bot.getUserById(user.token)?.let { it ->
-            val channel = it.openPrivateChannel()
-            channel.onSuccess { privateChannel ->
-                privateChannel.sendMessage("여기로 접속해주세요! https://nabot,mori.space/songlist/${session}.\n인증번호는 ||$password|| 입니다.").queue()
+
+        bot.retrieveUserById(user.discord).queue { discordUser ->
+            discordUser?.openPrivateChannel()?.queue { channel ->
+                channel.sendMessage("여기로 접속해주세요! https://nabot,mori.space/songlist/${session}.\n인증번호는 ||$password|| 입니다.")
+                    .queue()
             }
         }
-
     }
 
     internal fun handle(msg: ChatMessage, user: User) {

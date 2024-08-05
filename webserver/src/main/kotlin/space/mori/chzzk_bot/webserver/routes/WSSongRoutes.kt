@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 fun Routing.wsSongRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, SongType>()
-    val logger = LoggerFactory.getLogger(this.javaClass.name)
+    val logger = LoggerFactory.getLogger("WSSongRoutes")
 
     fun addSession(uid: String, session: WebSocketServerSession) {
         sessions.computeIfAbsent(uid) { ConcurrentLinkedQueue() }.add(session)

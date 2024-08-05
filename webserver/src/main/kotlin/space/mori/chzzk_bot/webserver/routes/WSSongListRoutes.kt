@@ -8,11 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.SongListService
+import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -20,7 +22,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 fun Routing.wsSongListRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, SongType>()
-    val logger = LoggerFactory.getLogger(this.javaClass.name)
+    val logger = LoggerFactory.getLogger("WSSongListRoutes")
 
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
@@ -68,7 +70,7 @@ fun Routing.wsSongListRoutes() {
             for (frame in incoming) {
                 when(frame) {
                     is Frame.Text -> {
-                        val data = receiveDeserialized<SongRequest>()
+                        val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }
 
                         if(data.maxQueue != null && data.maxQueue > 0) SongConfigService.updateQueueLimit(user, data.maxQueue)
                         if(data.maxUserLimit != null && data.maxUserLimit > 0) SongConfigService.updatePersonalLimit(user, data.maxUserLimit)
@@ -76,18 +78,20 @@ fun Routing.wsSongListRoutes() {
 
                         if(data.url != null) {
                             val youtubeVideo = getYoutubeVideo(data.url)
-
-                            dispatcher.post(
-                                SongEvent(
-                                    user.token,
-                                    SongType.ADD,
-                                    user.token,
-                                    user.username,
-                                    youtubeVideo?.name,
-                                    youtubeVideo?.author,
-                                    youtubeVideo?.length
-                                )
-                            )
+                            if(youtubeVideo != null) {
+                                CoroutineScope(Dispatchers.Default).launch {
+                                    SongListService.saveSong(user, user.token, data.url, youtubeVideo.name, youtubeVideo.author, youtubeVideo.length, user.username)
+                                    dispatcher.post(SongEvent(
+                                        user.token,
+                                        SongType.ADD,
+                                        user.token,
+                                        user.username,
+                                        youtubeVideo.name,
+                                        youtubeVideo.author,
+                                        youtubeVideo.length
+                                    ))
+                                }
+                            }
                         }
                         if(data.remove != null && data.remove > 0) {
                             val songs = SongListService.getSong(user)
@@ -125,15 +129,21 @@ fun Routing.wsSongListRoutes() {
     dispatcher.subscribe(SongEvent::class) {
         logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.name)
         CoroutineScope(Dispatchers.Default).launch {
-            sessions[it.uid]?.forEach { ws ->
-                ws.sendSerialized(SongResponse(
-                    it.type.value,
-                    it.uid,
-                    it.reqUid,
-                    it.name,
-                    it.author,
-                    it.time
-                ))
+            val user = UserService.getUser(it.uid)
+            if(user != null) {
+                val session = SongConfigService.getConfig(user)
+                sessions[session.token]?.forEach { ws ->
+                    ws.sendSerialized(
+                        SongResponse(
+                            it.type.value,
+                            it.uid,
+                            it.reqUid,
+                            it.name,
+                            it.author,
+                            it.time
+                        )
+                    )
+                }
             }
         }
     }
