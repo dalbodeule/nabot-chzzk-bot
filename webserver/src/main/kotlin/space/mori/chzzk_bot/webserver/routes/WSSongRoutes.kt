@@ -53,6 +53,7 @@ fun Routing.wsSongRoutes() {
                     null,
                     null,
                     null,
+                    null,
                     null
                 ))
             }
@@ -89,7 +90,8 @@ fun Routing.wsSongRoutes() {
                     it.reqUid,
                     it.name,
                     it.author,
-                    it.time
+                    it.time,
+                    it.url
                 ))
             }
         }
@@ -105,6 +107,7 @@ fun Routing.wsSongRoutes() {
                         null,
                         null,
                         null,
+                        null
                     ))
                 }
             }
@@ -119,5 +122,6 @@ data class SongResponse(
     val reqUid: String?,
     val name: String?,
     val author: String?,
-    val time: Int?
+    val time: Int?,
+    val url: String?
 )
