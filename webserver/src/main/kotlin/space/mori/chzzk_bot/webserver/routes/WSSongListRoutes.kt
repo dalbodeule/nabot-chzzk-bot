@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
+import space.mori.chzzk_bot.common.models.Counters.withDefinition
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.SongListService
 import space.mori.chzzk_bot.common.services.UserService
@@ -95,25 +96,17 @@ fun Routing.wsSongListRoutes() {
                                 }
                             }
                         }
-                        else if(data.type == SongType.REMOVE.value && data.remove != null && data.remove > 0) {
-                            val songs = SongListService.getSong(user)
-                            if(songs.size < data.remove) {
-                                val song = songs[data.remove]
-                                SongListService.deleteSong(user, song.uid, song.name)
-
-                                dispatcher.post(
-                                    SongEvent(
-                                        user.token,
-                                        SongType.REMOVE,
-                                        user.token,
-                                        user.username,
-                                        song.name,
-                                        song.author,
-                                        0,
-                                        song.url
-                                    )
-                                )
-                            }
+                        else if(data.type == SongType.REMOVE.value && data.url != null) {
+                            dispatcher.post(SongEvent(
+                                user.token,
+                                SongType.REMOVE,
+                                null,
+                                null,
+                                null,
+                                null,
+                                0,
+                                data.url
+                            ))
                         } else if(data.type == SongType.NEXT.value) {
                             val song = SongListService.getSong(user)[0]
                             SongListService.deleteSong(user, song.uid, song.name)

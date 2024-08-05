@@ -265,7 +265,7 @@ class MessageHandler(
 
         bot.retrieveUserById(user.discord).queue { discordUser ->
             discordUser?.openPrivateChannel()?.queue { channel ->
-                channel.sendMessage("여기로 접속해주세요! ||https://nabot,mori.space/songlist/${session}||.\n주소가 노출될 경우 방송을 다시 켜셔야 합니다!")
+                channel.sendMessage("여기로 접속해주세요! ||https://nabot.mori.space/songlist/${session}||.\n주소가 노출될 경우 방송을 다시 켜셔야 합니다!")
                     .queue()
             }
         }
