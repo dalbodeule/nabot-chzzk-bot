@@ -117,6 +117,7 @@ class MessageHandler(
         val content = parts[2]
         CommandService.updateCommand(user, command, content, "")
         listener.sendChat("명령어 '$command' 수정되었습니다.")
+        ChzzkHandler.reloadCommand(channel)
     }
 
     private fun manageRemoveCommand(msg: ChatMessage, user: User) {
@@ -133,6 +134,7 @@ class MessageHandler(
         val command = parts[1]
         CommandService.removeCommand(user, command)
         listener.sendChat("명령어 '$command' 삭제되었습니다.")
+        ChzzkHandler.reloadCommand(channel)
     }
 
     private fun timerCommand(msg: ChatMessage, user: User) {

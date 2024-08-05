@@ -13,7 +13,18 @@ data class GetUserDTO(
     val uid: String,
     val nickname: String,
     val isStreamOn: Boolean,
+    val avatarUrl: String
+)
+
+@Serializable
+data class GetSessionDTO(
+    val uid: String,
+    val nickname: String,
+    val isStreamOn: Boolean,
     val avatarUrl: String,
+    val maxQueueSize: Int,
+    val maxUserSize: Int,
+    val isStreamerOnly: Boolean,
 )
 
 fun Routing.apiRoutes() {
@@ -63,16 +74,20 @@ fun Routing.apiRoutes() {
                 return@get
             }
             val user = SongConfigService.getUserByToken(sid)
+            val session = SongConfigService.getConfig(sid)
             if(user == null) {
                 call.respondText("User not found", status = HttpStatusCode.NotFound)
                 return@get
             } else {
                 val chzzkUser = getStreamInfo(user.token)
-                call.respond(HttpStatusCode.OK, GetUserDTO(
+                call.respond(HttpStatusCode.OK, GetSessionDTO(
                     chzzkUser.content!!.channel.channelId,
                     chzzkUser.content!!.channel.channelName,
                     chzzkUser.content!!.status == "OPEN",
-                    chzzkUser.content!!.channel.channelImageUrl
+                    chzzkUser.content!!.channel.channelImageUrl,
+                    session!!.queueLimit,
+                    session.personalLimit,
+                    session.streamerOnly
                 ))
             }
         }
