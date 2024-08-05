@@ -12,10 +12,7 @@ import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.json.Json
-import space.mori.chzzk_bot.webserver.routes.apiRoutes
-import space.mori.chzzk_bot.webserver.routes.apiSongRoutes
-import space.mori.chzzk_bot.webserver.routes.wsSongRoutes
-import space.mori.chzzk_bot.webserver.routes.wsTimerRoutes
+import space.mori.chzzk_bot.webserver.routes.*
 import java.time.Duration
 
 val server = embeddedServer(Netty, port = 8080) {
@@ -42,6 +39,7 @@ val server = embeddedServer(Netty, port = 8080) {
         apiSongRoutes()
         wsTimerRoutes()
         wsSongRoutes()
+        wsSongListRoutes()
         swaggerUI("swagger-ui/index.html", "openapi/documentation.yaml") {
             options {
                 version = "1.2.0"

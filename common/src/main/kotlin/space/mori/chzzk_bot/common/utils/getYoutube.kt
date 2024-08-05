@@ -28,7 +28,6 @@ fun getYoutubeVideoId(url: String): String? {
 }
 
 fun parseDuration(duration: String): Int {
-    println(duration)
     val matchResult = durationRegex.find(duration)
     val (hours, minutes, seconds) = matchResult?.destructured ?: return 0
 
@@ -66,8 +65,6 @@ fun getYoutubeVideo(url: String): YoutubeVideo? {
         val items = json.getAsJsonArray("items")
 
         if (items == null || items.size() == 0) return null
-
-        println(json)
 
         val item = items[0].asJsonObject
         val snippet = item.getAsJsonObject("snippet")

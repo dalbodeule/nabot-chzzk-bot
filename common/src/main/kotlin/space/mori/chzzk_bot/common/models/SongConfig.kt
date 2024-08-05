@@ -8,11 +8,19 @@ import org.jetbrains.exposed.sql.ReferenceOption
 
 object SongConfigs: IntIdTable("song_config") {
     val user = reference("user", Users, onDelete = ReferenceOption.CASCADE)
-    val option = integer("option")
+    val token = varchar("token", 64).nullable()
+    val password = varchar("password", 8).nullable()
+    val streamerOnly = bool("streamer_only").default(false)
+    val queueLimit = integer("queue_limit").default(50)
+    val personalLimit = integer("personal_limit").default(5)
 }
 class SongConfig(id: EntityID<Int>) : IntEntity(id) {
-    companion object : IntEntityClass<TimerConfig>(TimerConfigs)
+    companion object : IntEntityClass<SongConfig>(SongConfigs)
 
-    var user by User referencedOn TimerConfigs.user
-    var option by TimerConfigs.option
+    var user by User referencedOn SongConfigs.user
+    var token by SongConfigs.token
+    var password by SongConfigs.password
+    var streamerOnly by SongConfigs.streamerOnly
+    var queueLimit by SongConfigs.queueLimit
+    var personalLimit by SongConfigs.personalLimit
 }

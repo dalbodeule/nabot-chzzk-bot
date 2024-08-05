@@ -129,7 +129,7 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent?> {
 }
 
 fun getStreamInfo(userId: String) : IData<IStreamInfo?> {
-    val url = "https://api.chzzk.naver.com/service/v2/channels/${userId}/live-detail"
+    val url = "https://api.chzzk.naver.com/service/v3/channels/${userId}/live-detail"
     val request = Request.Builder()
         .url(url)
         .build()

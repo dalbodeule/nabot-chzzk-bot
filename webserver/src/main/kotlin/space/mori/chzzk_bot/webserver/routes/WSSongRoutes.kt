@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 
 fun Routing.wsSongRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
-    val status = ConcurrentHashMap<String, TimerType>()
+    val status = ConcurrentHashMap<String, SongType>()
     val logger = LoggerFactory.getLogger(this.javaClass.name)
 
     fun addSession(uid: String, session: WebSocketServerSession) {
@@ -45,7 +45,7 @@ fun Routing.wsSongRoutes() {
 
         addSession(uid, this)
 
-        if(status[uid] == TimerType.STREAM_OFF) {
+        if(status[uid] == SongType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(SongResponse(
                     SongType.STREAM_OFF.value,
@@ -91,6 +91,22 @@ fun Routing.wsSongRoutes() {
                     it.author,
                     it.time
                 ))
+            }
+        }
+    }
+    dispatcher.subscribe(TimerEvent::class) {
+        if(it.type == TimerType.STREAM_OFF) {
+            CoroutineScope(Dispatchers.Default).launch {
+                sessions[it.uid]?.forEach { ws ->
+                    ws.sendSerialized(SongResponse(
+                        it.type.value,
+                        it.uid,
+                        null,
+                        null,
+                        null,
+                        null,
+                    ))
+                }
             }
         }
     }
