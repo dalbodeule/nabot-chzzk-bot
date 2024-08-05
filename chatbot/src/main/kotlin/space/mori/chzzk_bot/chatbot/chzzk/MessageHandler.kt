@@ -4,10 +4,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
+import space.mori.chzzk_bot.chatbot.discord.Discord.Companion.bot
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.*
 import space.mori.chzzk_bot.common.utils.getFollowDate
+import space.mori.chzzk_bot.common.utils.getRandomString
 import space.mori.chzzk_bot.common.utils.getUptime
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
@@ -15,6 +17,7 @@ import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.UUID
 
 
 class MessageHandler(
@@ -57,7 +60,8 @@ class MessageHandler(
             "!명령어수정" to this::manageUpdateCommand,
             "!시간" to this::timerCommand,
             "!노래추가" to this::songAddCommand,
-            "!노래목록" to this::songListCommand
+            "!노래목록" to this::songListCommand,
+            "!노래시작" to this::songStartCommand
         )
 
         manageCommands.forEach { (commandName, command) ->
@@ -246,6 +250,26 @@ class MessageHandler(
 
     private fun songListCommand(msg: ChatMessage, user: User) {
         listener.sendChat("리스트는 여기입니다. https://nabot.mori.space/songs/${user.token}")
+    }
+
+    private fun songStartCommand(msg: ChatMessage, user: User) {
+        if (msg.profile?.userRoleCode == "common_user") {
+            listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+            return
+        }
+
+        val session = "${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "")
+        val password = getRandomString(8)
+
+        SongConfigService.updateSession(user, session, password)
+
+        bot.getUserById(user.token)?.let { it ->
+            val channel = it.openPrivateChannel()
+            channel.onSuccess { privateChannel ->
+                privateChannel.sendMessage("여기로 접속해주세요! https://nabot,mori.space/songlist/${session}.\n인증번호는 ||$password|| 입니다.").queue()
+            }
+        }
+
     }
 
     internal fun handle(msg: ChatMessage, user: User) {
