@@ -39,14 +39,13 @@ fun Routing.wsSongListRoutes() {
 
     webSocket("/songlist/{sid}") {
         val sid = call.parameters["sid"]
-        val pw = call.request.headers["X-Auth-Token"]
         val session = sid?.let { SongConfigService.getConfig(it) }
         val user = sid?.let {SongConfigService.getUserByToken(sid) }
         if (sid == null) {
             close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
             return@webSocket
         }
-        if (user == null || session == null || session.password != pw) {
+        if (user == null || session == null) {
             close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
             return@webSocket
         }
@@ -149,6 +148,8 @@ fun Routing.wsSongListRoutes() {
     }
     dispatcher.subscribe(TimerEvent::class) {
         if(it.type == TimerType.STREAM_OFF) {
+            val user = UserService.getUser(it.uid)
+            SongConfigService.updateSession(user!!, null)
             CoroutineScope(Dispatchers.Default).launch {
                 sessions[it.uid]?.forEach { ws ->
                     ws.sendSerialized(SongResponse(

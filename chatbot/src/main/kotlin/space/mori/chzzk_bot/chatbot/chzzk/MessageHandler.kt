@@ -9,7 +9,6 @@ import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.*
 import space.mori.chzzk_bot.common.utils.getFollowDate
-import space.mori.chzzk_bot.common.utils.getRandomString
 import space.mori.chzzk_bot.common.utils.getUptime
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
@@ -259,14 +258,13 @@ class MessageHandler(
         }
 
         val session = "${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "")
-        val password = getRandomString(8)
 
-        SongConfigService.updateSession(user, session, password)
+        SongConfigService.updateSession(user, session)
 
 
         bot.retrieveUserById(user.discord).queue { discordUser ->
             discordUser?.openPrivateChannel()?.queue { channel ->
-                channel.sendMessage("여기로 접속해주세요! https://nabot,mori.space/songlist/${session}.\n인증번호는 ||$password|| 입니다.")
+                channel.sendMessage("여기로 접속해주세요! ||https://nabot,mori.space/songlist/${session}||.\n주소가 노출될 경우 방송을 다시 켜셔야 합니다!")
                     .queue()
             }
         }

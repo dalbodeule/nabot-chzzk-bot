@@ -60,14 +60,13 @@ object SongConfigService {
         }
     }
 
-    fun updateSession(user: User, token: String?, password: String?): SongConfig {
+    fun updateSession(user: User, token: String?): SongConfig {
         return transaction {
             var songConfig = SongConfig.find(SongConfigs.user eq user.id).firstOrNull()
             if (songConfig == null) {
                 songConfig = initConfig(user)
             }
             songConfig.token = token
-            songConfig.password = password
 
             songConfig
         }
