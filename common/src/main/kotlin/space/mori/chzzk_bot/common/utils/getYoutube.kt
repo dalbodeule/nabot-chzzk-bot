@@ -23,13 +23,7 @@ val dotenv = dotenv {
 }
 
 fun searchYoutube(query: String): String? {
-    val url = HttpUrl.Builder()
-        .scheme("https")
-        .host("youtube-search-results.p.rapidapi.com")
-        .addPathSegment("youtube-search")
-        .addPathSegment("")
-        .addQueryParameter("q", URLEncoder.encode(query, "UTF-8"))
-        .build()
+    val url = "https://youtube-search-results.p.rapidapi.com/youtube-search/?q=${URLEncoder.encode(query, "UTF-8")}"
     val request = Request.Builder()
         .url(url)
         .addHeader("x-rapidapi-host", "youtube-search-results.p.rapidapi.com")
