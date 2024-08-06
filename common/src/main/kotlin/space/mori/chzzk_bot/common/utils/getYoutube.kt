@@ -6,6 +6,7 @@ import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
+import java.net.URLEncoder
 
 data class YoutubeVideo(
     val url: String,
@@ -25,7 +26,8 @@ fun searchYoutube(query: String): String? {
     val url = HttpUrl.Builder()
         .scheme("https")
         .host("youtube-search-results.p.rapidapi.com")
-        .addQueryParameter("q", query)
+        .addPathSegment("youtube-search")
+        .addQueryParameter("q", URLEncoder.encode(query, "UTF-8"))
         .build()
     val request = Request.Builder()
         .url(url)
