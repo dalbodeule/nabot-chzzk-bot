@@ -40,8 +40,6 @@ fun searchYoutube(query: String): String? {
 
         val firstVideo = videos.get(0).asJsonObject
 
-        logger.info(firstVideo.toString())
-
         val videoId = firstVideo.get("id").asString
 
         return videoId
