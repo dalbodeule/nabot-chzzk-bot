@@ -35,12 +35,14 @@ fun searchYoutube(query: String): String? {
 
         val responseBody = response.body?.string()
         val json = gson.fromJson(responseBody, JsonObject::class.java)
-        val items = json.getAsJsonArray("videos")
 
-        if (items.size() == 0) return null
+        val videos = json.getAsJsonArray("videos")
 
-        val firstItem = items[0].asJsonObject
-        val videoUrl = firstItem.get("link").asString
+        val firstVideo = videos.get(0).asJsonObject
+
+        logger.info(firstVideo.toString())
+
+        val videoUrl = firstVideo.get("link").asString
 
         return videoUrl
     }
