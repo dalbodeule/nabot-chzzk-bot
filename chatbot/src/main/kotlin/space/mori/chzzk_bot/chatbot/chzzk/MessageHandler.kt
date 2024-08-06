@@ -269,6 +269,7 @@ class MessageHandler(
             listener.sendChat("노래가 추가되었습니다.")
         } catch(e: Exception) {
             listener.sendChat("유튜브 영상 주소로 다시 신청해주세요!")
+            logger.info(e.stackTraceToString())
         }
     }
 
