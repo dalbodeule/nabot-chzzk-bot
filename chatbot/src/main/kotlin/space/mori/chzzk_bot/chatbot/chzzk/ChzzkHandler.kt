@@ -175,8 +175,12 @@ class UserHandler(
                 }
                 if(!_isActive) {
                     delay(5000L)
-                    listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
-                    Discord.sendDiscord(user, status)
+                    try {
+                        listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
+                        Discord.sendDiscord(user, status)
+                    } catch(e: Exception) {
+                        logger.info("Stream on logic has some error: ${e.stackTraceToString()}")
+                    }
                 }
             }
         } else {
