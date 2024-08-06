@@ -42,16 +42,20 @@ fun searchYoutube(query: String): String? {
 
         logger.info(firstVideo.toString())
 
-        val videoUrl = firstVideo.get("link").asString
+        val videoId = firstVideo.get("id").asString
 
-        return videoUrl
+        return videoId
     }
 }
 
 fun getYoutubeVideoId(query: String): String? {
     val matchResult = regex.find(query)
 
-    return matchResult?.groups?.get(1)?.value ?: searchYoutube(query)
+    return if(matchResult == null) {
+        searchYoutube(query)
+    } else {
+        matchResult.groups[1]?.value
+    }
 }
 
 fun parseDuration(duration: String): Int {
