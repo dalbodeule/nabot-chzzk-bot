@@ -230,40 +230,46 @@ class MessageHandler(
             return
         }
 
-        val video = getYoutubeVideo(url)
-        if (video == null) {
-            listener.sendChat("유튜브에서 찾을 수 없어요!")
-            return
-        }
+        try {
+            val video = getYoutubeVideo(url)
+            if (video == null) {
+                listener.sendChat("유튜브에서 찾을 수 없어요!")
+                return
+            }
 
-        if (songs.any { it.url == video.url }) {
-            listener.sendChat("같은 노래가 이미 신청되어 있습니다.")
-            return
-        }
+            if (songs.any { it.url == video.url }) {
+                listener.sendChat("같은 노래가 이미 신청되어 있습니다.")
+                return
+            }
 
-        SongListService.saveSong(
-            user,
-            msg.userId,
-            video.url,
-            video.name,
-            video.author,
-            video.length,
-            msg.profile?.nickname ?: ""
-        )
-        CoroutineScope(Dispatchers.Default).launch {
-            dispatcher.post(SongEvent(
-                user.token,
-                SongType.ADD,
+            SongListService.saveSong(
+                user,
                 msg.userId,
-                msg.profile?.nickname ?: "",
+                video.url,
                 video.name,
                 video.author,
                 video.length,
-                video.url
-            ))
-        }
+                msg.profile?.nickname ?: ""
+            )
+            CoroutineScope(Dispatchers.Default).launch {
+                dispatcher.post(
+                    SongEvent(
+                        user.token,
+                        SongType.ADD,
+                        msg.userId,
+                        msg.profile?.nickname ?: "",
+                        video.name,
+                        video.author,
+                        video.length,
+                        video.url
+                    )
+                )
+            }
 
-        listener.sendChat("노래가 추가되었습니다.")
+            listener.sendChat("노래가 추가되었습니다.")
+        } catch(e: Exception) {
+            listener.sendChat("유튜브 영상 주소로 다시 신청해주세요!")
+        }
     }
 
     private fun songListCommand(msg: ChatMessage, user: User) {

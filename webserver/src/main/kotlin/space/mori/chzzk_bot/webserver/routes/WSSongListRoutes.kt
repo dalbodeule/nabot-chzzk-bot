@@ -79,21 +79,35 @@ fun Routing.wsSongListRoutes() {
                         if(data.isStreamerOnly != null) SongConfigService.updateStreamerOnly(user, data.isStreamerOnly)
 
                         if(data.type == SongType.ADD.value && data.url != null) {
-                            val youtubeVideo = getYoutubeVideo(data.url)
-                            if(youtubeVideo != null) {
-                                CoroutineScope(Dispatchers.Default).launch {
-                                    SongListService.saveSong(user, user.token, data.url, youtubeVideo.name, youtubeVideo.author, youtubeVideo.length, user.username)
-                                    dispatcher.post(SongEvent(
-                                        user.token,
-                                        SongType.ADD,
-                                        user.token,
-                                        user.username,
-                                        youtubeVideo.name,
-                                        youtubeVideo.author,
-                                        youtubeVideo.length,
-                                        youtubeVideo.url
-                                    ))
+                            try {
+                                val youtubeVideo = getYoutubeVideo(data.url)
+                                if (youtubeVideo != null) {
+                                    CoroutineScope(Dispatchers.Default).launch {
+                                        SongListService.saveSong(
+                                            user,
+                                            user.token,
+                                            data.url,
+                                            youtubeVideo.name,
+                                            youtubeVideo.author,
+                                            youtubeVideo.length,
+                                            user.username
+                                        )
+                                        dispatcher.post(
+                                            SongEvent(
+                                                user.token,
+                                                SongType.ADD,
+                                                user.token,
+                                                user.username,
+                                                youtubeVideo.name,
+                                                youtubeVideo.author,
+                                                youtubeVideo.length,
+                                                youtubeVideo.url
+                                            )
+                                        )
+                                    }
                                 }
+                            } catch(e: Exception) {
+                                logger.debug("SongType.ADD Error: {} / {}", session.token, e)
                             }
                         }
                         else if(data.type == SongType.REMOVE.value && data.url != null) {

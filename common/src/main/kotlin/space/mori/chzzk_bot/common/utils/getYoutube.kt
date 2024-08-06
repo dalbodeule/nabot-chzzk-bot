@@ -3,6 +3,7 @@ package space.mori.chzzk_bot.common.utils
 import com.google.gson.JsonObject
 import io.github.cdimascio.dotenv.dotenv
 import okhttp3.HttpUrl
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
 
@@ -20,11 +21,38 @@ val dotenv = dotenv {
     ignoreIfMissing = true
 }
 
+fun searchYoutube(query: String): String? {
+    val url = HttpUrl.Builder()
+        .scheme("https")
+        .host("youtube-search-results.p.rapidapi.com")
+        .addQueryParameter("q", query)
+        .build()
+    val request = Request.Builder()
+        .url(url)
+        .addHeader("x-rapidapi-host", "youtube-search-results.p.rapidapi.com")
+        .addHeader("x-rapidapi-key", dotenv["RAPID_KEY"] ?: "")
+        .build()
 
-fun getYoutubeVideoId(url: String): String? {
-    val matchResult = regex.find(url)
+    OkHttpClient().newCall(request).execute().use { response ->
+        if (!response.isSuccessful) throw IOException("Unexpected code $response")
 
-    return matchResult?.groups?.get(1)?.value
+        val responseBody = response.body?.string()
+        val json = gson.fromJson(responseBody, JsonObject::class.java)
+        val items = json.getAsJsonArray("items")
+
+        if (items.size() == 0) return null
+
+        val firstItem = items[0].asJsonObject
+        val videoUrl = firstItem.get("url").asString
+
+        return videoUrl
+    }
+}
+
+fun getYoutubeVideoId(query: String): String? {
+    val matchResult = regex.find(query)
+
+    return matchResult?.groups?.get(1)?.value ?: searchYoutube(query)
 }
 
 fun parseDuration(duration: String): Int {
@@ -38,8 +66,8 @@ fun parseDuration(duration: String): Int {
     return hourInSec + minutesInSec + totalSeconds
 }
 
-fun getYoutubeVideo(url: String): YoutubeVideo? {
-    val videoId = getYoutubeVideoId(url)
+fun getYoutubeVideo(query: String): YoutubeVideo? {
+    val videoId = getYoutubeVideoId(query)
 
     val api = HttpUrl.Builder()
         .scheme("https")
