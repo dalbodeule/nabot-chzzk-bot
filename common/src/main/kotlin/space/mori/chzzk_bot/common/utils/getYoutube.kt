@@ -26,7 +26,7 @@ fun searchYoutube(query: String): String? {
     val url = HttpUrl.Builder()
         .scheme("https")
         .host("youtube-search-results.p.rapidapi.com")
-        .addPathSegment("youtube-search")
+        .addPathSegment("youtube-search/")
         .addQueryParameter("q", URLEncoder.encode(query, "UTF-8"))
         .build()
     val request = Request.Builder()
