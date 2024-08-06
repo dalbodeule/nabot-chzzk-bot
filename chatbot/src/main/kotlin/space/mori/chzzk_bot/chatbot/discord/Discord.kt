@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.JDA
 import net.dv8tion.jda.api.JDABuilder
 import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Guild
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent
 import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
@@ -30,8 +31,7 @@ class Discord: ListenerAdapter() {
     companion object {
         lateinit var bot: JDA
 
-        internal fun getChannel(guildId: Long, channelId: Long) =
-            bot.getGuildById(guildId)?.getTextChannelById(channelId)
+        internal fun getChannel(guildId: Long, channelId: Long): TextChannel? = bot.getGuildById(guildId)?.getTextChannelById(channelId)
 
         fun sendDiscord(user: User, status: IData<IStreamInfo?>) {
             if(status.content == null) return
