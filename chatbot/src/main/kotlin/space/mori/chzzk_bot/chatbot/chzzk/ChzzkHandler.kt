@@ -161,19 +161,24 @@ class UserHandler(
             streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
 
             CoroutineScope(Dispatchers.Default).launch {
-                when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
-                     TimerType.UPTIME.value ->  dispatcher.post(TimerEvent(
-                        channel.channelId,
-                        TimerType.UPTIME,
-                        getUptime(streamStartTime!!)
-                    ))
-                    else -> dispatcher.post(TimerEvent(
-                        channel.channelId,
-                        TimerType.REMOVE,
-                        ""
-                    ))
-                }
                 if(!_isActive) {
+                    when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
+                        TimerType.UPTIME.value -> dispatcher.post(
+                            TimerEvent(
+                                channel.channelId,
+                                TimerType.UPTIME,
+                                getUptime(streamStartTime!!)
+                            )
+                        )
+
+                        else -> dispatcher.post(
+                            TimerEvent(
+                                channel.channelId,
+                                TimerType.REMOVE,
+                                ""
+                            )
+                        )
+                    }
                     delay(5000L)
                     try {
                         listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
