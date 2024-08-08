@@ -20,7 +20,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import space.mori.chzzk_bot.common.dotenv
 import space.mori.chzzk_bot.webserver.routes.*
 import java.time.Duration
 
@@ -48,8 +47,12 @@ val server = embeddedServer(Netty, port = 8080, ) {
         })
     }
     install(CORS) {
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Get)
         anyHost()
-        allowHeader(HttpHeaders.ContentType)
     }
     install(Sessions) {
         cookie<UserSession>("user_session", storage = SessionStorageMemory()) {}
