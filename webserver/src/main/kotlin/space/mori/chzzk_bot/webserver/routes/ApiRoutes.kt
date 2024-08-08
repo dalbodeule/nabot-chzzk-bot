@@ -43,7 +43,7 @@ data class RegisterChzzkUserDTO(
 )
 
 fun Routing.apiRoutes() {
-    val chzzkIDRegex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})?(?:/live)?${'$'}/.+""".toRegex()
+    val chzzkIDRegex = """(?:.+chzzk\.naver\.com\/)?([a-f0-9]{32})(?:.+)?""".toRegex()
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     route("/") {
