@@ -21,17 +21,11 @@ object RegisterCommand: CommandInterface {
     private val regex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})?(?:/live)?${'$'}""".toRegex()
 
     override val command =  Commands.slash(name, "치지직 계정을 등록합니다.")
-        .addOptions(
-            OptionData(
-                OptionType.STRING,
-                "chzzk_id",
-                "치지직 채널 URL 혹은 ID를 입력해주세요.",
-                true
-            )
-        )
 
     override fun run(event: SlashCommandInteractionEvent, bot: JDA) {
-        val chzzkID = event.getOption("chzzk_id")?.asString
+        event.hook.sendMessage("가입은 여기를 참고해주세요!\nhttps://nabot.mori.space/register").queue()
+
+        /* val chzzkID = event.getOption("chzzk_id")?.asString
         if(chzzkID == null) {
             event.hook.sendMessage("치지직 계정은 필수 입력입니다.").queue()
             return
@@ -55,6 +49,6 @@ object RegisterCommand: CommandInterface {
         } catch(e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
             logger.debug(e.stackTraceToString())
-        }
+        } */
     }
 }
