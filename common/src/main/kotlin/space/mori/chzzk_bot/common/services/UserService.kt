@@ -7,13 +7,28 @@ import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.models.Users
 
 object UserService {
-    fun saveUser(username: String, token: String, discordID: Long): User {
+    fun saveUser(username: String, naverId: String): User {
         return transaction {
             User.new {
                 this.username = username
-                this.token = token
-                this.discord = discordID
+                this.naverId = naverId
             }
+        }
+    }
+
+    fun updateUser(user: User, chzzkId: String, username: String): User {
+        return transaction {
+            user.token = chzzkId
+            user.username = username
+
+            user
+        }
+    }
+
+    fun updateUser(user: User, discordID: Long): User {
+        return transaction {
+            user.discord = discordID
+            user
         }
     }
 

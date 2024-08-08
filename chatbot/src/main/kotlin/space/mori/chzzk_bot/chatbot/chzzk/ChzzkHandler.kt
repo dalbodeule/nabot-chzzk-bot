@@ -8,6 +8,7 @@ import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.chzzk
+import space.mori.chzzk_bot.chatbot.chzzk.Connector.getChannel
 import space.mori.chzzk_bot.chatbot.discord.Discord
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
@@ -28,6 +29,7 @@ object ChzzkHandler {
     private val logger = LoggerFactory.getLogger(this::class.java)
     lateinit var botUid: String
     @Volatile private var running: Boolean = false
+    val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     fun addUser(chzzkChannel: ChzzkChannel, user: User) {
         handlers.add(UserHandler(chzzkChannel, logger, user, streamStartTime = null))
@@ -42,6 +44,14 @@ object ChzzkHandler {
         handlers.forEach { handler ->
             val streamInfo = getStreamInfo(handler.listener.channelId)
             if (streamInfo.content?.status == "OPEN") handler.isActive(true, streamInfo)
+        }
+
+        dispatcher.subscribe(UserRegisterEvent::class) {
+            val channel = getChannel(it.chzzkId)
+            val user = UserService.getUser(it.chzzkId)
+            if(channel != null && user != null) {
+                addUser(channel, user)
+            }
         }
     }
 
