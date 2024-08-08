@@ -52,7 +52,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Get)
-        allowHost(dotenv["FRONTEND"] ?: "localhost:3000", schemes = listOf("http", "https"))
+        allowHost(dotenv["FRONTEND"] ?: "localhost:3000", schemes = listOf("http", "https", "ws", "wss"))
         allowCredentials = true
     }
     install(Sessions) {
