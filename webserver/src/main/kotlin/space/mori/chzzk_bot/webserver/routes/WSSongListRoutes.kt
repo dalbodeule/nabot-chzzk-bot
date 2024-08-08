@@ -41,7 +41,7 @@ fun Routing.wsSongListRoutes() {
 
     webSocket("/songlist") {
         val session = call.sessions.get<UserSession>()
-        val user = session?.id?.let { UserService.getUserWithNaverId( it.toLong() ) }
+        val user = session?.id?.let { UserService.getUserWithNaverId( it ) }
         if (user == null) {
             close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
             return@webSocket
