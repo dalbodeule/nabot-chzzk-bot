@@ -38,7 +38,7 @@ object ChzzkHandler {
     fun enable() {
         botUid = chzzk.loggedUser.userId
         UserService.getAllUsers().map {
-            chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
+            chzzk.getChannel(it.token ?: "")?.let { token -> addUser(token, it) }
         }
 
         handlers.forEach { handler ->
