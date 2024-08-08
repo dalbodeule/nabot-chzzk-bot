@@ -17,12 +17,15 @@ import space.mori.chzzk_bot.common.services.UserService
 object RegisterCommand: CommandInterface {
     private val logger = LoggerFactory.getLogger(this::class.java)
     override val name = "register"
+
+    private val regex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})?(?:/live)?${'$'}""".toRegex()
+
     override val command =  Commands.slash(name, "치지직 계정을 등록합니다.")
         .addOptions(
             OptionData(
                 OptionType.STRING,
                 "chzzk_id",
-                "36da10b7c35800f298e9c565a396bafd 형식으로 입력해주세요.",
+                "치지직 채널 URL 혹은 ID를 입력해주세요.",
                 true
             )
         )
@@ -33,8 +36,10 @@ object RegisterCommand: CommandInterface {
             event.hook.sendMessage("치지직 계정은 필수 입력입니다.").queue()
             return
         }
+        val matchResult = regex.find(chzzkID)
+        val matchedChzzkId = matchResult?.groups?.get(1)?.value
 
-        val chzzkChannel = Connector.getChannel(chzzkID)
+        val chzzkChannel = matchedChzzkId?.let { Connector.getChannel(it) }
         if (chzzkChannel == null) {
             event.hook.sendMessage("치지직 계정을 찾을 수 없습니다.").queue()
             return
