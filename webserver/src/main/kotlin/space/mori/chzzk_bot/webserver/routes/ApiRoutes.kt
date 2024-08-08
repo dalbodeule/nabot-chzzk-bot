@@ -4,9 +4,12 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.services.SongConfigService
+import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getStreamInfo
+import space.mori.chzzk_bot.webserver.UserSession
 
 @Serializable
 data class GetUserDTO(
@@ -63,38 +66,29 @@ fun Routing.apiRoutes() {
     }
     route("/user") {
         get {
-            call.respondText("Require UID", status = HttpStatusCode.NotFound)
-        }
-    }
-    route("/session/{sid}") {
-        get {
-            val sid = call.parameters["sid"]
-            if(sid == null) {
-                call.respondText("Require SID", status = HttpStatusCode.NotFound)
+            val session = call.sessions.get<UserSession>()
+
+            if(session == null) {
+                call.respondText("No session found", status = HttpStatusCode.NotFound)
                 return@get
             }
-            val user = SongConfigService.getUserByToken(sid)
-            val session = SongConfigService.getConfig(sid)
+            val user = UserService.getUserWithNaverId(session.id.toLong())
             if(user == null) {
-                call.respondText("User not found", status = HttpStatusCode.NotFound)
+                call.respondText("No session found", status = HttpStatusCode.NotFound)
                 return@get
-            } else {
-                val chzzkUser = getStreamInfo(user.token)
-                call.respond(HttpStatusCode.OK, GetSessionDTO(
-                    chzzkUser.content!!.channel.channelId,
-                    chzzkUser.content!!.channel.channelName,
-                    chzzkUser.content!!.status == "OPEN",
-                    chzzkUser.content!!.channel.channelImageUrl,
-                    session!!.queueLimit,
-                    session.personalLimit,
-                    session.streamerOnly
-                ))
             }
-        }
-    }
-    route("/session") {
-        get {
-            call.respondText("Require SID", status = HttpStatusCode.NotFound)
+            val songConfig = SongConfigService.getConfig(user)
+            val status = getStreamInfo(user.token)
+
+            call.respond(HttpStatusCode.OK, GetSessionDTO(
+                status.content!!.channel.channelId,
+                status.content!!.channel.channelName,
+                status.content!!.status == "OPEN",
+                status.content!!.channel.channelImageUrl,
+                songConfig.queueLimit,
+                songConfig.personalLimit,
+                songConfig.streamerOnly
+            ))
         }
     }
 }

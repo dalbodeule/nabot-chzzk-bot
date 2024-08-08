@@ -1,6 +1,7 @@
 package space.mori.chzzk_bot.webserver.routes
 
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
@@ -17,6 +18,7 @@ import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.SongListService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
+import space.mori.chzzk_bot.webserver.UserSession
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -27,33 +29,30 @@ fun Routing.wsSongListRoutes() {
 
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
-    fun addSession(sid: String, session: WebSocketServerSession) {
-        sessions.computeIfAbsent(sid) { ConcurrentLinkedQueue() }.add(session)
+    fun addSession(uid: String, session: WebSocketServerSession) {
+        sessions.computeIfAbsent(uid) { ConcurrentLinkedQueue() }.add(session)
     }
 
-    fun removeSession(sid: String, session: WebSocketServerSession) {
-        sessions[sid]?.remove(session)
-        if(sessions[sid]?.isEmpty() == true) {
-            sessions.remove(sid)
+    fun removeSession(uid: String, session: WebSocketServerSession) {
+        sessions[uid]?.remove(session)
+        if(sessions[uid]?.isEmpty() == true) {
+            sessions.remove(uid)
         }
     }
 
-    webSocket("/songlist/{sid}") {
-        val sid = call.parameters["sid"]
-        val session = sid?.let { SongConfigService.getConfig(it) }
-        val user = sid?.let {SongConfigService.getUserByToken(sid) }
-        if (sid == null) {
-            close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
-            return@webSocket
-        }
-        if (user == null || session == null) {
+    webSocket("/songlist") {
+        val session = call.sessions.get<UserSession>()
+        val user = session?.id?.let { UserService.getUserWithNaverId( it.toLong() ) }
+        if (user == null) {
             close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
             return@webSocket
         }
 
-        addSession(sid, this)
+        val uid = user.token
 
-        if(status[sid] == SongType.STREAM_OFF) {
+        addSession(uid, this)
+
+        if(status[uid] == SongType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(SongResponse(
                     SongType.STREAM_OFF.value,
@@ -65,7 +64,7 @@ fun Routing.wsSongListRoutes() {
                     null
                 ))
             }
-            removeSession(sid, this)
+            removeSession(uid, this)
         }
 
         try {
@@ -107,7 +106,7 @@ fun Routing.wsSongListRoutes() {
                                     }
                                 }
                             } catch(e: Exception) {
-                                logger.debug("SongType.ADD Error: {} / {}", session.token, e)
+                                logger.debug("SongType.ADD Error: {} / {}", uid, e)
                             }
                         }
                         else if(data.type == SongType.REMOVE.value && data.url != null) {
@@ -145,7 +144,7 @@ fun Routing.wsSongListRoutes() {
         } catch(e: ClosedReceiveChannelException) {
             logger.error("Error in WebSocket: ${e.message}")
         } finally {
-            removeSession(sid, this)
+            removeSession(uid, this)
         }
     }
 
