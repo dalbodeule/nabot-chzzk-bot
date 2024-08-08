@@ -129,6 +129,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
         allowMethod(HttpMethod.Get)
         allowHost(dotenv["FRONTEND"] ?: "localhost:3000", schemes=listOf("https"))
         allowCredentials = true
+        allowNonSimpleContentTypes = true
     }
 }
 

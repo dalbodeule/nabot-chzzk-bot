@@ -43,7 +43,7 @@ data class RegisterChzzkUserDTO(
 )
 
 fun Routing.apiRoutes() {
-    val chzzkIDRegex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})?(?:/live)?${'$'}""".toRegex()
+    val chzzkIDRegex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})?(?:/live)?${'$'}/.+""".toRegex()
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     route("/") {
@@ -97,10 +97,11 @@ fun Routing.apiRoutes() {
 
             if(status?.content == null) {
                 call.respondText(user.naverId, status = HttpStatusCode.NotFound)
+                return@get
             }
 
             call.respond(HttpStatusCode.OK, GetSessionDTO(
-                status!!.content!!.channel.channelId,
+                status.content!!.channel.channelId,
                 status.content!!.channel.channelName,
                 status.content!!.status == "OPEN",
                 status.content!!.channel.channelImageUrl,
