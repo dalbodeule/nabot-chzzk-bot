@@ -13,7 +13,6 @@ import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
-import space.mori.chzzk_bot.common.models.Counters.withDefinition
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.SongListService
 import space.mori.chzzk_bot.common.services.UserService
