@@ -52,7 +52,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
         allowMethod(HttpMethod.Patch)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Get)
-        allowOrigins { it == dotenv["FRONTEND"] }
+        allowHost(dotenv["FRONTEND"] ?: "localhost:3000")
     }
     install(Sessions) {
         cookie<UserSession>("user_session", storage = SessionStorageMemory()) {}
