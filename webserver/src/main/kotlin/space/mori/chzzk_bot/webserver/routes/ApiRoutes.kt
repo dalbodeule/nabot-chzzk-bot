@@ -126,11 +126,6 @@ fun Routing.apiRoutes() {
             }
 
             val matchResult = chzzkIDRegex.find(body.chzzkUrl)
-            matchResult?.groups?.forEach {
-                if (it != null) {
-                    println(it.value)
-                }
-            }
             val matchedChzzkId = matchResult?.groups?.get(1)?.value
 
             if (matchedChzzkId == null) {
