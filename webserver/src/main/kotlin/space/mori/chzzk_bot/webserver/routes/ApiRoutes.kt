@@ -93,14 +93,14 @@ fun Routing.apiRoutes() {
                 user = UserService.saveUser(session.nickname, session.id)
             }
             val songConfig = SongConfigService.getConfig(user)
-            val status = getStreamInfo(user.token!!)
+            val status = user.token?.let { it1 -> getStreamInfo(it1) }
 
-            if(status.content == null) {
+            if(status?.content == null) {
                 call.respondText(user.naverId, status = HttpStatusCode.NotFound)
             }
 
             call.respond(HttpStatusCode.OK, GetSessionDTO(
-                status.content!!.channel.channelId,
+                status!!.content!!.channel.channelId,
                 status.content!!.channel.channelName,
                 status.content!!.status == "OPEN",
                 status.content!!.channel.channelImageUrl,
