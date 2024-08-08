@@ -8,8 +8,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 
 object Users: IntIdTable("users") {
     val username = varchar("username", 255)
-    val token = varchar("token", 64)
-    val discord = long("discord")
+    val token = varchar("token", 64).nullable()
+    val discord = long("discord").nullable()
     val naverId = varchar("naver_id", 128)
     val liveAlertGuild = long("live_alert_guild").nullable()
     val liveAlertChannel = long("live_alert_channel").nullable()

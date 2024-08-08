@@ -29,7 +29,7 @@ object ChzzkHandler {
     private val logger = LoggerFactory.getLogger(this::class.java)
     lateinit var botUid: String
     @Volatile private var running: Boolean = false
-    val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
+    private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     fun addUser(chzzkChannel: ChzzkChannel, user: User) {
         handlers.add(UserHandler(chzzkChannel, logger, user, streamStartTime = null))

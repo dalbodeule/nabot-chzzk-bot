@@ -47,7 +47,7 @@ object RemoveCommand : CommandInterface {
             return
         }
 
-        val chzzkChannel = Connector.getChannel(user!!.token)
+        val chzzkChannel = user!!.token?.let { Connector.getChannel(it) }
 
         try {
             CommandService.removeCommand(user!!, label)

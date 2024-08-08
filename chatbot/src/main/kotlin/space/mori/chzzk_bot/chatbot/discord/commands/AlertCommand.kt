@@ -43,7 +43,7 @@ object AlertCommand : CommandInterface {
             return
         }
 
-        val chzzkChannel = Connector.getChannel(user!!.token)
+        val chzzkChannel = user!!.token?.let { Connector.getChannel(it) }
 
         try {
             val newUser = UserService.updateLiveAlert(user!!.id.value, channel?.guild?.idLong ?: 0L, channel?.idLong ?: 0L, content ?: "")

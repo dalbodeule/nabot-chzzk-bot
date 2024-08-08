@@ -49,13 +49,13 @@ fun Routing.wsSongListRoutes() {
 
         val uid = user.token
 
-        addSession(uid, this)
+        addSession(uid!!, this)
 
         if(status[uid] == SongType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(SongResponse(
                     SongType.STREAM_OFF.value,
-                    user.token,
+                    uid,
                     null,
                     null,
                     null,
@@ -83,7 +83,7 @@ fun Routing.wsSongListRoutes() {
                                     CoroutineScope(Dispatchers.Default).launch {
                                         SongListService.saveSong(
                                             user,
-                                            user.token,
+                                            user.token!!,
                                             data.url,
                                             youtubeVideo.name,
                                             youtubeVideo.author,
@@ -92,7 +92,7 @@ fun Routing.wsSongListRoutes() {
                                         )
                                         dispatcher.post(
                                             SongEvent(
-                                                user.token,
+                                                user.token!!,
                                                 SongType.ADD,
                                                 user.token,
                                                 user.username,
@@ -110,7 +110,7 @@ fun Routing.wsSongListRoutes() {
                         }
                         else if(data.type == SongType.REMOVE.value && data.url != null) {
                             dispatcher.post(SongEvent(
-                                user.token,
+                                user.token!!,
                                 SongType.REMOVE,
                                 null,
                                 null,
@@ -123,7 +123,7 @@ fun Routing.wsSongListRoutes() {
                             val song = SongListService.getSong(user)[0]
                             SongListService.deleteSong(user, song.uid, song.name)
                             dispatcher.post(SongEvent(
-                                user.token,
+                                user.token!!,
                                 SongType.NEXT,
                                 null,
                                 null,

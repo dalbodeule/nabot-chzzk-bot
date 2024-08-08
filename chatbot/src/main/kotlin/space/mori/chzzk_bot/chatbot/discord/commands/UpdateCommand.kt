@@ -51,7 +51,7 @@ object UpdateCommand : CommandInterface {
             return
         }
 
-        val chzzkChannel = Connector.getChannel(user!!.token)
+        val chzzkChannel = user!!.token?.let { Connector.getChannel(it) }
 
         try {
             CommandService.updateCommand(user!!, label, content, failContent ?: "")

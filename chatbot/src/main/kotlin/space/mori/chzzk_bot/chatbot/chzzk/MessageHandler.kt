@@ -157,7 +157,7 @@ class MessageHandler(
                 CoroutineScope(Dispatchers.Default).launch {
                     dispatcher.post(
                         TimerEvent(
-                            user.token,
+                            user.token!!,
                             TimerType.UPTIME,
                             getUptime(handler.streamStartTime!!)
                         )
@@ -167,7 +167,7 @@ class MessageHandler(
             "삭제" -> {
                 logger.debug("${user.token} / 삭제")
                 CoroutineScope(Dispatchers.Default).launch {
-                    dispatcher.post(TimerEvent(user.token, TimerType.REMOVE, ""))
+                    dispatcher.post(TimerEvent(user.token!!, TimerType.REMOVE, ""))
                 }
             }
             "설정" -> {
@@ -191,7 +191,7 @@ class MessageHandler(
                     val timestamp = currentTime.plus(time.toLong(), ChronoUnit.MINUTES)
 
                     CoroutineScope(Dispatchers.Default).launch {
-                        dispatcher.post(TimerEvent(user.token, TimerType.TIMER, timestamp.toString()))
+                        dispatcher.post(TimerEvent(user.token!!, TimerType.TIMER, timestamp.toString()))
                     }
                 } catch (e: NumberFormatException) {
                     listener.sendChat("!타이머/숫자 형식으로 적어주세요! 단위: 분")
@@ -254,7 +254,7 @@ class MessageHandler(
             CoroutineScope(Dispatchers.Default).launch {
                 dispatcher.post(
                     SongEvent(
-                        user.token,
+                        user.token!!,
                         SongType.ADD,
                         msg.userId,
                         msg.profile?.nickname ?: "",
@@ -286,10 +286,12 @@ class MessageHandler(
         val session = "${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "")
 
 
-        bot.retrieveUserById(user.discord).queue { discordUser ->
-            discordUser?.openPrivateChannel()?.queue { channel ->
-                channel.sendMessage("여기로 접속해주세요! ||https://nabot.mori.space/songlist||.")
-                    .queue()
+        user.discord?.let {
+            bot.retrieveUserById(it).queue { discordUser ->
+                discordUser?.openPrivateChannel()?.queue { channel ->
+                    channel.sendMessage("여기로 접속해주세요! ||https://nabot.mori.space/songlist||.")
+                        .queue()
+                }
             }
         }
     }
