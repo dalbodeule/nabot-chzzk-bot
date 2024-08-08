@@ -87,9 +87,9 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 }
                             }.body()
 
-                            call.sessions.set(userInfo.response?.let { it1 ->
+                            call.sessions.set(userInfo.response?.let { profile ->
                                 UserSession(state,
-                                    it1.id, it1.nickname, it1.profile_image)
+                                    profile.id, profile.nickname, profile.profile_image)
                             })
 
                             redirects[state]?.let { redirect ->
