@@ -26,19 +26,6 @@ object SongConfigService {
 
     }
 
-    fun getConfig(token: String): SongConfig? {
-        return transaction {
-            SongConfig.find(SongConfigs.token eq token).firstOrNull()
-        }
-    }
-    fun getUserByToken(token: String): User? {
-        return transaction {
-            val songConfig = SongConfig.find(SongConfigs.token eq token).firstOrNull()
-            if(songConfig == null) null
-            else UserService.getUser(songConfig.user.discord)
-        }
-    }
-
     fun updatePersonalLimit(user: User, limit: Int): SongConfig {
         return transaction {
             var songConfig = SongConfig.find(SongConfigs.user eq user.id).firstOrNull()
@@ -56,18 +43,6 @@ object SongConfigService {
                 songConfig = initConfig(user)
             }
             songConfig.queueLimit = limit
-            songConfig
-        }
-    }
-
-    fun updateSession(user: User, token: String?): SongConfig {
-        return transaction {
-            var songConfig = SongConfig.find(SongConfigs.user eq user.id).firstOrNull()
-            if (songConfig == null) {
-                songConfig = initConfig(user)
-            }
-            songConfig.token = token
-
             songConfig
         }
     }

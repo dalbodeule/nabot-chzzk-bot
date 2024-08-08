@@ -47,6 +47,14 @@ object UserService {
         }
     }
 
+    fun getUserWithNaverId(naverId: Long): User? {
+        return transaction {
+            val users = User.find(Users.naverId eq naverId)
+
+            users.firstOrNull()
+        }
+    }
+
     fun getAllUsers(): List<User> {
         return transaction {
             User.all().toList()
