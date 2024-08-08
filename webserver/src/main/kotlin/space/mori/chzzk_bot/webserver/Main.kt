@@ -46,15 +46,6 @@ val server = embeddedServer(Netty, port = 8080, ) {
             isLenient = true
         })
     }
-    install(CORS) {
-        allowMethod(HttpMethod.Options)
-        allowMethod(HttpMethod.Put)
-        allowMethod(HttpMethod.Patch)
-        allowMethod(HttpMethod.Delete)
-        allowMethod(HttpMethod.Get)
-        allowHost(dotenv["FRONTEND"] ?: "localhost:3000", schemes = listOf("http", "https", "ws", "wss"))
-        allowCredentials = true
-    }
     install(Sessions) {
         cookie<UserSession>("user_session", storage = SessionStorageMemory()) {}
     }
@@ -125,6 +116,16 @@ val server = embeddedServer(Netty, port = 8080, ) {
                 version = "1.2.0"
             }
         }
+    }
+
+    install(CORS) {
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Patch)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Get)
+        allowHost(dotenv["FRONTEND"] ?: "localhost:3000", schemes=listOf("https"))
+        allowCredentials = true
     }
 }
 
