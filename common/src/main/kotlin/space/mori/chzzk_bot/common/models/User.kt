@@ -10,7 +10,7 @@ object Users: IntIdTable("users") {
     val username = varchar("username", 255)
     val token = varchar("token", 64)
     val discord = long("discord")
-    val naverId = long("naver_id")
+    val naverId = varchar('naver_id', 128)
     val liveAlertGuild = long("live_alert_guild").nullable()
     val liveAlertChannel = long("live_alert_channel").nullable()
     val liveAlertMessage = text("live_alert_message").nullable()

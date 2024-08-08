@@ -73,7 +73,7 @@ fun Routing.apiRoutes() {
                 return@get
             }
             println(session)
-            val user = UserService.getUserWithNaverId(session.id.toLong())
+            val user = UserService.getUserWithNaverId(session.id)
             if(user == null) {
                 call.respondText("No session found", status = HttpStatusCode.NotFound)
                 return@get
