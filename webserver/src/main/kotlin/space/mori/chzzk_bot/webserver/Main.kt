@@ -110,9 +110,12 @@ val server = embeddedServer(Netty, port = 8080, ) {
 
         apiRoutes()
         apiSongRoutes()
+        apiCommandRoutes()
+
         wsTimerRoutes()
         wsSongRoutes()
         wsSongListRoutes()
+
         swaggerUI("swagger-ui/index.html", "openapi/documentation.yaml") {
             options {
                 version = "1.2.0"
