@@ -105,7 +105,7 @@ fun Routing.wsSongListRoutes() {
                                     }
                                 }
                             } catch(e: Exception) {
-                                logger.debug("SongType.ADD Error: {} / {}", uid, e)
+                                logger.debug("SongType.ADD Error: $uid $e")
                             }
                         }
                         else if(data.type == SongType.REMOVE.value && data.url != null) {
@@ -152,8 +152,7 @@ fun Routing.wsSongListRoutes() {
         CoroutineScope(Dispatchers.Default).launch {
             val user = UserService.getUser(it.uid)
             if(user != null) {
-                val session = SongConfigService.getConfig(user)
-                sessions[session.token ?: ""]?.forEach { ws ->
+                sessions[user.token ?: ""]?.forEach { ws ->
                     ws.sendSerialized(
                         SongResponse(
                             it.type.value,
@@ -176,7 +175,7 @@ fun Routing.wsSongListRoutes() {
                 if(user != null) {
                     val session = SongConfigService.getConfig(user)
 
-                    sessions[session.token ?: ""]?.forEach { ws ->
+                    sessions[user.token]?.forEach { ws ->
                         ws.sendSerialized(
                             SongResponse(
                                 it.type.value,
@@ -188,7 +187,7 @@ fun Routing.wsSongListRoutes() {
                                 null
                             )
                         )
-                        removeSession(session.token ?: "", ws)
+                        removeSession(user.token ?: "", ws)
                     }
                 }
             }
