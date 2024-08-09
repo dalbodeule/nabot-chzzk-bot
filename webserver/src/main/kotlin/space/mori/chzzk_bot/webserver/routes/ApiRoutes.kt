@@ -91,10 +91,14 @@ fun Routing.apiRoutes() {
             println(session)
             var user = UserService.getUserWithNaverId(session.id)
             if(user == null) {
-                user = UserService.saveUser(session.nickname, session.id)
+                user = UserService.saveUser("임시닉네임", session.id)
             }
             val songConfig = SongConfigService.getConfig(user)
             val status = user.token?.let { it1 -> getStreamInfo(it1) }
+
+            if (user.username == "임시닉네임") {
+                status?.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
+            }
 
             if(status?.content == null) {
                 call.respondText(user.naverId, status = HttpStatusCode.NotFound)
