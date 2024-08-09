@@ -88,8 +88,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                             }.body()
 
                             call.sessions.set(userInfo.response?.let { profile ->
-                                UserSession(state,
-                                    profile.id, profile.nickname, profile.profile_image)
+                                UserSession(state, profile.id)
                             })
 
                             redirects[state]?.let { redirect ->
@@ -148,16 +147,12 @@ fun stop() {
 @Serializable
 data class UserSession(
     val state: String,
-    val id: String,
-    val nickname: String,
-    val profileImage: String
+    val id: String
 )
 
 @Serializable
 data class NaverMeAPI(
-    val id: String,
-    val nickname: String,
-    val profile_image: String
+    val id: String
 )
 
 @Serializable
