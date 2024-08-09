@@ -97,7 +97,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                             }
                         }
                     }
-                    call.respondRedirect(dotenv["FRONTEND"])
+                    call.respondRedirect("${ if(dotenv["FRONTEND_HTTPS"].toBoolean()) "https://" else "http://" }${dotenv["FRONTEND"]}")
                 }
             }
             get("/logout") {

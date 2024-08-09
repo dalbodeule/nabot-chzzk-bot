@@ -6,12 +6,20 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.koin.java.KoinJavaComponent.inject
+import space.mori.chzzk_bot.common.events.CommandReloadEvent
+import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.services.CommandService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.UserSession
 
 fun Routing.apiCommandRoutes() {
+    val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
+
     route("/commands") {
         get("/{uid}") {
             val uid = call.parameters["uid"]
@@ -52,6 +60,9 @@ fun Routing.apiCommandRoutes() {
                 commandRequest.content,
                 commandRequest.failContent ?: ""
             )
+            CoroutineScope(Dispatchers.Default).launch {
+                dispatcher.post(CommandReloadEvent(user.token ?: ""))
+            }
             call.respond(HttpStatusCode.OK)
         }
 
@@ -76,6 +87,9 @@ fun Routing.apiCommandRoutes() {
                     commandRequest.content,
                     commandRequest.failContent ?: ""
                 )
+                CoroutineScope(Dispatchers.Default).launch {
+                    dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                }
                 call.respond(HttpStatusCode.OK)
             } catch(e: Exception) {
                 call.respond(HttpStatusCode.BadRequest)
@@ -98,6 +112,9 @@ fun Routing.apiCommandRoutes() {
 
             try {
                 CommandService.removeCommand(user, commandRequest.label)
+                CoroutineScope(Dispatchers.Default).launch {
+                    dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                }
                 call.respond(HttpStatusCode.OK)
             } catch(e: Exception) {
                 call.respond(HttpStatusCode.BadRequest)

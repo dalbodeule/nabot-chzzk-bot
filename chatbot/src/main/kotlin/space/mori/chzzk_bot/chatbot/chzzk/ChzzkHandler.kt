@@ -54,6 +54,9 @@ object ChzzkHandler {
                 addUser(channel, user)
             }
         }
+        dispatcher.subscribe(CommandReloadEvent::class) {
+            handlers.firstOrNull { handlers -> handlers.channel.channelId == it.uid }?.reloadCommand()
+        }
     }
 
     fun disable() {
