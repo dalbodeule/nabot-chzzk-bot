@@ -16,6 +16,7 @@ import space.mori.chzzk_bot.common.events.UserRegisterEvent
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getStreamInfo
+import space.mori.chzzk_bot.common.utils.getUserInfo
 import space.mori.chzzk_bot.webserver.UserSession
 
 @Serializable
@@ -133,20 +134,20 @@ fun Routing.apiRoutes() {
                 return@post
             }
 
-            val status = getStreamInfo(matchedChzzkId)
+            val status = getUserInfo(matchedChzzkId)
             if (status.content == null) {
                 call.respondText("Invalid chzzk ID", status = HttpStatusCode.BadRequest)
                 return@post
             }
             UserService.updateUser(
                 user,
-                status.content!!.channel.channelId,
-                status.content!!.channel.channelName
+                status.content!!.channelId,
+                status.content!!.channelName
             )
             call.respondText("Done!", status = HttpStatusCode.OK)
 
             CoroutineScope(Dispatchers.Default).launch {
-                dispatcher.post(UserRegisterEvent(status.content!!.channel.channelId))
+                dispatcher.post(UserRegisterEvent(status.content!!.channelId))
             }
             return@post
         }
