@@ -111,6 +111,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
         apiRoutes()
         apiSongRoutes()
         apiCommandRoutes()
+        apiTimerRoutes()
 
         wsTimerRoutes()
         wsSongRoutes()
