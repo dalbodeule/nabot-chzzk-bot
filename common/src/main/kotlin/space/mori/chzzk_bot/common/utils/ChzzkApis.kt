@@ -146,3 +146,22 @@ fun getStreamInfo(userId: String) : IData<IStreamInfo?> {
         }
     }
 }
+
+fun getUserInfo(userId: String): IData<Channel?> {
+    val url = "https://api.chzzk.naver.com/service/v1/channels/${userId}"
+    val request = Request.Builder()
+        .url(url)
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        try {
+            if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
+            val body = response.body?.string()
+            val channel = gson.fromJson(body, object: TypeToken<IData<Channel?>>() {})
+
+            return channel
+        } catch(e: Exception) {
+            throw e
+        }
+    }
+}
