@@ -12,6 +12,7 @@ object SongConfigs: IntIdTable("song_config") {
     val streamerOnly = bool("streamer_only").default(false)
     val queueLimit = integer("queue_limit").default(50)
     val personalLimit = integer("personal_limit").default(5)
+    val disabled = bool("disabled").default(false)
 }
 class SongConfig(id: EntityID<Int>) : IntEntity(id) {
     companion object : IntEntityClass<SongConfig>(SongConfigs)
@@ -21,4 +22,5 @@ class SongConfig(id: EntityID<Int>) : IntEntity(id) {
     var streamerOnly by SongConfigs.streamerOnly
     var queueLimit by SongConfigs.queueLimit
     var personalLimit by SongConfigs.personalLimit
+    var disabled by SongConfigs.disabled
 }

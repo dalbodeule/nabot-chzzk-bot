@@ -58,4 +58,16 @@ object SongConfigService {
             songConfig
         }
     }
+
+    fun updateDisabled(user: User, config: Boolean): SongConfig {
+        return transaction {
+            var songConfig = SongConfig.find(SongConfigs.user eq user.id).firstOrNull()
+            if (songConfig == null) {
+                songConfig = initConfig(user)
+            }
+            songConfig.disabled = config
+
+            songConfig
+        }
+    }
 }

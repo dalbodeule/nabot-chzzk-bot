@@ -60,7 +60,7 @@ fun Routing.wsSongListRoutes() {
                     null,
                     null,
                     null,
-                    null
+                    null,
                 ))
             }
             removeSession(uid, this)
@@ -75,6 +75,7 @@ fun Routing.wsSongListRoutes() {
                         if(data.maxQueue != null && data.maxQueue > 0) SongConfigService.updateQueueLimit(user, data.maxQueue)
                         if(data.maxUserLimit != null && data.maxUserLimit > 0) SongConfigService.updatePersonalLimit(user, data.maxUserLimit)
                         if(data.isStreamerOnly != null) SongConfigService.updateStreamerOnly(user, data.isStreamerOnly)
+                        if(data.isDisabled != null) SongConfigService.updateDisabled(user, data.isDisabled)
 
                         if(data.type == SongType.ADD.value && data.url != null) {
                             try {
@@ -173,8 +174,6 @@ fun Routing.wsSongListRoutes() {
             CoroutineScope(Dispatchers.Default).launch {
                 val user = UserService.getUser(it.uid)
                 if(user != null) {
-                    val session = SongConfigService.getConfig(user)
-
                     sessions[user.token]?.forEach { ws ->
                         ws.sendSerialized(
                             SongResponse(
@@ -203,5 +202,6 @@ data class SongRequest(
     val maxQueue: Int?,
     val maxUserLimit: Int?,
     val isStreamerOnly: Boolean?,
-    val remove: Int?
+    val remove: Int?,
+    val isDisabled: Boolean?,
 )

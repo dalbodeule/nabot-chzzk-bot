@@ -58,7 +58,7 @@ class MessageHandler(
             "!명령어삭제" to this::manageRemoveCommand,
             "!명령어수정" to this::manageUpdateCommand,
             "!시간" to this::timerCommand,
-            "!노래추가" to this::songAddCommand,
+            "!신청곡" to this::songAddCommand,
             "!노래목록" to this::songListCommand,
             "!노래시작" to this::songStartCommand
         )
@@ -205,7 +205,11 @@ class MessageHandler(
 
     // songs
     private fun songAddCommand(msg: ChatMessage, user: User) {
-        val parts = msg.content.split(" ", limit = 3)
+        if(SongConfigService.getConfig(user).disabled) {
+            return
+        }
+
+        val parts = msg.content.split(" ", limit = 2)
         if (parts.size < 2) {
             listener.sendChat("유튜브 URL을 입력해주세요!")
             return
@@ -274,6 +278,10 @@ class MessageHandler(
     }
 
     private fun songListCommand(msg: ChatMessage, user: User) {
+        if(SongConfigService.getConfig(user).disabled) {
+            return
+        }
+        
         listener.sendChat("리스트는 여기입니다. https://nabot.mori.space/songs/${user.token}")
     }
 
@@ -283,16 +291,16 @@ class MessageHandler(
             return
         }
 
-        val session = "${UUID.randomUUID()}${UUID.randomUUID()}".replace("-", "")
 
-
-        user.discord?.let {
-            bot.retrieveUserById(it).queue { discordUser ->
+        if(user.discord != null) {
+            bot.retrieveUserById(user.discord!!).queue { discordUser ->
                 discordUser?.openPrivateChannel()?.queue { channel ->
                     channel.sendMessage("여기로 접속해주세요! ||https://nabot.mori.space/songlist||.")
                         .queue()
                 }
             }
+        } else {
+            listener.sendChat("나봇 홈페이지의 노래목록 페이지를 이용해주세요! 디스코드 연동을 하시면 DM으로 바로 전송됩니다.")
         }
     }
 
