@@ -18,7 +18,7 @@
 - [x] \<days:yyyy-mm-dd>
 
 ### 관리 명령어 (on Discord)
-- [x] /register chzzk_id: \[치지직 고유ID]
+- [x] /hook token: \[디스코드 연동 페이지에서 받은 Token]
 - [x] /alert channel: \[디스코드 Channel ID] content: \[알림 내용]
 - [x] /add label: \[명령어] content: \[내용]
 - [ ] /list
@@ -79,3 +79,5 @@
 - [mariadb](https://mariadb.org/)
 - [docker](https://www.docker.com/)
 - [Teamcity](https://www.jetbrains.com/teamcity/)
+- [Nuxtjs](https://nuxt.com/)
+- [Bulma](https://bulma.io/)

@@ -52,7 +52,7 @@ object HookComand: CommandInterface {
             UserService.updateUser(user, event.user.idLong)
             UserService.updateLiveAlert(user, event.guild!!.idLong, event.channelIdLong, "")
             hookMap.remove(token)
-            event.hook.sendMessage("등록이 완료되었습니다. `${user.username}`")
+            event.hook.sendMessage("등록이 완료되었습니다. `${user.username}`").queue()
         } catch(e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()
             logger.debug(e.stackTraceToString())
