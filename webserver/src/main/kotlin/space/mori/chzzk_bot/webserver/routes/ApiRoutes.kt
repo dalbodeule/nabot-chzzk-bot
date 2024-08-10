@@ -36,6 +36,7 @@ data class GetSessionDTO(
     val maxQueueSize: Int,
     val maxUserSize: Int,
     val isStreamerOnly: Boolean,
+    val isDisabled: Boolean
 )
 
 @Serializable
@@ -112,7 +113,8 @@ fun Routing.apiRoutes() {
                 status.content!!.channel.channelImageUrl,
                 songConfig.queueLimit,
                 songConfig.personalLimit,
-                songConfig.streamerOnly
+                songConfig.streamerOnly,
+                songConfig.disabled
             ))
         }
         post {
