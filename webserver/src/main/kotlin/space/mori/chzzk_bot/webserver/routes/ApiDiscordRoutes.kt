@@ -49,12 +49,12 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
 
-
+            call.respond(HttpStatusCode.OK)
         }
     }
 }
 
 data class DiscordRequireRegisterDTO(
     val user: String,
-    val passkey: String
+    val token: String
 )

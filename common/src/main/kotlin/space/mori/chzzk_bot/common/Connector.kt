@@ -34,7 +34,8 @@ object Connector {
             TimerConfigs,
             LiveStatuses,
             SongLists,
-            SongConfigs
+            SongConfigs,
+            Sessions
         )
 
         transaction {
