@@ -2,7 +2,6 @@ package space.mori.chzzk_bot.common.services
 
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.models.Users
 
@@ -76,18 +75,13 @@ object UserService {
         }
     }
 
-    fun updateLiveAlert(id: Int, guildId: Long, channelId: Long, alertMessage: String?): User {
+    fun updateLiveAlert(user: User, guildId: Long, channelId: Long, alertMessage: String?): User {
         return transaction {
-            val updated = Users.update({ Users.id eq id }) {
-                it[liveAlertGuild] = guildId
-                it[liveAlertChannel] = channelId
-                it[liveAlertMessage] = alertMessage ?: ""
-            }
+            user.liveAlertGuild = guildId
+            user.liveAlertChannel = channelId
+            user.liveAlertMessage = alertMessage ?: ""
 
-            if(updated == 0) throw RuntimeException("User not found! $id")
-            val users = User.find { Users.id eq id }
-
-            return@transaction users.first()
+            user
         }
     }
 }
