@@ -8,6 +8,7 @@ import io.ktor.server.sessions.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.events.DiscordRegisterEvent
@@ -54,6 +55,7 @@ fun Route.apiDiscordRoutes() {
     }
 }
 
+@Serializable
 data class DiscordRequireRegisterDTO(
     val user: String,
     val token: String
