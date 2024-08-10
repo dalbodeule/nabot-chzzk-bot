@@ -25,15 +25,17 @@ class MariadbSessionStorage: SessionStorage {
     }
 
     override suspend fun write(id: String, value: String) {
-        val session = Session.find(SessionTable.key eq id).firstOrNull()
+        return transaction {
+            val session = Session.find(SessionTable.key eq id).firstOrNull()
 
-        if(session == null) {
-            Session.new {
-                this.key = id
-                this.value = value
+            if (session == null) {
+                Session.new {
+                    this.key = id
+                    this.value = value
+                }
+            } else {
+                session.value = value
             }
-        } else {
-            session.value = value
         }
     }
 }
