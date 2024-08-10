@@ -37,7 +37,7 @@ object AddManagerCommand : CommandInterface {
         try {
             ManagerService.saveManager(user, manager.idLong, manager.effectiveName)
             if(user.liveAlertGuild == null)
-                UserService.updateLiveAlert(user.id.value, event.guild!!.idLong, event.channelIdLong, "")
+                UserService.updateLiveAlert(user, event.guild!!.idLong, event.channelIdLong, "")
             event.hook.sendMessage("등록이 완료되었습니다. ${manager.effectiveName}").queue()
         } catch (e: Exception) {
             event.hook.sendMessage("에러가 발생했습니다.").queue()

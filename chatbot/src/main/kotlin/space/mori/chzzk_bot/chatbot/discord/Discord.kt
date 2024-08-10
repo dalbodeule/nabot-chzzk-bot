@@ -61,7 +61,7 @@ class Discord: ListenerAdapter() {
         AddCommand,
         AlertCommand,
         PingCommand,
-        RegisterCommand,
+        HookComand,
         RemoveCommand,
         UpdateCommand,
         AddManagerCommand,

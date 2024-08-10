@@ -46,7 +46,7 @@ object AlertCommand : CommandInterface {
         val chzzkChannel = user!!.token?.let { Connector.getChannel(it) }
 
         try {
-            val newUser = UserService.updateLiveAlert(user!!.id.value, channel?.guild?.idLong ?: 0L, channel?.idLong ?: 0L, content ?: "")
+            val newUser = UserService.updateLiveAlert(user!!, channel?.guild?.idLong ?: 0L, channel?.idLong ?: 0L, content ?: "")
             try {
                 ChzzkHandler.reloadUser(chzzkChannel!!, newUser)
             } catch (_: Exception) {}
