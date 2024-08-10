@@ -83,27 +83,59 @@ object ChzzkHandler {
 
     fun runStreamInfo() {
         running = true
-        val thread = Thread({
-            while(running) {
+
+        val threadRunner1 = Runnable {
+            while (running) {
                 handlers.forEach {
                     if (!running) return@forEach
                     try {
                         val streamInfo = getStreamInfo(it.channel.channelId)
                         if (streamInfo.content?.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
                         if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
-                    } catch(e: SocketTimeoutException) {
-                        logger.info("Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                    } catch (e: SocketTimeoutException) {
+                        logger.info("Thread 1 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
-                        logger.info("Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                        logger.info("Thread 1 Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } finally {
                         Thread.sleep(5000)
                     }
                 }
                 Thread.sleep(60000)
             }
-        }, "Chzzk-StreamInfo")
+        }
 
-        thread.start()
+        val threadRunner2 = Runnable {
+            while (running) {
+                handlers.forEach {
+                    if (!running) return@forEach
+                    try {
+                        val streamInfo = getStreamInfo(it.channel.channelId)
+                        if (streamInfo.content?.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
+                        if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
+                    } catch (e: SocketTimeoutException) {
+                        logger.info("Thread 2 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                    } catch (e: Exception) {
+                        logger.info("Thread 2 Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                    } finally {
+                        Thread.sleep(5000)
+                    }
+                }
+                Thread.sleep(60000)
+            }
+        }
+
+        // 첫 번째 스레드 시작
+        val thread1 = Thread(threadRunner1, "Chzzk-StreamInfo-1")
+        thread1.start()
+
+        // 85초 대기 후 두 번째 스레드 시작
+        CoroutineScope(Dispatchers.Default).launch {
+            delay(85000) // 85초 대기
+            if (running) {
+                val thread2 = Thread(threadRunner2, "Chzzk-StreamInfo-2")
+                thread2.start()
+            }
+        }
     }
 
     fun stopStreamInfo() {
