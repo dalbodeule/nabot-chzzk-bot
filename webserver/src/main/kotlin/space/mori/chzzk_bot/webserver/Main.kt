@@ -47,7 +47,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
         })
     }
     install(Sessions) {
-        cookie<UserSession>("user_session", storage = SessionStorageMemory()) {}
+        cookie<UserSession>("user_session", storage = MariadbSessionStorage()) {}
     }
     install(Authentication) {
         oauth("auth-oauth-naver") {
