@@ -25,8 +25,15 @@ class MariadbSessionStorage: SessionStorage {
     }
 
     override suspend fun write(id: String, value: String) {
-        Session.findSingleByAndUpdate(SessionTable.key eq id) {
-            it.value = value
+        val session = Session.find(SessionTable.key eq id).firstOrNull()
+
+        if(session == null) {
+            Session.new {
+                this.key = id
+                this.value = value
+            }
+        } else {
+            session.value = value
         }
     }
 }
