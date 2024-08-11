@@ -125,7 +125,9 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 call.sessions.set(UserSession(
                                     session.state,
                                     session.id,
-                                    guilds.map { it.id }
+                                    guilds.filter {
+                                        it.owner
+                                    }.map { it.id }
                                 ))
 
                                 redirects[principal.state]?.let { redirect ->
