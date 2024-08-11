@@ -138,7 +138,8 @@ val server = embeddedServer(Netty, port = 8080, ) {
 
                                 call.respondRedirect(getFrontendURL(""))
                             } catch(e: Exception) {
-                                logger.debug(e.toString())
+                                println(e.toString())
+                                call.respondRedirect(getFrontendURL(""))
                             }
                         } else {
                             call.respondRedirect(getFrontendURL(""))
