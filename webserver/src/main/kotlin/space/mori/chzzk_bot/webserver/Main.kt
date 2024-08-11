@@ -273,7 +273,7 @@ data class DiscordUserAPI(
 data class DiscordGuildListAPI(
     val id: String,
     val name: String,
-    val icon: String,
+    val icon: String?,
     val banner: String?,
     val owner: Boolean,
     val permissions: Int,
