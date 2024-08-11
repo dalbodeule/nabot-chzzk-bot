@@ -98,6 +98,35 @@ val server = embeddedServer(Netty, port = 8080, ) {
     }
     routing {
         route("/auth") {
+            // discord login
+            authenticate("auth-oauth-discord") {
+                get("/login/discord") {
+
+                }
+                get("/discord/callback") {
+                    val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
+                    val session = call.sessions.get<UserSession>()
+                    val user = session?.id?.let { UserService.getUserWithNaverId(it)}
+
+                    if(principal != null && session != null && user != null) {
+                        val accessToken = principal.accessToken
+                        val userInfo = getDiscordUser(accessToken)
+                        val guilds = getUserGuilds(accessToken)
+
+                        userInfo?.user?.id?.toLong()?.let { id -> UserService.updateUser(user, id) }
+
+                        call.sessions.set(UserSession(
+                            session.state,
+                            session.id,
+                            guilds.map { it.id }
+                        ))
+                    } else {
+                        call.respondRedirect(getFrontendURL(""))
+                    }
+                }
+            }
+
+            // naver login
             authenticate("auth-oauth-naver") {
                 get("/login/discord") {
 
@@ -125,32 +154,8 @@ val server = embeddedServer(Netty, port = 8080, ) {
                     call.respondRedirect(getFrontendURL(""))
                 }
             }
-            authenticate("auth-oauth-discord") {
-                get("/login/discord") {
 
-                }
-                get("/discord/callback") {
-                    val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
-                    val session = call.sessions.get<UserSession>()
-                    val user = session?.id?.let { UserService.getUserWithNaverId(it)}
-
-                    if(principal != null && session != null && user != null) {
-                        val accessToken = principal.accessToken
-                        val userInfo = getDiscordUser(accessToken)
-                        val guilds = getUserGuilds(accessToken)
-
-                        userInfo?.user?.id?.toLong()?.let { id -> UserService.updateUser(user, id) }
-
-                        call.sessions.set(UserSession(
-                            session.state,
-                            session.id,
-                            guilds.map { it.id }
-                        ))
-                    } else {
-                        call.respondRedirect(getFrontendURL(""))
-                    }
-                }
-            }
+            // common: logout
             get("/logout") {
                 call.sessions.clear<UserSession>()
                 call.response.status(HttpStatusCode.OK)
