@@ -85,7 +85,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                     Pair("permissions", "826781355072"),
                     Pair("response_type", "code"),
                     Pair("integration_type", "0"),
-                    Pair("scope", "guilds+bot")
+                    Pair("scope", "guilds bot")
                 ),
                 onStateCreated = { call, state ->
                     call.request.queryParameters["redirectUrl"]?.let {
