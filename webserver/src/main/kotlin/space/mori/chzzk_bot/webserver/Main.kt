@@ -296,7 +296,7 @@ suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
 }
 
 suspend fun getUserGuilds(accessToken: String): List<DiscordGuildListAPI> {
-    val response = applicationHttpClient.get("https://discord.com/api/users/@me/") {
+    val response = applicationHttpClient.get("https://discord.com/users/@me/guilds") {
         headers {
             append(HttpHeaders.Authorization, "Bearer $accessToken")
         }
