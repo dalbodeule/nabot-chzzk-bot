@@ -99,7 +99,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
     routing {
         route("/auth") {
             authenticate("auth-oauth-naver") {
-                get("/login") {
+                get("/login/discord") {
 
                 }
                 get("/callback") {
