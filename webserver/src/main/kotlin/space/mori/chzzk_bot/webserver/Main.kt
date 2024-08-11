@@ -105,7 +105,6 @@ val server = embeddedServer(Netty, port = 8080, ) {
 
                 }
                 get("/callback/discord") {
-                    println("CALLBACK")
                     try {
                         val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
                         val session = call.sessions.get<UserSession>()
@@ -116,9 +115,6 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 val accessToken = principal.accessToken
                                 val userInfo = getDiscordUser(accessToken)
                                 val guilds = getUserGuilds(accessToken)
-
-                                println(userInfo)
-                                println(guilds)
 
                                 userInfo?.user?.id?.toLong()?.let { id -> UserService.updateUser(user, id) }
 
