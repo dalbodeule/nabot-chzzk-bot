@@ -120,6 +120,13 @@ val server = embeddedServer(Netty, port = 8080, ) {
                             session.id,
                             guilds.map { it.id }
                         ))
+
+                        redirects[principal.state]?.let { redirect ->
+                            call.respondRedirect(redirect)
+                            return@get
+                        }
+
+                        call.respondRedirect(getFrontendURL(""))
                     } else {
                         call.respondRedirect(getFrontendURL(""))
                     }
