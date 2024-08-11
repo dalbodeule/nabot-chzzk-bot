@@ -277,9 +277,7 @@ data class DiscordGuildListAPI(
     val banner: String,
     val owner: Boolean,
     val permissions: Int,
-    val features: List<String>,
-    val approximate_member_count: Int,
-    val approximate_presence_count: Int,
+    val features: List<String>
 )
 
 suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
