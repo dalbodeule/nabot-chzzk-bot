@@ -21,9 +21,7 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.UserService
-import space.mori.chzzk_bot.common.utils.getUserInfo
 import space.mori.chzzk_bot.webserver.routes.*
 import java.time.Duration
 
@@ -109,7 +107,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                     currentPrincipal?.let { principal ->
                         principal.state?.let { state ->
                             val userInfo: NaverAPI<NaverMeAPI> = applicationHttpClient.get(naverMeAPIURL) {
-                                headers{
+                                headers {
                                     append(HttpHeaders.Authorization, "Bearer ${principal.accessToken}")
                                 }
                             }.body()
@@ -125,6 +123,11 @@ val server = embeddedServer(Netty, port = 8080, ) {
                         }
                     }
                     call.respondRedirect(getFrontendURL(""))
+                }
+            }
+            authenticate("auth-oauth-discord") {
+                get("/login/discord") {
+
                 }
                 get("/discord/callback") {
                     val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
@@ -194,7 +197,7 @@ fun stop() {
 }
 
 fun getFrontendURL(path: String)
-    = "${if(dotenv["FRONTEND_HTTPS"].toBoolean()) "https://" else "http://" }${dotenv["FRONTEND"]}${path}";
+    = "${if(dotenv["FRONTEND_HTTPS"].toBoolean()) "https://" else "http://" }${dotenv["FRONTEND"]}${path}"
 
 @Serializable
 data class UserSession(
