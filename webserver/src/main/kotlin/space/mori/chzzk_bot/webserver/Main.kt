@@ -21,6 +21,7 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
 import java.time.Duration
@@ -32,6 +33,8 @@ val dotenv = dotenv {
 const val naverMeAPIURL = "https://openapi.naver.com/v1/nid/me"
 
 val redirects = mutableMapOf<String, String>()
+
+val logger = LoggerFactory.getLogger("ktorMain")
 
 val server = embeddedServer(Netty, port = 8080, ) {
     install(WebSockets) {
@@ -73,13 +76,14 @@ val server = embeddedServer(Netty, port = 8080, ) {
             client = applicationHttpClient
         }
         oauth("auth-oauth-discord") {
-            urlProvider = { "${dotenv["HOST"]}/auth/discord/callback" }
+            urlProvider = { "${dotenv["HOST"]}/auth/callback/discord" }
             providerLookup = { OAuthServerSettings.OAuth2ServerSettings(
                 name = "discord",
                 authorizeUrl = "https://discord.com/oauth2/authorize",
                 accessTokenUrl = "https://discord.com/api/oauth2/token",
                 clientId = dotenv["DISCORD_CLIENT_ID"],
                 clientSecret = dotenv["DISCORD_CLIENT_SECRET"],
+                requestMethod = HttpMethod.Post,
                 defaultScopes = listOf(),
                 extraAuthParameters = listOf(
                     Pair("permissions", "826781355072"),
@@ -103,39 +107,51 @@ val server = embeddedServer(Netty, port = 8080, ) {
                 get("/login/discord") {
 
                 }
-                get("/discord/callback") {
-                    val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
-                    val session = call.sessions.get<UserSession>()
-                    val user = session?.id?.let { UserService.getUserWithNaverId(it)}
+                get("/callback/discord") {
+                    println("CALLBACK")
+                    try {
+                        val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
+                        val session = call.sessions.get<UserSession>()
+                        val user = session?.id?.let { UserService.getUserWithNaverId(it) }
 
-                    if(principal != null && session != null && user != null) {
-                        val accessToken = principal.accessToken
-                        val userInfo = getDiscordUser(accessToken)
-                        val guilds = getUserGuilds(accessToken)
+                        if(principal != null && session != null && user != null) {
+                            try {
+                                val accessToken = principal.accessToken
+                                val userInfo = getDiscordUser(accessToken)
+                                val guilds = getUserGuilds(accessToken)
 
-                        userInfo?.user?.id?.toLong()?.let { id -> UserService.updateUser(user, id) }
+                                println(userInfo)
+                                println(guilds)
 
-                        call.sessions.set(UserSession(
-                            session.state,
-                            session.id,
-                            guilds.map { it.id }
-                        ))
+                                userInfo?.user?.id?.toLong()?.let { id -> UserService.updateUser(user, id) }
 
-                        redirects[principal.state]?.let { redirect ->
-                            call.respondRedirect(redirect)
-                            return@get
+                                call.sessions.set(UserSession(
+                                    session.state,
+                                    session.id,
+                                    guilds.map { it.id }
+                                ))
+
+                                redirects[principal.state]?.let { redirect ->
+                                    call.respondRedirect(redirect)
+                                    return@get
+                                }
+
+                                call.respondRedirect(getFrontendURL(""))
+                            } catch(e: Exception) {
+                                logger.debug(e.toString())
+                            }
+                        } else {
+                            call.respondRedirect(getFrontendURL(""))
                         }
-
-                        call.respondRedirect(getFrontendURL(""))
-                    } else {
-                        call.respondRedirect(getFrontendURL(""))
+                    } catch(e: Exception) {
+                        println(e.stackTrace)
                     }
                 }
             }
 
             // naver login
             authenticate("auth-oauth-naver") {
-                get("/login/discord") {
+                get("/login") {
 
                 }
                 get("/callback") {
