@@ -21,7 +21,6 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
 import java.time.Duration
@@ -33,8 +32,6 @@ val dotenv = dotenv {
 const val naverMeAPIURL = "https://openapi.naver.com/v1/nid/me"
 
 val redirects = mutableMapOf<String, String>()
-
-val logger = LoggerFactory.getLogger("ktorMain")
 
 val server = embeddedServer(Netty, port = 8080, ) {
     install(WebSockets) {
@@ -296,7 +293,7 @@ suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
 }
 
 suspend fun getUserGuilds(accessToken: String): List<DiscordGuildListAPI> {
-    val response = applicationHttpClient.get("https://discord.com/users/@me/guilds") {
+    val response = applicationHttpClient.get("https://discord.com/api/users/@me/guilds") {
         headers {
             append(HttpHeaders.Authorization, "Bearer $accessToken")
         }
