@@ -124,16 +124,32 @@ object ChzzkHandler {
             }
         }
 
+        fun startThread(name: String, runner: Runnable) {
+            CoroutineScope(Dispatchers.Default).launch {
+                while(running) {
+                    try {
+                        val thread = Thread(runner, name)
+                        thread.start()
+                        thread.join()
+                    } catch(e: Exception) {
+                        logger.error("Thread $name Exception: ${e.stackTraceToString()}")
+                    }
+                    if(running) {
+                        logger.info("Thread $name restart in 5 seconds")
+                        delay(5000)
+                    }
+                }
+            }
+        }
+
         // 첫 번째 스레드 시작
-        val thread1 = Thread(threadRunner1, "Chzzk-StreamInfo-1")
-        thread1.start()
+        startThread("Chzzk-StreamInfo-1", threadRunner1)
 
         // 85초 대기 후 두 번째 스레드 시작
         CoroutineScope(Dispatchers.Default).launch {
-            delay(85000) // 85초 대기
+            delay(95000) // start with 95 secs after.
             if (running) {
-                val thread2 = Thread(threadRunner2, "Chzzk-StreamInfo-2")
-                thread2.start()
+                startThread("Chzzk-StreamInfo-2", threadRunner2)
             }
         }
     }
@@ -208,6 +224,7 @@ class UserHandler(
 
             CoroutineScope(Dispatchers.Default).launch {
                 if(!_isActive) {
+                    _isActive = true
                     when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
                         TimerType.UPTIME.value -> dispatcher.post(
                             TimerEvent(
@@ -238,6 +255,7 @@ class UserHandler(
             logger.info("${user.username} is offline.")
             streamStartTime = null
             listener.closeAsync()
+            _isActive = false
 
             CoroutineScope(Dispatchers.Default).launch {
                 val events = listOf(
@@ -257,9 +275,9 @@ class UserHandler(
                         null
                     )
                 )
+
                 events.forEach { dispatcher.post(it) }
             }
         }
-        _isActive = value
     }
 }

@@ -121,18 +121,23 @@ fun Routing.wsSongListRoutes() {
                                 data.url
                             ))
                         } else if(data.type == SongType.NEXT.value) {
-                            val song = SongListService.getSong(user)[0]
-                            SongListService.deleteSong(user, song.uid, song.name)
-                            dispatcher.post(SongEvent(
-                                user.token!!,
-                                SongType.NEXT,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                            ))
+                            val songList = SongListService.getSong(user)
+                            if(songList.isNotEmpty()) {
+                                val song = songList[0]
+                                SongListService.deleteSong(user, song.uid, song.name)
+                                dispatcher.post(
+                                    SongEvent(
+                                        user.token!!,
+                                        SongType.NEXT,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null
+                                    )
+                                )
+                            }
                         }
                     }
                     is Frame.Ping -> send(Frame.Pong(frame.data))
