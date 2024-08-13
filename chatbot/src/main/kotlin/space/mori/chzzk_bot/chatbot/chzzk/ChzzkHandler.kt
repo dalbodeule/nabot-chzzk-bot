@@ -217,7 +217,6 @@ class UserHandler(
     internal fun isActive(value: Boolean, status: IData<IStreamInfo?>) {
         if(value) {
             CoroutineScope(Dispatchers.Default).launch {
-                if(!_isActive) {
                     logger.info("${user.username} is live.")
 
                     logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
@@ -225,6 +224,7 @@ class UserHandler(
 
                     streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
 
+                if(!_isActive) {
                     _isActive = true
                     when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
                         TimerType.UPTIME.value -> dispatcher.post(
