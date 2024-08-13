@@ -129,7 +129,7 @@ object ChzzkHandler {
         }
 
         fun startThread(name: String, runner: Runnable) {
-            CoroutineScope(Dispatchers.Default).launch {
+            Thread({
                 while(running) {
                     try {
                         val thread = Thread(runner, name)
@@ -140,10 +140,10 @@ object ChzzkHandler {
                     }
                     if(running) {
                         logger.info("Thread $name restart in 5 seconds")
-                        delay(5000)
+                        Thread.sleep(5000)
                     }
                 }
-            }
+            }, "${name}-runner")
         }
 
         // 첫 번째 스레드 시작
