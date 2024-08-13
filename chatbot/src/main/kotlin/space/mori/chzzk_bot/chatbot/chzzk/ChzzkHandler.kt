@@ -143,7 +143,7 @@ object ChzzkHandler {
                         Thread.sleep(5000)
                     }
                 }
-            }, "${name}-runner")
+            }, "${name}-runner").start()
         }
 
         // 첫 번째 스레드 시작
