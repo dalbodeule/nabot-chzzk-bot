@@ -3,6 +3,7 @@ package space.mori.chzzk_bot.chatbot.chzzk
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
@@ -215,15 +216,15 @@ class UserHandler(
 
     internal fun isActive(value: Boolean, status: IData<IStreamInfo?>) {
         if(value) {
-            logger.info("${user.username} is live.")
-
-            logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
-            listener.connectBlocking()
-
-            streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
-
             CoroutineScope(Dispatchers.Default).launch {
                 if(!_isActive) {
+                    logger.info("${user.username} is live.")
+
+                    logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
+                    listener.connectAsync().await()
+
+                    streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
+
                     _isActive = true
                     when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
                         TimerType.UPTIME.value -> dispatcher.post(
