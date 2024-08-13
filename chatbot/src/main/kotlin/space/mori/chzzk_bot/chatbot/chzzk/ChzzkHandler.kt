@@ -86,6 +86,7 @@ object ChzzkHandler {
         running = true
 
         val threadRunner1 = Runnable {
+            logger.info("Thread 1 started!")
             while (running) {
                 handlers.forEach {
                     if (!running) return@forEach
@@ -106,6 +107,8 @@ object ChzzkHandler {
         }
 
         val threadRunner2 = Runnable {
+            logger.info("Thread 2 started!")
+            logger.info("Thread 2 started!")
             while (running) {
                 handlers.forEach {
                     if (!running) return@forEach
@@ -217,14 +220,14 @@ class UserHandler(
     internal fun isActive(value: Boolean, status: IData<IStreamInfo?>) {
         if(value) {
             CoroutineScope(Dispatchers.Default).launch {
-                    logger.info("${user.username} is live.")
+                logger.info("${user.username} is live.")
 
+                if(!_isActive) {
                     logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
                     listener.connectAsync().await()
 
                     streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
 
-                if(!_isActive) {
                     _isActive = true
                     when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
                         TimerType.UPTIME.value -> dispatcher.post(
