@@ -29,7 +29,7 @@ object DiscordGuildCache {
         return guildId.mapNotNull { getCachedGuilds(it) }
     }
 
-    private suspend fun fetchGuilds(beforeGuildId: String? = null, limit: Int = 100): List<DiscordGuildListAPI> {
+    private suspend fun fetchGuilds(beforeGuildId: String? = null): List<DiscordGuildListAPI> {
         if(DiscordRatelimits.isLimited()) {
             delay(DiscordRatelimits.getRateReset().takeIf { it > 1000L } ?: 3000L)
         }
@@ -37,7 +37,7 @@ object DiscordGuildCache {
             headers {
                 append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
             }
-            parameter("limit", limit)
+            parameter("limit", 200)
             if (beforeGuildId != null) {
                 parameter("before", beforeGuildId)
             }
@@ -57,7 +57,7 @@ object DiscordGuildCache {
         while (true) {
             try {
                 val guilds = fetchGuilds(lastGuildId)
-                if (guilds.isEmpty()) {
+                if (guilds.isEmpty() || guilds.size <= 200) {
                     break
                 }
 
