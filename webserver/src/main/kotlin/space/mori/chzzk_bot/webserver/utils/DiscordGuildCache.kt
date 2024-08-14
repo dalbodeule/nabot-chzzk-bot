@@ -22,10 +22,11 @@ object DiscordGuildCache {
 
     suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
+        val guild = cache[guildId]
 
-        if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
+        if(guild == null || guild.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild.isBotAvailable) {
             mutex.withLock {
-                if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
+                if(guild == null || guild.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild.isBotAvailable) {
                     fetchAllGuilds()
                 }
             }
@@ -73,6 +74,7 @@ object DiscordGuildCache {
                     cache[it.id] = CachedGuilds(
                         Guild(it.id, it.name, it.icon, it.banner, it.roles),
                         Instant.now().plusSeconds(EXP_SECONDS),
+                        true
                     )
                 }
                 lastGuildId = guilds.last().id
@@ -93,7 +95,8 @@ object DiscordGuildCache {
 
 data class CachedGuilds(
     val guild: Guild,
-    val timestamp: Instant = Instant.now()
+    val timestamp: Instant = Instant.now(),
+    val isBotAvailable: Boolean = false,
 )
 
 @Serializable
