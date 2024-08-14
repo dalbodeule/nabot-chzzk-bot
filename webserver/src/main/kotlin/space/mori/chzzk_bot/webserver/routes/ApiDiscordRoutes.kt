@@ -41,23 +41,9 @@ fun Route.apiDiscordRoutes() {
             return@get
         }
         get("/guild/{gid}") {
+            val gid = call.parameters["gid"]
             val session = call.sessions.get<UserSession>()
-            if(session == null) {
-                call.respond(HttpStatusCode.BadRequest, "Session is required")
-                return@get
-            }
-            val user = UserService.getUserWithNaverId(session.id)
-            if(user == null) {
-                call.respond(HttpStatusCode.BadRequest, "User does not exist")
-                return@get
-            }
-
-
-        }
-        get {
-            val uid = call.parameters["gid"]
-            val session = call.sessions.get<UserSession>()
-            if(uid == null) {
+            if(gid == null) {
                 call.respond(HttpStatusCode.BadRequest, "GID is required")
                 return@get
             }
@@ -71,7 +57,27 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
 
+            val guild = DiscordGuildCache.getCachedGuilds(gid)
+            if(guild == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+            call.respond(HttpStatusCode.OK, guild)
+            return@get
+        }
+        get {
+            val session = call.sessions.get<UserSession>()
+            if(session == null) {
+                call.respond(HttpStatusCode.BadRequest, "Session is required")
+                return@get
+            }
+            val user = UserService.getUserWithNaverId(session.id)
+            if(user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@get
+            }
 
+            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(session.discordGuildList))
             return@get
         }
     }
