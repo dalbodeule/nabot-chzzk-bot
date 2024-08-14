@@ -70,8 +70,10 @@ object DiscordGuildCache {
         }
     }
 
-    fun addGuild(guilds: Map<String, CachedGuilds>) {
-        cache.putAll(guilds)
+    fun addGuild(guilds: Map<String, Guild>) {
+        cache.putAll(guilds.map {
+            it.key to CachedGuilds(it.value, Instant.now())
+        })
     }
 }
 
