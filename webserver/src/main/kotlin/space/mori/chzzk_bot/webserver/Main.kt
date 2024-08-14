@@ -23,6 +23,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
+import space.mori.chzzk_bot.webserver.utils.CachedGuilds
+import space.mori.chzzk_bot.webserver.utils.DiscordGuildCache
+import space.mori.chzzk_bot.webserver.utils.Guild
 import java.time.Duration
 
 val dotenv = dotenv {
@@ -125,6 +128,11 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                         it.owner
                                     }.map { it.id }
                                 ))
+                                DiscordGuildCache.addGuild(guilds.associate {
+                                    it.id to CachedGuilds(
+                                        Guild(it.id, it.name, it.icon, it.banner)
+                                    )
+                                })
 
                                 redirects[principal.state]?.let { redirect ->
                                     call.respondRedirect(redirect)

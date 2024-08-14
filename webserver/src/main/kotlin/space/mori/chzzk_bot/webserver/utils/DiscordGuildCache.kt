@@ -18,7 +18,7 @@ object DiscordGuildCache {
     suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
 
-        return if(cache.isNotEmpty() && cache[guildId]?.timestamp?.plusSeconds(EXP_SECONDS)?.isAfter(now) == true) {
+        return if(cache.isNotEmpty() && cache[guildId]?.timestamp?.plusSeconds(EXP_SECONDS)?.isAfter(now) == false) {
             cache[guildId]?.guild
         } else {
             fetchAllGuilds()
@@ -60,6 +60,10 @@ object DiscordGuildCache {
             lastGuildId = guilds.last().id
             delay(1000)
         }
+    }
+
+    fun addGuild(guilds: Map<String, CachedGuilds>) {
+        cache.putAll(guilds)
     }
 }
 
