@@ -53,7 +53,7 @@ object DiscordGuildCache {
     private suspend fun fetchAllGuilds() {
         var lastGuildId: String? = null
         while (true) {
-            while(!DiscordRatelimits.getRateLimit()) {
+            while(!DiscordRatelimits.isLimited()) {
                 delay(DiscordRatelimits.getRateReset())
             }
             val guilds = fetchGuilds(lastGuildId)
