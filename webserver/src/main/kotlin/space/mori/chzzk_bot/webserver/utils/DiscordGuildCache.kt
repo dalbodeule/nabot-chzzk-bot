@@ -15,15 +15,13 @@ object DiscordGuildCache {
     private val cache = ConcurrentHashMap<String, CachedGuilds>()
     private const val EXP_SECONDS = 600L
 
-    suspend fun getCachedGuilds(guildId: String): Guild? {
+    private suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
 
-        return if(cache.isNotEmpty() && cache[guildId]?.timestamp?.plusSeconds(EXP_SECONDS)?.isAfter(now) == false) {
-            cache[guildId]?.guild
-        } else {
+        if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
             fetchAllGuilds()
-            cache[guildId]?.guild
         }
+        return cache[guildId]?.guild
     }
 
     suspend fun getCachedGuilds(guildId: List<String>): List<Guild> {
