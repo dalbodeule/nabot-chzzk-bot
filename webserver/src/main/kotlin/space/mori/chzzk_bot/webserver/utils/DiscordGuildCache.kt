@@ -8,7 +8,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
-import space.mori.chzzk_bot.common.utils.logger
+import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.webserver.*
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -17,6 +17,7 @@ object DiscordGuildCache {
     private val cache = ConcurrentHashMap<String, CachedGuilds>()
     private const val EXP_SECONDS = 600L
     private val mutex = Mutex()
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
@@ -27,11 +28,16 @@ object DiscordGuildCache {
                 if(guild == null || guild.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild.isBotAvailable) {
                     fetchAllGuilds()
                 }
-                if(guild?.guild?.roles?.isEmpty() == true) {
-                    guild.guild.roles = fetchGuildRoles(guildId)
-                }
-                if(guild?.guild?.channel?.isEmpty() == true) {
-                    guild.guild.channel = fetchGuildChannels(guildId)
+                try {
+                    if (guild?.guild?.roles?.isEmpty() == true) {
+                        guild.guild.roles = fetchGuildRoles(guildId)
+                    }
+                    if (guild?.guild?.channel?.isEmpty() == true) {
+                        guild.guild.channel = fetchGuildChannels(guildId)
+                    }
+                } catch(e: Exception) {
+                    logger.info("guild fetch is failed.")
+                    return null
                 }
             }
         }
