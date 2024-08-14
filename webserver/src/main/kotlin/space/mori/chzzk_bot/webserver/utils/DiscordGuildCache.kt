@@ -9,10 +9,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.utils.logger
-import space.mori.chzzk_bot.webserver.DiscordGuildListAPI
-import space.mori.chzzk_bot.webserver.GuildChannel
-import space.mori.chzzk_bot.webserver.GuildRole
-import space.mori.chzzk_bot.webserver.dotenv
+import space.mori.chzzk_bot.webserver.*
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
@@ -103,7 +100,7 @@ object DiscordGuildCache {
 
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
-        return result.body<List<GuildChannel>>()
+        return result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
     }
 
     private suspend fun fetchAllGuilds() {
