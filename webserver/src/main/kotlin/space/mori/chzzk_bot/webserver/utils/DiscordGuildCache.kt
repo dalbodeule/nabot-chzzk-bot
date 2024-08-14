@@ -9,9 +9,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.utils.logger
-import space.mori.chzzk_bot.webserver.DiscordGuildListAPI
-import space.mori.chzzk_bot.webserver.GuildRole
-import space.mori.chzzk_bot.webserver.dotenv
+import space.mori.chzzk_bot.webserver.*
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
@@ -31,6 +29,9 @@ object DiscordGuildCache {
                 }
                 if(guild?.guild?.roles?.isEmpty() == true) {
                     guild.guild.roles = fetchGuildRoles(guildId)
+                }
+                if(guild?.guild?.channel?.isEmpty() == true) {
+                    guild.guild.channel = fetchGuildChannels(guildId)
                 }
             }
         }
@@ -83,6 +84,25 @@ object DiscordGuildCache {
         return result.body<List<GuildRole>>()
     }
 
+    private suspend fun fetchGuildChannels(guildId: String): List<GuildChannel> {
+        if(DiscordRatelimits.isLimited()) {
+            delay(DiscordRatelimits.getRateReset())
+        }
+        val result = applicationHttpClient.get("https://discord.com/api/guilds/${guildId}/channels") {
+            headers {
+                append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
+            }
+        }
+
+        val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
+        val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
+
+        DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+
+        return result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
+    }
+
     private suspend fun fetchAllGuilds() {
         var lastGuildId: String? = null
         while (true) {
@@ -94,7 +114,7 @@ object DiscordGuildCache {
 
                 guilds.forEach {
                     cache[it.id] = CachedGuilds(
-                        Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList()),
+                        Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList(), emptyList()),
                         Instant.now().plusSeconds(EXP_SECONDS),
                         true
                     )
@@ -127,5 +147,6 @@ data class Guild(
     val name: String,
     val icon: String?,
     val banner: String?,
-    var roles: List<GuildRole> = emptyList(),
+    var roles: List<GuildRole>,
+    var channel: List<GuildChannel>
 )

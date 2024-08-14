@@ -132,7 +132,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 DiscordGuildCache.addGuild(guilds.associate {
                                     println("${it.id} ${it.name}")
 
-                                    it.id to Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList())
+                                    it.id to Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList(), emptyList())
                                 })
 
                                 redirects[principal.state]?.let { redirect ->
@@ -294,6 +294,29 @@ data class GuildRole(
     val name: String,
     val color: String,
     val mentionable: Boolean,
+)
+
+enum class ChannelType(val value: Int) {
+    GUILD_TEXT(0),
+    DM(1),
+    GUILD_VOICE(2),
+    GROUP_DM(3),
+    GUILD_CATEGORY(4),
+    GUILD_ANNOUNCEMENT(5),
+    ANNOUNCEMENT_THREAD(10),
+    PUBLIC_THREAD(11),
+    PRIVATE_THREAD(12),
+    GUILD_STAGE_VOICE(13),
+    GUILD_DIRECTORY(14),
+    GUILD_FORUM(15),
+    GUILD_MEDIA(16)
+}
+
+@Serializable
+data class GuildChannel(
+    val id: String,
+    val type: ChannelType,
+    val name: String?
 )
 
 suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
