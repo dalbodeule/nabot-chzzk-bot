@@ -31,7 +31,7 @@ object DiscordGuildCache {
 
     private suspend fun fetchGuilds(beforeGuildId: String? = null): List<DiscordGuildListAPI> {
         if(DiscordRatelimits.isLimited()) {
-            delay(DiscordRatelimits.getRateReset().takeIf { it > 1000L } ?: 3000L)
+            delay(DiscordRatelimits.getRateReset())
         }
         val result = applicationHttpClient.get("https://discord.com/api/users/@me/guilds") {
             headers {
@@ -57,7 +57,7 @@ object DiscordGuildCache {
         while (true) {
             try {
                 val guilds = fetchGuilds(lastGuildId)
-                if (guilds.isEmpty() || guilds.size <= 200) {
+                if (guilds.isEmpty()) {
                     break
                 }
 
@@ -68,6 +68,7 @@ object DiscordGuildCache {
                     )
                 }
                 lastGuildId = guilds.last().id
+                if(guilds.size <= 200) break
             } catch(e: Exception) {
                 logger.info("Exception in discord caches. ${e.stackTraceToString()}")
                 return
