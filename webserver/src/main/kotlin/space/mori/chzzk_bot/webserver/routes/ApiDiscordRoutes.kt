@@ -15,6 +15,7 @@ import space.mori.chzzk_bot.common.events.DiscordRegisterEvent
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getRandomString
 import space.mori.chzzk_bot.webserver.UserSession
+import space.mori.chzzk_bot.webserver.utils.DiscordGuildCache
 
 fun Route.apiDiscordRoutes() {
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
@@ -63,7 +64,8 @@ fun Route.apiDiscordRoutes() {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get
             }
-            call.respond(HttpStatusCode.OK, session.discordGuildList)
+
+            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(session.discordGuildList))
             return@get
         }
     }
