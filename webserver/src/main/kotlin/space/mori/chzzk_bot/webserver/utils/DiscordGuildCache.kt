@@ -30,6 +30,9 @@ object DiscordGuildCache {
     }
 
     private suspend fun fetchGuilds(beforeGuildId: String? = null, limit: Int = 100): List<DiscordGuildListAPI> {
+        if(DiscordRatelimits.isLimited()) {
+            delay(DiscordRatelimits.getRateReset().takeIf { it > 1000L } ?: 3000L)
+        }
         val result = applicationHttpClient.get("https://discord.com/api/users/@me/guilds") {
             headers {
                 append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
@@ -52,9 +55,6 @@ object DiscordGuildCache {
     private suspend fun fetchAllGuilds() {
         var lastGuildId: String? = null
         while (true) {
-            if(DiscordRatelimits.isLimited()) {
-                delay(DiscordRatelimits.getRateReset().takeIf { it > 1000L } ?: 3000L)
-            }
             try {
                 val guilds = fetchGuilds(lastGuildId)
                 if (guilds.isEmpty()) {
@@ -63,7 +63,8 @@ object DiscordGuildCache {
 
                 guilds.forEach {
                     cache[it.id] = CachedGuilds(
-                        Guild(it.id, it.name, it.icon, it.banner)
+                        Guild(it.id, it.name, it.icon, it.banner),
+                        Instant.now().plusSeconds(EXP_SECONDS),
                     )
                 }
                 lastGuildId = guilds.last().id
@@ -76,7 +77,7 @@ object DiscordGuildCache {
 
     fun addGuild(guilds: Map<String, Guild>) {
         cache.putAll(guilds.map {
-            it.key to CachedGuilds(it.value, Instant.now())
+            it.key to CachedGuilds(it.value, Instant.now().plusSeconds(EXP_SECONDS))
         })
     }
 }
