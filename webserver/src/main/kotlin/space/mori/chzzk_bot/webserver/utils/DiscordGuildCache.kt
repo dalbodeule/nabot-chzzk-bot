@@ -5,6 +5,8 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.utils.logger
 import space.mori.chzzk_bot.webserver.DiscordGuildListAPI
@@ -15,12 +17,17 @@ import java.util.concurrent.ConcurrentHashMap
 object DiscordGuildCache {
     private val cache = ConcurrentHashMap<String, CachedGuilds>()
     private const val EXP_SECONDS = 600L
+    private val mutex = Mutex()
 
     suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
 
-        if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isAfter(now)) {
-            fetchAllGuilds()
+        if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
+            mutex.withLock {
+                if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
+                    fetchAllGuilds()
+                }
+            }
         }
         return cache[guildId]?.guild
     }
