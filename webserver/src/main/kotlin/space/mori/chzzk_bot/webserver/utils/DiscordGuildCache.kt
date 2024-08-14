@@ -19,7 +19,7 @@ object DiscordGuildCache {
     private suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
 
-        if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
+        if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isAfter(now)) {
             fetchAllGuilds()
         }
         return cache[guildId]?.guild
