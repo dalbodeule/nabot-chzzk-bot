@@ -10,6 +10,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.utils.logger
 import space.mori.chzzk_bot.webserver.DiscordGuildListAPI
+import space.mori.chzzk_bot.webserver.GuildRole
 import space.mori.chzzk_bot.webserver.dotenv
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -70,7 +71,7 @@ object DiscordGuildCache {
 
                 guilds.forEach {
                     cache[it.id] = CachedGuilds(
-                        Guild(it.id, it.name, it.icon, it.banner),
+                        Guild(it.id, it.name, it.icon, it.banner, it.roles),
                         Instant.now().plusSeconds(EXP_SECONDS),
                     )
                 }
@@ -101,4 +102,5 @@ data class Guild(
     val name: String,
     val icon: String?,
     val banner: String?,
+    val roles: List<GuildRole>,
 )
