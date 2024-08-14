@@ -289,7 +289,7 @@ data class DiscordGuildListAPI(
 )
 
 suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
-    while(!DiscordRatelimits.isLimited()) {
+    while(DiscordRatelimits.isLimited()) {
         delay(DiscordRatelimits.getRateReset())
     }
 
@@ -309,7 +309,7 @@ suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
 }
 
 suspend fun getUserGuilds(accessToken: String): List<DiscordGuildListAPI> {
-    while(!DiscordRatelimits.isLimited()) {
+    while(DiscordRatelimits.isLimited()) {
         delay(DiscordRatelimits.getRateReset())
     }
 
