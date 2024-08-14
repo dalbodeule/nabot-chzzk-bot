@@ -29,6 +29,9 @@ object DiscordGuildCache {
                 if(guild == null || guild.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild.isBotAvailable) {
                     fetchAllGuilds()
                 }
+                if(guild?.guild?.roles?.isEmpty() == true) {
+                    guild.guild.roles = fetchGuildRoles(guildId)
+                }
             }
         }
         return cache[guildId]?.guild
@@ -59,6 +62,25 @@ object DiscordGuildCache {
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
         return result.body<List<DiscordGuildListAPI>>()
+    }
+
+    private suspend fun fetchGuildRoles(guildId: String): List<GuildRole> {
+        if(DiscordRatelimits.isLimited()) {
+            delay(DiscordRatelimits.getRateReset())
+        }
+        val result = applicationHttpClient.get("https://discord.com/api/guilds/${guildId}/roles") {
+            headers {
+                append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
+            }
+        }
+
+        val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
+        val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
+
+        DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+
+        return result.body<List<GuildRole>>()
     }
 
     private suspend fun fetchAllGuilds() {
@@ -105,5 +127,5 @@ data class Guild(
     val name: String,
     val icon: String?,
     val banner: String?,
-    val roles: List<GuildRole> = emptyList(),
+    var roles: List<GuildRole> = emptyList(),
 )
