@@ -19,12 +19,14 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
 import space.mori.chzzk_bot.webserver.utils.CachedGuilds
 import space.mori.chzzk_bot.webserver.utils.DiscordGuildCache
+import space.mori.chzzk_bot.webserver.utils.DiscordRatelimits
 import space.mori.chzzk_bot.webserver.utils.Guild
 import java.time.Duration
 
@@ -287,21 +289,41 @@ data class DiscordGuildListAPI(
 )
 
 suspend fun getDiscordUser(accessToken: String): DiscordMeAPI? {
+    while(!DiscordRatelimits.getRateLimit()) {
+        delay(DiscordRatelimits.getRateReset())
+    }
+
     val response: HttpResponse = applicationHttpClient.get("https://discord.com/api/oauth2/@me") {
         headers {
             append(HttpHeaders.Authorization, "Bearer $accessToken")
         }
     }
 
+    val rateLimit = response.headers["X-RateLimit-Limit"]?.toIntOrNull()
+    val remaining = response.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+    val resetAfter = response.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()
+
+    DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+
     return response.body<DiscordMeAPI?>()
 }
 
 suspend fun getUserGuilds(accessToken: String): List<DiscordGuildListAPI> {
+    while(!DiscordRatelimits.getRateLimit()) {
+        delay(DiscordRatelimits.getRateReset())
+    }
+
     val response = applicationHttpClient.get("https://discord.com/api/users/@me/guilds") {
         headers {
             append(HttpHeaders.Authorization, "Bearer $accessToken")
         }
     }
+
+    val rateLimit = response.headers["X-RateLimit-Limit"]?.toIntOrNull()
+    val remaining = response.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+    val resetAfter = response.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()
+
+    DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
     return response.body<List<DiscordGuildListAPI>>()
 }

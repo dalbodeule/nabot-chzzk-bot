@@ -41,12 +41,21 @@ object DiscordGuildCache {
             }
         }
 
+        val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
+        val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()
+
+        DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+
         return result.body<List<DiscordGuildListAPI>>()
     }
 
     private suspend fun fetchAllGuilds() {
         var lastGuildId: String? = null
         while (true) {
+            while(!DiscordRatelimits.getRateLimit()) {
+                delay(DiscordRatelimits.getRateReset())
+            }
             val guilds = fetchGuilds(lastGuildId)
             if (guilds.isEmpty()) {
                 break
