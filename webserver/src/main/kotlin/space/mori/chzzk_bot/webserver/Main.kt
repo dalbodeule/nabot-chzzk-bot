@@ -87,7 +87,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                 requestMethod = HttpMethod.Post,
                 defaultScopes = listOf(),
                 extraAuthParameters = listOf(
-                    Pair("permissions", "826781355072"),
+                    Pair("permissions", "826781943872"),
                     Pair("response_type", "code"),
                     Pair("integration_type", "0"),
                     Pair("scope", "guilds bot identify")
