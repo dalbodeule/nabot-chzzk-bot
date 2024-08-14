@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
+import space.mori.chzzk_bot.common.utils.logger
 import space.mori.chzzk_bot.webserver.DiscordGuildListAPI
 import space.mori.chzzk_bot.webserver.dotenv
 import java.time.Instant
@@ -54,17 +55,22 @@ object DiscordGuildCache {
             if(DiscordRatelimits.isLimited()) {
                 delay(DiscordRatelimits.getRateReset().takeIf { it > 1000L } ?: 3000L)
             }
-            val guilds = fetchGuilds(lastGuildId)
-            if (guilds.isEmpty()) {
-                break
-            }
+            try {
+                val guilds = fetchGuilds(lastGuildId)
+                if (guilds.isEmpty()) {
+                    break
+                }
 
-            guilds.forEach {
-                cache[it.id] = CachedGuilds(
-                    Guild(it.id, it.name, it.icon, it.banner)
-                )
+                guilds.forEach {
+                    cache[it.id] = CachedGuilds(
+                        Guild(it.id, it.name, it.icon, it.banner)
+                    )
+                }
+                lastGuildId = guilds.last().id
+            } catch(e: Exception) {
+                logger.info("Exception in discord caches. ${e.stackTraceToString()}")
+                return
             }
-            lastGuildId = guilds.last().id
         }
     }
 
