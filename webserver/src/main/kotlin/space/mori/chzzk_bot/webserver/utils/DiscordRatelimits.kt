@@ -1,7 +1,7 @@
 package space.mori.chzzk_bot.webserver.utils
 
 object DiscordRatelimits {
-    private var rateLimit = RateLimit(0, 0, 0L)
+    private var rateLimit = RateLimit(0, 5, 0L)
 
     fun getRateLimit(): Boolean {
         return rateLimit.remainin != 0
