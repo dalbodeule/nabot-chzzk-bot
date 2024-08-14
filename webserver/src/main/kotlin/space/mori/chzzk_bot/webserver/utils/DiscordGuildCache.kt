@@ -16,7 +16,7 @@ object DiscordGuildCache {
     private val cache = ConcurrentHashMap<String, CachedGuilds>()
     private const val EXP_SECONDS = 600L
 
-    private suspend fun getCachedGuilds(guildId: String): Guild? {
+    suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
 
         if(cache.isEmpty() || !cache.containsKey(guildId) || cache[guildId]!!.timestamp.plusSeconds(EXP_SECONDS).isAfter(now)) {

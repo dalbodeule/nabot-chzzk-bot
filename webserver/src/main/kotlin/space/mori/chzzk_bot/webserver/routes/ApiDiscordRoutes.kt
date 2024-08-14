@@ -33,7 +33,7 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
 
-            call.respond(HttpStatusCode.OK)
+            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(user.discord.toString())!!)
             return@get
         }
         get {
