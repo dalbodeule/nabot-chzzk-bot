@@ -72,7 +72,7 @@ object DiscordGuildCache {
 
                 guilds.forEach {
                     cache[it.id] = CachedGuilds(
-                        Guild(it.id, it.name, it.icon, it.banner, it.roles),
+                        Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList()),
                         Instant.now().plusSeconds(EXP_SECONDS),
                         true
                     )
@@ -105,5 +105,5 @@ data class Guild(
     val name: String,
     val icon: String?,
     val banner: String?,
-    val roles: List<GuildRole>?,
+    val roles: List<GuildRole> = emptyList(),
 )
