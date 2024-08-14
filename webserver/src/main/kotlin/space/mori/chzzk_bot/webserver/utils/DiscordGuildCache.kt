@@ -58,7 +58,7 @@ object DiscordGuildCache {
                 )
             }
             lastGuildId = guilds.last().id
-            delay(1000)
+            delay(1500)
         }
     }
 
