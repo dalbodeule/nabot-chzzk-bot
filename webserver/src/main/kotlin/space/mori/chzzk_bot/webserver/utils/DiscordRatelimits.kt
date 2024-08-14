@@ -7,7 +7,7 @@ object DiscordRatelimits {
         return rateLimit.remainin == 0
     }
 
-    fun getRateReset() = rateLimit.resetAfter
+    fun getRateReset() = rateLimit.resetAfter * 1000L
 
     private fun setRateLimit(rateLimit: RateLimit) {
         this.rateLimit = rateLimit

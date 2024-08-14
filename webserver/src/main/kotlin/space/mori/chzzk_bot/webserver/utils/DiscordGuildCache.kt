@@ -51,8 +51,8 @@ object DiscordGuildCache {
     private suspend fun fetchAllGuilds() {
         var lastGuildId: String? = null
         while (true) {
-            while(!DiscordRatelimits.isLimited()) {
-                delay(DiscordRatelimits.getRateReset())
+            while(DiscordRatelimits.isLimited()) {
+                delay(DiscordRatelimits.getRateReset().takeIf { it > 0 } ?: 5000L)
             }
             val guilds = fetchGuilds(lastGuildId)
             if (guilds.isEmpty()) {
