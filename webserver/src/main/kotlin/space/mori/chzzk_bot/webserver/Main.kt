@@ -285,7 +285,7 @@ data class DiscordGuildListAPI(
     val owner: Boolean,
     val permissions: Int,
     val features: List<String>,
-    val roles: List<GuildRole>
+    val roles: List<GuildRole>?
 )
 
 @Serializable
