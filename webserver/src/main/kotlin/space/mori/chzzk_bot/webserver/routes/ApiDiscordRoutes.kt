@@ -40,7 +40,7 @@ fun Route.apiDiscordRoutes() {
             call.respond(HttpStatusCode.OK, guild)
             return@get
         }
-        get {
+        get("/guild/{gid}") {
             val session = call.sessions.get<UserSession>()
             if(session == null) {
                 call.respond(HttpStatusCode.BadRequest, "Session is required")
@@ -52,7 +52,26 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
 
-            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(session.discordGuildList))
+
+        }
+        get {
+            val uid = call.parameters["gid"]
+            val session = call.sessions.get<UserSession>()
+            if(uid == null) {
+                call.respond(HttpStatusCode.BadRequest, "GID is required")
+                return@get
+            }
+            if(session == null) {
+                call.respond(HttpStatusCode.BadRequest, "Session is required")
+                return@get
+            }
+            val user = UserService.getUserWithNaverId(session.id)
+            if(user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@get
+            }
+
+
             return@get
         }
     }
