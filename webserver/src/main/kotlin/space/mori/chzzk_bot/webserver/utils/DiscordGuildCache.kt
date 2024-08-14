@@ -41,7 +41,7 @@ object DiscordGuildCache {
 
         val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
         val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
-        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()
+        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
 
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
