@@ -105,5 +105,5 @@ data class Guild(
     val name: String,
     val icon: String?,
     val banner: String?,
-    val roles: List<GuildRole>,
+    val roles: List<GuildRole>?,
 )
