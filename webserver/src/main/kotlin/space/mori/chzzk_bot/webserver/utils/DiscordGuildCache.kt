@@ -52,7 +52,7 @@ object DiscordGuildCache {
         var lastGuildId: String? = null
         while (true) {
             while(DiscordRatelimits.isLimited()) {
-                delay(DiscordRatelimits.getRateReset().takeIf { it > 0 } ?: 5000L)
+                delay(DiscordRatelimits.getRateReset().takeIf { it > 1000L } ?: 3000L)
             }
             val guilds = fetchGuilds(lastGuildId)
             if (guilds.isEmpty()) {
