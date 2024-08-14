@@ -132,7 +132,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 DiscordGuildCache.addGuild(guilds.associate {
                                     println("${it.id} ${it.name}")
 
-                                    it.id to Guild(it.id, it.name, it.icon, it.banner, it.roles)
+                                    it.id to Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList())
                                 })
 
                                 redirects[principal.state]?.let { redirect ->
