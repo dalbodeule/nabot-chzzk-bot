@@ -222,12 +222,12 @@ class UserHandler(
             CoroutineScope(Dispatchers.Default).launch {
                 logger.info("${user.username} is live.")
 
+                logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
+                listener.connectAsync().await()
+
+                streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
+
                 if(!_isActive) {
-                    logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
-                    listener.connectAsync().await()
-
-                    streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
-
                     _isActive = true
                     when(TimerConfigService.getConfig(UserService.getUser(channel.channelId)!!)?.option) {
                         TimerType.UPTIME.value -> dispatcher.post(
