@@ -32,8 +32,12 @@ fun Route.apiDiscordRoutes() {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
-
-            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(user.discord.toString())!!)
+            val guild = DiscordGuildCache.getCachedGuilds(user.liveAlertGuild.toString())
+            if(guild == null) {
+                call.respond(HttpStatusCode.NotFound)
+                return@get
+            }
+            call.respond(HttpStatusCode.OK, guild)
             return@get
         }
         get {
