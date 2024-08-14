@@ -5,15 +5,9 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.CoroutinesEventBus
-import space.mori.chzzk_bot.common.events.DiscordRegisterEvent
 import space.mori.chzzk_bot.common.services.UserService
-import space.mori.chzzk_bot.common.utils.getRandomString
 import space.mori.chzzk_bot.webserver.UserSession
 import space.mori.chzzk_bot.webserver.utils.DiscordGuildCache
 
@@ -35,23 +29,12 @@ fun Route.apiDiscordRoutes() {
             }
 
             if (user.discord == null) {
-                val randomString = getRandomString(8)
-
-                CoroutineScope(Dispatchers.Default).launch {
-                    dispatcher.post(DiscordRegisterEvent(
-                        user.token!!,
-                        randomString
-                    ))
-                }
-
-                call.respond(HttpStatusCode.NotFound, DiscordRequireRegisterDTO(
-                    user.token!!,
-                    randomString
-                ))
+                call.respond(HttpStatusCode.NotFound)
                 return@get
             }
 
             call.respond(HttpStatusCode.OK)
+            return@get
         }
         get {
             val session = call.sessions.get<UserSession>()
@@ -70,9 +53,3 @@ fun Route.apiDiscordRoutes() {
         }
     }
 }
-
-@Serializable
-data class DiscordRequireRegisterDTO(
-    val user: String,
-    val token: String
-)
