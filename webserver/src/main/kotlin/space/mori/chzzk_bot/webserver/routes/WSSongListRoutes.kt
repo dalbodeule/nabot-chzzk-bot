@@ -125,19 +125,18 @@ fun Routing.wsSongListRoutes() {
                             if(songList.isNotEmpty()) {
                                 val song = songList[0]
                                 SongListService.deleteSong(user, song.uid, song.name)
-                                dispatcher.post(
-                                    SongEvent(
-                                        user.token!!,
-                                        SongType.NEXT,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null
-                                    )
-                                )
                             }
+
+                            dispatcher.post(SongEvent(
+                                user.token!!,
+                                SongType.NEXT,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                            ))
                         }
                     }
                     is Frame.Ping -> send(Frame.Pong(frame.data))
