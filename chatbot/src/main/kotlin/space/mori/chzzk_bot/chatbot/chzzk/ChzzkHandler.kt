@@ -92,7 +92,14 @@ object ChzzkHandler {
                     if (!running) return@forEach
                     try {
                         val streamInfo = getStreamInfo(it.channel.channelId)
-                        if (streamInfo.content?.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
+                        if (streamInfo.content?.status == "OPEN" && !it.isActive) {
+                            try {
+                                if(it.channel.isBroadcasting)
+                                    it.isActive(true, streamInfo)
+                            } catch(e: Exception) {
+                                logger.info("Exception: ${e.stackTraceToString()}")
+                            }
+                        }
                         if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
                     } catch (e: SocketTimeoutException) {
                         logger.info("Thread 1 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
@@ -114,7 +121,14 @@ object ChzzkHandler {
                     if (!running) return@forEach
                     try {
                         val streamInfo = getStreamInfo(it.channel.channelId)
-                        if (streamInfo.content?.status == "OPEN" && !it.isActive) it.isActive(true, streamInfo)
+                        if (streamInfo.content?.status == "OPEN" && !it.isActive) {
+                            try {
+                                if(it.channel.isBroadcasting)
+                                    it.isActive(true, streamInfo)
+                            } catch(e: Exception) {
+                                logger.info("Exception: ${e.stackTraceToString()}")
+                            }
+                        }
                         if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
                     } catch (e: SocketTimeoutException) {
                         logger.info("Thread 2 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
@@ -169,7 +183,7 @@ class UserHandler(
     private var user: User,
     var streamStartTime: LocalDateTime?,
 ) {
-    private lateinit var messageHandler: MessageHandler
+    private val messageHandler = MessageHandler(this@UserHandler)
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
     private var _isActive: Boolean
         get() = LiveStatusService.getLiveStatus(user)?.status ?: false
@@ -182,7 +196,6 @@ class UserHandler(
         .withChatListener(object : ChatEventListener {
             override fun onConnect(chat: ChzzkChat, isReconnecting: Boolean) {
                 logger.info("ChzzkChat connected. ${channel.channelName} - ${channel.channelId} / reconnected: $isReconnecting")
-                messageHandler = MessageHandler(this@UserHandler)
             }
 
             override fun onError(ex: Exception) {
