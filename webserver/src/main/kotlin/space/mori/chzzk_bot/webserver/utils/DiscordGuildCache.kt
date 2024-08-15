@@ -87,7 +87,11 @@ object DiscordGuildCache {
 
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
-        return result.body<List<GuildRole>>()
+        val parsed = result.body<List<GuildRole>>()
+
+        parsed.forEach { println("${it.name} - ${it.id}") }
+
+        return parsed
     }
 
     private suspend fun fetchGuildChannels(guildId: String): List<GuildChannel> {
@@ -106,7 +110,11 @@ object DiscordGuildCache {
 
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
-        return result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
+        val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
+
+        parsed.forEach { println("${it.name} - ${it.id}") }
+
+        return parsed
     }
 
     private suspend fun fetchAllGuilds() {
