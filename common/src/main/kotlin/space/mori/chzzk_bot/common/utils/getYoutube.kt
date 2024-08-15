@@ -15,7 +15,7 @@ data class YoutubeVideo(
     val length: Int
 )
 
-val regex = ".*(?:youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=)([^#&?]*).*".toRegex()
+val regex = ".*(?:youtu.be/|v/|u/\\w/|embed/|watch\\?v=|&v=|music\\.youtube\\.com/.*?\\?v=)([^#&?]*).*".toRegex()
 val durationRegex = """PT(\d+H)?(\d+M)?(\d+S)?""".toRegex()
 
 val dotenv = dotenv {
