@@ -94,8 +94,7 @@ object ChzzkHandler {
                         val streamInfo = getStreamInfo(it.channel.channelId)
                         if (streamInfo.content?.status == "OPEN" && !it.isActive) {
                             try {
-                                if(it.channel.isBroadcasting)
-                                    it.isActive(true, streamInfo)
+                                it.isActive(true, streamInfo)
                             } catch(e: Exception) {
                                 logger.info("Exception: ${e.stackTraceToString()}")
                             }
@@ -123,8 +122,7 @@ object ChzzkHandler {
                         val streamInfo = getStreamInfo(it.channel.channelId)
                         if (streamInfo.content?.status == "OPEN" && !it.isActive) {
                             try {
-                                if(it.channel.isBroadcasting)
-                                    it.isActive(true, streamInfo)
+                                it.isActive(true, streamInfo)
                             } catch(e: Exception) {
                                 logger.info("Exception: ${e.stackTraceToString()}")
                             }
