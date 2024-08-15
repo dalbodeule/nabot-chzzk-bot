@@ -16,7 +16,6 @@ import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.UUID
 
 
 class MessageHandler(
@@ -246,6 +245,11 @@ class MessageHandler(
                 return
             }
 
+            if (video.length > 600) {
+                listener.sendChat("10분이 넘는 노래는 신청할 수 없습니다.")
+                return
+            }
+
             SongListService.saveSong(
                 user,
                 msg.userId,
@@ -270,7 +274,7 @@ class MessageHandler(
                 )
             }
 
-            listener.sendChat("노래가 추가되었습니다.")
+            listener.sendChat("노래가 추가되었습니다. ${video.name} - ${video.author}")
         } catch(e: Exception) {
             listener.sendChat("유튜브 영상 주소로 다시 신청해주세요!")
             logger.info(e.stackTraceToString())
