@@ -33,10 +33,10 @@ object DiscordGuildCache {
                 try {
                     if(guild == null) { return null }
                     if (guild!!.guild.roles.isEmpty()) {
-                        guild!!.guild.roles = fetchGuildRoles(guildId)
+                        guild!!.guild.roles.addAll(fetchGuildRoles(guildId))
                     }
                     if (guild!!.guild.channel.isEmpty()) {
-                        guild!!.guild.channel = fetchGuildChannels(guildId)
+                        guild!!.guild.channel.addAll(fetchGuildChannels(guildId))
                     }
                 } catch(e: Exception) {
                     logger.info("guild fetch is failed. ${e.stackTraceToString()}")
@@ -74,7 +74,7 @@ object DiscordGuildCache {
         return result.body<List<DiscordGuildListAPI>>()
     }
 
-    private suspend fun fetchGuildRoles(guildId: String): List<GuildRole> {
+    private suspend fun fetchGuildRoles(guildId: String): MutableList<GuildRole> {
         if(DiscordRatelimits.isLimited()) {
             delay(DiscordRatelimits.getRateReset())
         }
@@ -93,21 +93,22 @@ object DiscordGuildCache {
 
             if (result.status != HttpStatusCode.OK) {
                 logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
-                return emptyList()
+                return mutableListOf()
             }
 
-            val parsed = result.body<List<GuildRole>>()
+            val parsed = result.body<MutableList<GuildRole>>()
+            println(result.bodyAsText())
 
             parsed.forEach { println("${it.name} - ${it.id}") }
 
             return parsed
         } catch(e: Exception) {
             logger.info("fetchGuildRoles error: ${e.stackTraceToString()}")
-            return emptyList()
+            return mutableListOf()
         }
     }
 
-    private suspend fun fetchGuildChannels(guildId: String): List<GuildChannel> {
+    private suspend fun fetchGuildChannels(guildId: String): MutableList<GuildChannel> {
         if(DiscordRatelimits.isLimited()) {
             delay(DiscordRatelimits.getRateReset())
         }
@@ -126,17 +127,18 @@ object DiscordGuildCache {
 
             if (result.status != HttpStatusCode.OK) {
                 logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
-                return emptyList()
+                return mutableListOf()
             }
 
-            val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
+            val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }.toMutableList()
+            println(result.bodyAsText())
 
             parsed.forEach { println("${it.name} - ${it.id}") }
 
             return parsed
         } catch(e: Exception) {
             logger.info("fetchGuildRoles error: ${e.stackTraceToString()}")
-            return emptyList()
+            return mutableListOf()
         }
     }
 
@@ -151,7 +153,7 @@ object DiscordGuildCache {
 
                 guilds.forEach {
                     cache[it.id] = CachedGuilds(
-                        Guild(it.id, it.name, it.icon, it.banner, it.roles ?: emptyList(), emptyList()),
+                        Guild(it.id, it.name, it.icon, it.banner, it.roles?.toMutableList() ?: mutableListOf(), mutableListOf()),
                         Instant.now().plusSeconds(EXP_SECONDS),
                         true
                     )
@@ -184,6 +186,6 @@ data class Guild(
     val name: String,
     val icon: String?,
     val banner: String?,
-    var roles: List<GuildRole>,
-    var channel: List<GuildChannel>
+    var roles: MutableList<GuildRole>,
+    var channel: MutableList<GuildChannel>
 )
