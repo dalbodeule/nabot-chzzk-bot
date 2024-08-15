@@ -38,7 +38,7 @@ object DiscordGuildCache {
                         guild!!.guild.channel = fetchGuildChannels(guildId)
                     }
                 } catch(e: Exception) {
-                    logger.info("guild fetch is failed.")
+                    logger.info("guild fetch is failed. ${e.stackTraceToString()}")
                     return null
                 }
             }
