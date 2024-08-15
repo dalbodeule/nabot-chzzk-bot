@@ -181,7 +181,7 @@ class UserHandler(
     private var user: User,
     var streamStartTime: LocalDateTime?,
 ) {
-    var messageHandler: MessageHandler
+    lateinit var messageHandler: MessageHandler
     var listener: ChzzkChat
 
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
@@ -192,7 +192,6 @@ class UserHandler(
         }
 
     init {
-        messageHandler = MessageHandler(this@UserHandler)
         listener = chzzk.chat(channel.channelId)
             .withAutoReconnect(true)
             .withChatListener(object : ChatEventListener {
@@ -216,6 +215,7 @@ class UserHandler(
                 }
             })
             .build()
+        messageHandler = MessageHandler(this@UserHandler)
     }
 
 
