@@ -287,7 +287,7 @@ data class DiscordGuildListAPI(
 data class GuildRole(
     val id: String,
     val name: String,
-    val color: String,
+    val color: Int,
     val mentionable: Boolean,
 )
 
