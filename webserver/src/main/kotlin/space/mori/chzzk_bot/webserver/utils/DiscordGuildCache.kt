@@ -22,19 +22,20 @@ object DiscordGuildCache {
 
     suspend fun getCachedGuilds(guildId: String): Guild? {
         val now = Instant.now()
-        val guild = cache[guildId]
+        var guild = cache[guildId]
 
         if(guild == null || guild.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild.isBotAvailable) {
             mutex.withLock {
-                if(guild == null || guild.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild.isBotAvailable) {
+                if(guild == null || guild!!.timestamp.plusSeconds(EXP_SECONDS).isBefore(now) || !guild!!.isBotAvailable) {
                     fetchAllGuilds()
+                    guild = cache[guildId]
                 }
                 try {
-                    if (guild?.guild?.roles?.isEmpty() == true) {
-                        guild.guild.roles = fetchGuildRoles(guildId)
+                    if (guild!!.guild.roles.isEmpty()) {
+                        guild!!.guild.roles = fetchGuildRoles(guildId)
                     }
-                    if (guild?.guild?.channel?.isEmpty() == true) {
-                        guild.guild.channel = fetchGuildChannels(guildId)
+                    if (guild!!.guild.channel.isEmpty()) {
+                        guild!!.guild.channel = fetchGuildChannels(guildId)
                     }
                 } catch(e: Exception) {
                     logger.info("guild fetch is failed.")
