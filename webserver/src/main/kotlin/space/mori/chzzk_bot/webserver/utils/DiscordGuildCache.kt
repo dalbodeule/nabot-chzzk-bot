@@ -3,6 +3,7 @@ package space.mori.chzzk_bot.webserver.utils
 import applicationHttpClient
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
@@ -87,6 +88,11 @@ object DiscordGuildCache {
 
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
+        if (result.status != HttpStatusCode.OK) {
+            logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
+            return emptyList()
+        }
+
         val parsed = result.body<List<GuildRole>>()
 
         parsed.forEach { println("${it.name} - ${it.id}") }
@@ -109,6 +115,11 @@ object DiscordGuildCache {
         val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
 
         DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+
+        if (result.status != HttpStatusCode.OK) {
+            logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
+            return emptyList()
+        }
 
         val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
 
