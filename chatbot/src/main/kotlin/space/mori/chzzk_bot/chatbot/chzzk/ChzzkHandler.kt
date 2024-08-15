@@ -181,7 +181,9 @@ class UserHandler(
     private var user: User,
     var streamStartTime: LocalDateTime?,
 ) {
-    private val messageHandler = MessageHandler(this@UserHandler)
+    var messageHandler: MessageHandler
+    var listener: ChzzkChat
+
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
     private var _isActive: Boolean
         get() = LiveStatusService.getLiveStatus(user)?.status ?: false
@@ -189,29 +191,33 @@ class UserHandler(
             LiveStatusService.updateOrCreate(user, value)
         }
 
-    var listener: ChzzkChat = chzzk.chat(channel.channelId)
-        .withAutoReconnect(true)
-        .withChatListener(object : ChatEventListener {
-            override fun onConnect(chat: ChzzkChat, isReconnecting: Boolean) {
-                logger.info("ChzzkChat connected. ${channel.channelName} - ${channel.channelId} / reconnected: $isReconnecting")
-            }
+    init {
+        messageHandler = MessageHandler(this@UserHandler)
+        listener = chzzk.chat(channel.channelId)
+            .withAutoReconnect(true)
+            .withChatListener(object : ChatEventListener {
+                override fun onConnect(chat: ChzzkChat, isReconnecting: Boolean) {
+                    logger.info("${channel.channelName} - ${channel.channelId} / reconnected: $isReconnecting")
+                }
 
-            override fun onError(ex: Exception) {
-                logger.info("ChzzkChat error. ${channel.channelName} - ${channel.channelId}")
-                logger.info(ex.stackTraceToString())
-            }
+                override fun onError(ex: Exception) {
+                    logger.info("ChzzkChat error. ${channel.channelName} - ${channel.channelId}")
+                    logger.info(ex.stackTraceToString())
+                }
 
-            override fun onChat(msg: ChatMessage) {
-                if(!_isActive) return
-                messageHandler.handle(msg, user)
-            }
+                override fun onChat(msg: ChatMessage) {
+                    if(!_isActive) return
+                    messageHandler.handle(msg, user)
+                }
 
-            override fun onConnectionClosed(code: Int, reason: String?, remote: Boolean, tryingToReconnect: Boolean) {
-                logger.info("ChzzkChat closed. ${channel.channelName} - ${channel.channelId}")
-                logger.info("Reason: $reason / $tryingToReconnect")
-            }
-        })
-        .build()
+                override fun onConnectionClosed(code: Int, reason: String?, remote: Boolean, tryingToReconnect: Boolean) {
+                    logger.info("ChzzkChat closed. ${channel.channelName} - ${channel.channelId}")
+                    logger.info("Reason: $reason / $tryingToReconnect")
+                }
+            })
+            .build()
+    }
+
 
     internal fun disable() {
         listener.closeAsync()
