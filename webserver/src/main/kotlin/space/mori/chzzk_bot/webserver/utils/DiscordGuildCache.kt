@@ -31,6 +31,7 @@ object DiscordGuildCache {
                     guild = cache[guildId]
                 }
                 try {
+                    if(guild == null) { return null }
                     if (guild!!.guild.roles.isEmpty()) {
                         guild!!.guild.roles = fetchGuildRoles(guildId)
                     }
