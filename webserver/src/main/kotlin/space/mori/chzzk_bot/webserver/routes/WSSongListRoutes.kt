@@ -71,7 +71,7 @@ fun Routing.wsSongListRoutes() {
                 when(frame) {
                     is Frame.Text -> {
                         if(frame.readText() == "ping") {
-                            send(Frame.Pong(frame.data))
+                            send("pong")
                             return@webSocket
                         }
                         val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }

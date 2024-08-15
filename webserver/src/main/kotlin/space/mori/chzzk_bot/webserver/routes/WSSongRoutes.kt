@@ -64,7 +64,7 @@ fun Routing.wsSongRoutes() {
                 when(frame) {
                     is Frame.Text -> {
                         if(frame.readText() == "ping") {
-                            send(Frame.Pong(frame.data))
+                            send("pong")
                             return@webSocket
                         }
                     }
