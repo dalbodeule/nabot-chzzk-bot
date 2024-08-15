@@ -70,76 +70,89 @@ fun Routing.wsSongListRoutes() {
             for (frame in incoming) {
                 when(frame) {
                     is Frame.Text -> {
-                        if(frame.readText() == "ping") {
+                        if (frame.readText() == "ping") {
                             send("pong")
-                        }
-                        val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }
+                        } else {
+                            val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }
 
-                        if(data.maxQueue != null && data.maxQueue > 0) SongConfigService.updateQueueLimit(user, data.maxQueue)
-                        if(data.maxUserLimit != null && data.maxUserLimit > 0) SongConfigService.updatePersonalLimit(user, data.maxUserLimit)
-                        if(data.isStreamerOnly != null) SongConfigService.updateStreamerOnly(user, data.isStreamerOnly)
-                        if(data.isDisabled != null) SongConfigService.updateDisabled(user, data.isDisabled)
+                            if (data.maxQueue != null && data.maxQueue > 0) SongConfigService.updateQueueLimit(
+                                user,
+                                data.maxQueue
+                            )
+                            if (data.maxUserLimit != null && data.maxUserLimit > 0) SongConfigService.updatePersonalLimit(
+                                user,
+                                data.maxUserLimit
+                            )
+                            if (data.isStreamerOnly != null) SongConfigService.updateStreamerOnly(
+                                user,
+                                data.isStreamerOnly
+                            )
+                            if (data.isDisabled != null) SongConfigService.updateDisabled(user, data.isDisabled)
 
-                        if(data.type == SongType.ADD.value && data.url != null) {
-                            try {
-                                val youtubeVideo = getYoutubeVideo(data.url)
-                                if (youtubeVideo != null) {
-                                    CoroutineScope(Dispatchers.Default).launch {
-                                        SongListService.saveSong(
-                                            user,
-                                            user.token!!,
-                                            data.url,
-                                            youtubeVideo.name,
-                                            youtubeVideo.author,
-                                            youtubeVideo.length,
-                                            user.username
-                                        )
-                                        dispatcher.post(
-                                            SongEvent(
+                            if (data.type == SongType.ADD.value && data.url != null) {
+                                try {
+                                    val youtubeVideo = getYoutubeVideo(data.url)
+                                    if (youtubeVideo != null) {
+                                        CoroutineScope(Dispatchers.Default).launch {
+                                            SongListService.saveSong(
+                                                user,
                                                 user.token!!,
-                                                SongType.ADD,
-                                                user.token,
-                                                user.username,
+                                                data.url,
                                                 youtubeVideo.name,
                                                 youtubeVideo.author,
                                                 youtubeVideo.length,
-                                                youtubeVideo.url
+                                                user.username
                                             )
-                                        )
+                                            dispatcher.post(
+                                                SongEvent(
+                                                    user.token!!,
+                                                    SongType.ADD,
+                                                    user.token,
+                                                    user.username,
+                                                    youtubeVideo.name,
+                                                    youtubeVideo.author,
+                                                    youtubeVideo.length,
+                                                    youtubeVideo.url
+                                                )
+                                            )
+                                        }
                                     }
+                                } catch (e: Exception) {
+                                    logger.debug("SongType.ADD Error: $uid $e")
                                 }
-                            } catch(e: Exception) {
-                                logger.debug("SongType.ADD Error: $uid $e")
-                            }
-                        }
-                        else if(data.type == SongType.REMOVE.value && data.url != null) {
-                            dispatcher.post(SongEvent(
-                                user.token!!,
-                                SongType.REMOVE,
-                                null,
-                                null,
-                                null,
-                                null,
-                                0,
-                                data.url
-                            ))
-                        } else if(data.type == SongType.NEXT.value) {
-                            val songList = SongListService.getSong(user)
-                            if(songList.isNotEmpty()) {
-                                val song = songList[0]
-                                SongListService.deleteSong(user, song.uid, song.name)
-                            }
+                            } else if (data.type == SongType.REMOVE.value && data.url != null) {
+                                dispatcher.post(
+                                    SongEvent(
+                                        user.token!!,
+                                        SongType.REMOVE,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        0,
+                                        data.url
+                                    )
+                                )
+                            } else if (data.type == SongType.NEXT.value) {
+                                val songList = SongListService.getSong(user)
+                                if (songList.isNotEmpty()) {
+                                    val song = songList[0]
+                                    SongListService.deleteSong(user, song.uid, song.name)
+                                }
 
-                            dispatcher.post(SongEvent(
-                                user.token!!,
-                                SongType.NEXT,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null,
-                                null
-                            ))
+                                dispatcher.post(
+                                    SongEvent(
+                                        user.token!!,
+                                        SongType.NEXT,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null,
+                                        null
+                                    )
+                                )
+                            }
                         }
                     }
                     is Frame.Ping -> send(Frame.Pong(frame.data))
