@@ -198,7 +198,7 @@ class UserHandler(
 
             override fun onError(ex: Exception) {
                 logger.info("ChzzkChat error. ${channel.channelName} - ${channel.channelId}")
-                logger.debug(ex.stackTraceToString())
+                logger.info(ex.stackTraceToString())
             }
 
             override fun onChat(msg: ChatMessage) {
