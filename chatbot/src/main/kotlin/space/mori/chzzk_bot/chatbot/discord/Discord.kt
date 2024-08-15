@@ -31,12 +31,15 @@ class Discord: ListenerAdapter() {
     companion object {
         lateinit var bot: JDA
 
-        internal fun getChannel(guildId: Long, channelId: Long): TextChannel? = bot.getGuildById(guildId)?.getTextChannelById(channelId)
+        internal fun getChannel(guildId: Number, channelId: Number): TextChannel? {
+            return bot.getGuildById(guildId.toLong())?.getTextChannelById(channelId.toLong())
+        }
 
         fun sendDiscord(user: User, status: IData<IStreamInfo?>) {
             if(status.content == null) return
-            if(user.liveAlertMessage != "" && user.liveAlertGuild != null && user.liveAlertChannel != null) {
-                val channel = getChannel(user.liveAlertGuild!!, user.liveAlertChannel!!) ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
+            if(user.liveAlertMessage != null && user.liveAlertGuild != null && user.liveAlertChannel != null) {
+                val channel = getChannel(user.liveAlertGuild ?: 0, user.liveAlertChannel ?: 0)
+                    ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
 
                 val embed = EmbedBuilder()
                 embed.setTitle(status.content!!.liveTitle, "https://chzzk.naver.com/live/${user.token}")

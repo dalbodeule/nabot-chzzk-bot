@@ -239,6 +239,8 @@ class UserHandler(
             CoroutineScope(Dispatchers.Default).launch {
                 logger.info("${user.username} is live.")
 
+                reloadUser(UserService.getUser(user.id.value)!!)
+
                 logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
                 listener.connectAsync().await()
 
