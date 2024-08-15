@@ -310,7 +310,7 @@ enum class ChannelType(val value: Int) {
 @Serializable
 data class GuildChannel(
     val id: String,
-    val type: ChannelType,
+    val type: Int,
     val name: String?
 )
 

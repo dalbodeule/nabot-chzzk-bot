@@ -133,7 +133,7 @@ object DiscordGuildCache {
                 return mutableListOf()
             }
 
-            val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }.toMutableList()
+            val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT.value }.toMutableList()
             println(result.bodyAsText())
 
             parsed.forEach { println("${it.name} - ${it.id}") }
