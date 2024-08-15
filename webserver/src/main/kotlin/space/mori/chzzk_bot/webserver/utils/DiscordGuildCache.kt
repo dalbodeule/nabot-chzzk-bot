@@ -30,19 +30,22 @@ object DiscordGuildCache {
                     fetchAllGuilds()
                     guild = cache[guildId]
                 }
-                try {
-                    if(guild == null) { return null }
-                    if (guild!!.guild.roles.isEmpty()) {
-                        guild!!.guild.roles.addAll(fetchGuildRoles(guildId))
-                    }
-                    if (guild!!.guild.channel.isEmpty()) {
-                        guild!!.guild.channel.addAll(fetchGuildChannels(guildId))
-                    }
-                } catch(e: Exception) {
-                    logger.info("guild fetch is failed. ${e.stackTraceToString()}")
-                    return null
-                }
             }
+        }
+
+        try {
+            if(guild == null) return null
+            if (guild!!.guild.roles.isEmpty()) {
+                val roles = fetchGuildRoles(guildId)
+                guild!!.guild.roles.addAll(roles)
+            }
+            if (guild!!.guild.channel.isEmpty()) {
+                val channels = fetchGuildChannels(guildId)
+                guild!!.guild.channel.addAll(channels)
+            }
+        } catch(e: Exception) {
+            logger.info("guild fetch is failed. ${e.stackTraceToString()}")
+            return null
         }
         return cache[guildId]?.guild
     }
