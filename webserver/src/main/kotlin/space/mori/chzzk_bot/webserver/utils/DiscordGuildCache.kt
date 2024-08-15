@@ -77,56 +77,66 @@ object DiscordGuildCache {
         if(DiscordRatelimits.isLimited()) {
             delay(DiscordRatelimits.getRateReset())
         }
-        val result = applicationHttpClient.get("https://discord.com/api/guilds/${guildId}/roles") {
-            headers {
-                append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
+        try {
+            val result = applicationHttpClient.get("https://discord.com/api/guilds/${guildId}/roles") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
+                }
             }
-        }
 
-        val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
-        val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
-        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
+            val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
+            val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+            val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
 
-        DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+            DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
-        if (result.status != HttpStatusCode.OK) {
-            logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
+            if (result.status != HttpStatusCode.OK) {
+                logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
+                return emptyList()
+            }
+
+            val parsed = result.body<List<GuildRole>>()
+
+            parsed.forEach { println("${it.name} - ${it.id}") }
+
+            return parsed
+        } catch(e: Exception) {
+            logger.info("fetchGuildRoles error: ${e.stackTraceToString()}")
             return emptyList()
         }
-
-        val parsed = result.body<List<GuildRole>>()
-
-        parsed.forEach { println("${it.name} - ${it.id}") }
-
-        return parsed
     }
 
     private suspend fun fetchGuildChannels(guildId: String): List<GuildChannel> {
         if(DiscordRatelimits.isLimited()) {
             delay(DiscordRatelimits.getRateReset())
         }
-        val result = applicationHttpClient.get("https://discord.com/api/guilds/${guildId}/channels") {
-            headers {
-                append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
+        try {
+            val result = applicationHttpClient.get("https://discord.com/api/guilds/${guildId}/channels") {
+                headers {
+                    append(HttpHeaders.Authorization, "Bot ${dotenv["DISCORD_TOKEN"]}")
+                }
             }
-        }
 
-        val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
-        val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
-        val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
+            val rateLimit = result.headers["X-RateLimit-Limit"]?.toIntOrNull()
+            val remaining = result.headers["X-RateLimit-Remaining"]?.toIntOrNull()
+            val resetAfter = result.headers["X-RateLimit-Reset-After"]?.toDoubleOrNull()?.toLong()?.plus(1L)
 
-        DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
+            DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
-        if (result.status != HttpStatusCode.OK) {
-            logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
+            if (result.status != HttpStatusCode.OK) {
+                logger.error("Failed to fetch data from Discord API. Status: ${result.status} ${result.bodyAsText()}")
+                return emptyList()
+            }
+
+            val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
+
+            parsed.forEach { println("${it.name} - ${it.id}") }
+
+            return parsed
+        } catch(e: Exception) {
+            logger.info("fetchGuildRoles error: ${e.stackTraceToString()}")
             return emptyList()
         }
-
-        val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT }
-
-        parsed.forEach { println("${it.name} - ${it.id}") }
-
-        return parsed
     }
 
     private suspend fun fetchAllGuilds() {
