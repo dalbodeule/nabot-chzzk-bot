@@ -2,9 +2,11 @@ package space.mori.chzzk_bot.webserver.routes
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.serialization.Serializable
 import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.services.UserService
@@ -15,7 +17,7 @@ fun Route.apiDiscordRoutes() {
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     route("/discord") {
-        get("{uid}") {
+        get("/{uid}") {
             val uid = call.parameters["uid"]
             val session = call.sessions.get<UserSession>()
             if(uid == null) {
@@ -32,13 +34,28 @@ fun Route.apiDiscordRoutes() {
                 call.respond(HttpStatusCode.NotFound)
                 return@get
             }
-            val guild = DiscordGuildCache.getCachedGuilds(user.liveAlertGuild.toString())
-            if(guild == null) {
-                call.respond(HttpStatusCode.NotFound)
-                return@get
-            }
-            call.respond(HttpStatusCode.OK, guild)
+            call.respond(HttpStatusCode.OK, GuildSettings(
+                user.liveAlertGuild,
+                user.liveAlertChannel,
+                user.liveAlertMessage
+            ))
             return@get
+        }
+        post("/{uid}") {
+            val uid = call.parameters["uid"]
+            val session = call.sessions.get<UserSession>()
+            val body: GuildSettings = call.receive()
+            if(uid == null) {
+                call.respond(HttpStatusCode.BadRequest, "UID is required")
+                return@post
+            }
+            val user = UserService.getUser(uid)
+            if(user == null || user.naverId != session?.id || user.token == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@post
+            }
+            UserService.updateLiveAlert(user, body.guildId ?: 0L, body.channelId ?: 0L, body.message)
+            call.respond(HttpStatusCode.OK)
         }
         get("/guild/{gid}") {
             val gid = call.parameters["gid"]
@@ -82,3 +99,10 @@ fun Route.apiDiscordRoutes() {
         }
     }
 }
+
+@Serializable
+data class GuildSettings(
+    val guildId: Long?,
+    val channelId: Long?,
+    val message: String? = null,
+)
