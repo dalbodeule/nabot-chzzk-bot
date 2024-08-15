@@ -63,7 +63,10 @@ fun Routing.wsTimerRoutes() {
             for (frame in incoming) {
                 when(frame) {
                     is Frame.Text -> {
-
+                        if(frame.readText() == "ping") {
+                            send(Frame.Pong(frame.data))
+                            return@webSocket
+                        }
                     }
                     is Frame.Ping -> send(Frame.Pong(frame.data))
                     else -> {

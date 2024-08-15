@@ -58,12 +58,7 @@ class Discord: ListenerAdapter() {
     }
 
     private val commands = listOf(
-        AddCommand,
-        AlertCommand,
         PingCommand,
-        HookComand,
-        RemoveCommand,
-        UpdateCommand,
         AddManagerCommand,
         ListManagerCommand,
         RemoveManagerCommand,

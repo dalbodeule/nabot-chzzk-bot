@@ -70,6 +70,10 @@ fun Routing.wsSongListRoutes() {
             for (frame in incoming) {
                 when(frame) {
                     is Frame.Text -> {
+                        if(frame.readText() == "ping") {
+                            send(Frame.Pong(frame.data))
+                            return@webSocket
+                        }
                         val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }
 
                         if(data.maxQueue != null && data.maxQueue > 0) SongConfigService.updateQueueLimit(user, data.maxQueue)
