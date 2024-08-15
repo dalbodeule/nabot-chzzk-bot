@@ -100,9 +100,6 @@ object DiscordGuildCache {
             }
 
             val parsed = result.body<MutableList<GuildRole>>()
-            println(result.bodyAsText())
-
-            parsed.forEach { println("${it.name} - ${it.id}") }
 
             return parsed
         } catch(e: Exception) {
@@ -134,9 +131,6 @@ object DiscordGuildCache {
             }
 
             val parsed = result.body<List<GuildChannel>>().filter { it.type == ChannelType.GUILD_TEXT.value }.toMutableList()
-            println(result.bodyAsText())
-
-            parsed.forEach { println("${it.name} - ${it.id}") }
 
             return parsed
         } catch(e: Exception) {
