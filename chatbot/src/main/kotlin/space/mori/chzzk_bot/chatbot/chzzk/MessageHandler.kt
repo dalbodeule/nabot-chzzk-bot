@@ -53,13 +53,14 @@ class MessageHandler(
             ?: throw RuntimeException("User not found. it's bug? ${channel.channelName} - ${channel.channelId}")
         val commands = CommandService.getCommands(user)
         val manageCommands = mapOf(
+            "!명령어" to this::commandListCommand,
             "!명령어추가" to this::manageAddCommand,
             "!명령어삭제" to this::manageRemoveCommand,
             "!명령어수정" to this::manageUpdateCommand,
             "!시간" to this::timerCommand,
             "!신청곡" to this::songAddCommand,
             "!노래목록" to this::songListCommand,
-            "!노래시작" to this::songStartCommand
+            "!노래시작" to this::songStartCommand,
         )
 
         manageCommands.forEach { (commandName, command) ->
@@ -74,6 +75,10 @@ class MessageHandler(
                 listener.sendChat(result)
             }
         }
+    }
+
+    private fun commandListCommand(msg: ChatMessage, user: User) {
+        listener.sendChat("리스트는 여기입니다. https://nabot.mori.space/commands/${user.token}")
     }
 
     private fun manageAddCommand(msg: ChatMessage, user: User) {
