@@ -23,13 +23,12 @@ fun Routing.apiCommandRoutes() {
     route("/commands") {
         get("/{uid}") {
             val uid = call.parameters["uid"]
-            val session = call.sessions.get<UserSession>()
             if(uid == null) {
                 call.respond(HttpStatusCode.BadRequest, "UID is required")
                 return@get
             }
             val user = UserService.getUser(uid)
-            if(user == null || user.naverId != session?.id) {
+            if(user == null ) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get
             }
