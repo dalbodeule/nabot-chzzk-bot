@@ -44,14 +44,15 @@ fun Routing.wsSongListRoutes() {
         sessions.remove(uid)
     }
 
-    suspend fun sendWithRetry(ws: WebSocketServerSession, res: SongResponse, maxRetries: Int, delayMillis: Long = 3000L) {
+    suspend fun sendWithRetry(uid: String, res: SongResponse, maxRetries: Int = 5, delayMillis: Long = 3000L) {
         var attempt = 0
         var sentSuccessfully = false
 
         while (attempt < maxRetries && !sentSuccessfully) {
+            val ws = sessions[uid]
             try {
                 // Attempt to send the message
-                ws.sendSerialized(res)
+                ws?.sendSerialized(res)
                 sentSuccessfully = true // If no exception, mark as sent successfully
                 logger.debug("Message sent successfully on attempt $attempt")
             } catch (e: Exception) {
@@ -203,16 +204,17 @@ fun Routing.wsSongListRoutes() {
         CoroutineScope(Dispatchers.Default).launch {
             val user = UserService.getUser(it.uid)
             if(user != null) {
-                sessions[user.token ?: ""]?.let { ws ->
-                    sendWithRetry(ws, SongResponse(
-                        it.type.value,
-                        it.uid,
-                        it.reqUid,
-                        it.name,
-                        it.author,
-                        it.time,
-                        it.url
-                    ), 3)
+                user.token?.let { token ->
+                    sendWithRetry(
+                        token, SongResponse(
+                            it.type.value,
+                            it.uid,
+                            it.reqUid,
+                            it.name,
+                            it.author,
+                            it.time,
+                            it.url
+                        ))
                 }
             }
         }
@@ -222,8 +224,9 @@ fun Routing.wsSongListRoutes() {
             CoroutineScope(Dispatchers.Default).launch {
                 val user = UserService.getUser(it.uid)
                 if(user != null) {
-                    sessions[user.token ?: ""]?.let { ws ->
-                        sendWithRetry(ws, SongResponse(
+                    user.token?.let { token ->
+                        sendWithRetry(
+                            token, SongResponse(
                                 it.type.value,
                                 it.uid,
                                 null,
@@ -231,8 +234,7 @@ fun Routing.wsSongListRoutes() {
                                 null,
                                 null,
                                 null
-                            ), 3)
-                        removeSession(user.token ?: "")
+                            ))
                     }
                 }
             }

@@ -35,8 +35,8 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
             call.respond(HttpStatusCode.OK, GuildSettings(
-                user.liveAlertGuild,
-                user.liveAlertChannel,
+                user.liveAlertGuild.toString(),
+                user.liveAlertChannel.toString(),
                 user.liveAlertMessage
             ))
             return@get
@@ -54,7 +54,7 @@ fun Route.apiDiscordRoutes() {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
-            UserService.updateLiveAlert(user, body.guildId ?: 0L, body.channelId ?: 0L, body.message)
+            UserService.updateLiveAlert(user, body.guildId?.toLong() ?: 0L, body.channelId?.toLong() ?: 0L, body.message)
             call.respond(HttpStatusCode.OK)
         }
         get("/guild/{gid}") {
@@ -102,7 +102,7 @@ fun Route.apiDiscordRoutes() {
 
 @Serializable
 data class GuildSettings(
-    val guildId: Long?,
-    val channelId: Long?,
+    val guildId: String?,
+    val channelId: String?,
     val message: String? = null,
 )
