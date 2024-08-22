@@ -31,8 +31,8 @@ class Discord: ListenerAdapter() {
     companion object {
         lateinit var bot: JDA
 
-        internal fun getChannel(guildId: Number, channelId: Number): TextChannel? {
-            return bot.getGuildById(guildId.toLong())?.getTextChannelById(channelId.toLong())
+        internal fun getChannel(guildId: Long, channelId: Long): TextChannel? {
+            return bot.getGuildById(guildId)?.getTextChannelById(channelId)
         }
 
         fun sendDiscord(user: User, status: IData<IStreamInfo?>) {
