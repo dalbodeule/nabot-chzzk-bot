@@ -14,11 +14,14 @@ import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
+import space.mori.chzzk_bot.common.models.SongList
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.SongListService
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.utils.YoutubeVideo
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import space.mori.chzzk_bot.webserver.UserSession
+import space.mori.chzzk_bot.webserver.utils.CurrentSong
 import java.util.concurrent.ConcurrentHashMap
 
 fun Routing.wsSongListRoutes() {
@@ -90,8 +93,6 @@ fun Routing.wsSongListRoutes() {
                     null,
                     null,
                     null,
-                    null,
-                    null,
                 ))
             }
             removeSession(uid)
@@ -140,10 +141,8 @@ fun Routing.wsSongListRoutes() {
                                                     SongType.ADD,
                                                     user.token,
                                                     user.username,
-                                                    youtubeVideo.name,
-                                                    youtubeVideo.author,
-                                                    youtubeVideo.length,
-                                                    youtubeVideo.url
+                                                    null,
+                                                    youtubeVideo
                                                 )
                                             )
                                         }
@@ -160,29 +159,38 @@ fun Routing.wsSongListRoutes() {
                                         null,
                                         null,
                                         null,
-                                        0,
                                         data.url
                                     )
                                 )
                             } else if (data.type == SongType.NEXT.value) {
                                 val songList = SongListService.getSong(user)
+                                var song: SongList? = null
+                                var youtubeVideo: YoutubeVideo? = null
+
                                 if (songList.isNotEmpty()) {
-                                    val song = songList[0]
+                                    song = songList[0]
                                     SongListService.deleteSong(user, song.uid, song.name)
                                 }
 
+                                song?.let {
+                                     youtubeVideo = YoutubeVideo(
+                                        song.url,
+                                        song.name,
+                                        song.author,
+                                        song.time
+                                    )
+                                }
                                 dispatcher.post(
                                     SongEvent(
                                         user.token!!,
                                         SongType.NEXT,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null,
-                                        null
+                                        song?.uid,
+                                        song?.reqName,
+                                        youtubeVideo
                                     )
                                 )
+
+                                CurrentSong.setSong(user, youtubeVideo)
                             }
                         }
                     }
@@ -200,7 +208,7 @@ fun Routing.wsSongListRoutes() {
     }
 
     dispatcher.subscribe(SongEvent::class) {
-        logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.name)
+        logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.current?.name)
         CoroutineScope(Dispatchers.Default).launch {
             val user = UserService.getUser(it.uid)
             if(user != null) {
@@ -210,10 +218,8 @@ fun Routing.wsSongListRoutes() {
                             it.type.value,
                             it.uid,
                             it.reqUid,
-                            it.name,
-                            it.author,
-                            it.time,
-                            it.url
+                            it.current?.toSerializable(),
+                            it.next?.toSerializable()
                         ))
                 }
             }
@@ -232,8 +238,6 @@ fun Routing.wsSongListRoutes() {
                                 null,
                                 null,
                                 null,
-                                null,
-                                null
                             ))
                     }
                 }
