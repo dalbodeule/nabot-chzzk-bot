@@ -13,6 +13,7 @@ import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.utils.YoutubeVideo
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -89,8 +90,6 @@ fun Routing.wsSongRoutes() {
                     null,
                     null,
                     null,
-                    null,
-                    null
                 ))
             }
         }
@@ -119,16 +118,14 @@ fun Routing.wsSongRoutes() {
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     dispatcher.subscribe(SongEvent::class) {
-        logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.name)
+        logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.current?.name)
         CoroutineScope(Dispatchers.Default).launch {
             broadcastMessage(it.uid, SongResponse(
                 it.type.value,
                 it.uid,
                 it.reqUid,
-                it.name,
-                it.author,
-                it.time,
-                it.url
+                it.current?.toSerializable(),
+                it.next?.toSerializable()
             ))
         }
     }
@@ -140,8 +137,6 @@ fun Routing.wsSongRoutes() {
                     it.uid,
                     null,
                     null,
-                    null,
-                    null,
                     null
                 ))
             }
@@ -150,12 +145,20 @@ fun Routing.wsSongRoutes() {
 }
 
 @Serializable
+data class SerializableYoutubeVideo(
+    val url: String,
+    val name: String,
+    val author: String,
+    val length: Int
+)
+
+fun YoutubeVideo.toSerializable() = SerializableYoutubeVideo(url, name, author, length)
+
+@Serializable
 data class SongResponse(
     val type: Int,
     val uid: String,
     val reqUid: String?,
-    val name: String?,
-    val author: String?,
-    val time: Int?,
-    val url: String?
+    val current: SerializableYoutubeVideo? = null,
+    val next: SerializableYoutubeVideo? = null,
 )

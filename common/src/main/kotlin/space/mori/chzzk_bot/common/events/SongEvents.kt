@@ -1,5 +1,7 @@
 package space.mori.chzzk_bot.common.events
 
+import space.mori.chzzk_bot.common.utils.YoutubeVideo
+
 enum class SongType(var value: Int) {
     ADD(0),
     REMOVE(1),
@@ -13,10 +15,9 @@ class SongEvent(
     val type: SongType,
     val reqUid: String?,
     val reqName: String?,
-    val name: String?,
-    val author: String?,
-    val time: Int?,
-    val url: String?
+    val current: YoutubeVideo? = null,
+    val next: YoutubeVideo? = null,
+    val delUrl: String? = null,
 ): Event {
     var TAG = javaClass.simpleName
 }

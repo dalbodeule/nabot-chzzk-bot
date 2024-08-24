@@ -8,6 +8,8 @@ import kotlinx.serialization.Serializable
 import space.mori.chzzk_bot.common.models.SongList
 import space.mori.chzzk_bot.common.services.SongListService
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.common.utils.YoutubeVideo
+import space.mori.chzzk_bot.webserver.utils.CurrentSong
 
 @Serializable
 data class SongsDTO(
@@ -18,12 +20,25 @@ data class SongsDTO(
     val reqName: String
 )
 
+data class SongsResponseDTO(
+    val current: SongsDTO? = null,
+    val next: List<SongsDTO> = emptyList()
+)
+
 fun SongList.toDTO(): SongsDTO = SongsDTO(
     this.url,
     this.name,
     this.author,
     this.time,
     this.reqName
+)
+
+fun YoutubeVideo.toDTO(): SongsDTO = SongsDTO(
+    this.url,
+    this.name,
+    this.author,
+    this.length,
+    ""
 )
 
 fun Routing.apiSongRoutes() {
@@ -37,7 +52,12 @@ fun Routing.apiSongRoutes() {
             }
 
             val songs = SongListService.getSong(user)
-            call.respond(HttpStatusCode.OK, songs.map { it.toDTO() })
+            call.respond(HttpStatusCode.OK,
+                SongsResponseDTO(
+                    CurrentSong.getSong(user)?.toDTO(),
+                    songs.map { it.toDTO() }
+                )
+            )
         }
     }
     route("/songs") {
