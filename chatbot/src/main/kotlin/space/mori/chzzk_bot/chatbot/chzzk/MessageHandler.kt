@@ -270,7 +270,7 @@ class MessageHandler(
                         user.token!!,
                         SongType.ADD,
                         msg.userId,
-                        msg.profile?.nickname ?: "",
+                        null,
                         video,
                     )
                 )
