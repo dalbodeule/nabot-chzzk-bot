@@ -20,6 +20,7 @@ data class SongsDTO(
     val reqName: String
 )
 
+@Serializable
 data class SongsResponseDTO(
     val current: SongsDTO? = null,
     val next: List<SongsDTO> = emptyList()
