@@ -219,7 +219,8 @@ fun Routing.wsSongListRoutes() {
                             it.uid,
                             it.reqUid,
                             it.current?.toSerializable(),
-                            it.next?.toSerializable()
+                            it.next?.toSerializable(),
+                            it.delUrl
                         ))
                 }
             }
