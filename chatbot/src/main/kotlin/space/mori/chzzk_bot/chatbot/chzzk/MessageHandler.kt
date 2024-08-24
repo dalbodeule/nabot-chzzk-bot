@@ -271,10 +271,7 @@ class MessageHandler(
                         SongType.ADD,
                         msg.userId,
                         msg.profile?.nickname ?: "",
-                        video.name,
-                        video.author,
-                        video.length,
-                        video.url
+                        video,
                     )
                 )
             }
