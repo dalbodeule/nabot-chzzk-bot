@@ -125,7 +125,8 @@ fun Routing.wsSongRoutes() {
                 it.uid,
                 it.reqUid,
                 it.current?.toSerializable(),
-                it.next?.toSerializable()
+                it.next?.toSerializable(),
+                it.delUrl
             ))
         }
     }
@@ -137,7 +138,7 @@ fun Routing.wsSongRoutes() {
                     it.uid,
                     null,
                     null,
-                    null
+                    null,
                 ))
             }
         }
@@ -161,4 +162,5 @@ data class SongResponse(
     val reqUid: String?,
     val current: SerializableYoutubeVideo? = null,
     val next: SerializableYoutubeVideo? = null,
+    val delUrl: String? = null
 )
