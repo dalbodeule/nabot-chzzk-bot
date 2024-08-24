@@ -140,8 +140,7 @@ fun Routing.wsSongListRoutes() {
                                                     user.token!!,
                                                     SongType.ADD,
                                                     user.token,
-                                                    user.username,
-                                                    null,
+                                                    CurrentSong.getSong(user),
                                                     youtubeVideo
                                                 )
                                             )
@@ -151,11 +150,17 @@ fun Routing.wsSongListRoutes() {
                                     logger.debug("SongType.ADD Error: $uid $e")
                                 }
                             } else if (data.type == SongType.REMOVE.value && data.url != null) {
+                                val songs = SongListService.getSong(user)
+
+                                val exactSong = songs.firstOrNull { it.url == data.url }
+                                if (exactSong != null) {
+                                    SongListService.deleteSong(user, exactSong.uid, exactSong.name)
+                                }
+
                                 dispatcher.post(
                                     SongEvent(
                                         user.token!!,
                                         SongType.REMOVE,
-                                        null,
                                         null,
                                         null,
                                         null,
@@ -185,7 +190,6 @@ fun Routing.wsSongListRoutes() {
                                         user.token!!,
                                         SongType.NEXT,
                                         song?.uid,
-                                        song?.reqName,
                                         youtubeVideo
                                     )
                                 )

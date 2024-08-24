@@ -14,7 +14,6 @@ class SongEvent(
     val uid: String,
     val type: SongType,
     val reqUid: String?,
-    val reqName: String?,
     val current: YoutubeVideo? = null,
     val next: YoutubeVideo? = null,
     val delUrl: String? = null,
