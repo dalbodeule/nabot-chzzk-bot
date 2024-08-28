@@ -120,7 +120,7 @@ fun Routing.apiRoutes() {
             ))
 
             val subordinates = transaction {
-                user.subordinates
+                user.subordinates.copy()
             }
             returnUsers.addAll(subordinates.map {
                 val subStatus = it.token?.let { token -> ChzzkUserCache.getCachedUser(token) }

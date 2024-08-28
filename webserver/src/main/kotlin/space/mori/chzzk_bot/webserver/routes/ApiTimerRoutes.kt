@@ -29,7 +29,7 @@ fun Routing.apiTimerRoutes() {
             }
 
             val managers = transaction {
-                user.managers
+                user.managers.copy()
             }
             if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
@@ -56,7 +56,7 @@ fun Routing.apiTimerRoutes() {
             }
 
             val managers = transaction {
-                user.managers
+                user.managers.copy()
             }
             if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
