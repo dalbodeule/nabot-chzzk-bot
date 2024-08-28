@@ -100,6 +100,21 @@ fun Route.apiDiscordRoutes() {
             call.respond(HttpStatusCode.OK, guild)
             return@get
         }
+        get("/guilds") {
+            val session = call.sessions.get<UserSession>()
+            if(session == null) {
+                call.respond(HttpStatusCode.BadRequest, "Session is required")
+                return@get
+            }
+            val user = UserService.getUserWithNaverId(session.id)
+            if(user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@get
+            }
+
+            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(session.discordGuildList))
+            return@get
+        }
     }
 }
 
