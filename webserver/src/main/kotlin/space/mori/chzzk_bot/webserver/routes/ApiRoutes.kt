@@ -89,13 +89,13 @@ fun Routing.apiRoutes() {
                 call.respondText("No session found", status = HttpStatusCode.Unauthorized)
                 return@get
             }
-            println(session)
             var user = UserService.getUserWithNaverId(session.id)
             if(user == null) {
                 user = UserService.saveUser("임시닉네임", session.id)
             }
             val songConfig = SongConfigService.getConfig(user)
             val status = user.token?.let { it1 -> getStreamInfo(it1) }
+            val returnUsers = mutableListOf<GetSessionDTO>()
 
             if (user.username == "임시닉네임") {
                 status?.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
@@ -106,7 +106,7 @@ fun Routing.apiRoutes() {
                 return@get
             }
 
-            call.respond(HttpStatusCode.OK, GetSessionDTO(
+            returnUsers.add(GetSessionDTO(
                 status.content!!.channel.channelId,
                 status.content!!.channel.channelName,
                 status.content!!.status == "OPEN",
@@ -116,6 +116,24 @@ fun Routing.apiRoutes() {
                 songConfig.streamerOnly,
                 songConfig.disabled
             ))
+
+            user.suborinates.forEach {
+                val subStatus = user.token?.let { it1 -> getStreamInfo(it1) }
+                if(it.token == null) return@forEach
+                if(subStatus?.content == null) return@forEach
+                returnUsers.add(GetSessionDTO(
+                    subStatus.content!!.channel.channelId,
+                    subStatus.content!!.channel.channelName,
+                    subStatus.content!!.status == "OPEN",
+                    subStatus.content!!.channel.channelImageUrl,
+                    0,
+                    0,
+                    false,
+                    false
+                ))
+            }
+
+            call.respond(HttpStatusCode.OK, returnUsers)
         }
         post {
             val session = call.sessions.get<UserSession>()

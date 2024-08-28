@@ -26,4 +26,7 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var liveAlertGuild by Users.liveAlertGuild
     var liveAlertChannel by Users.liveAlertChannel
     var liveAlertMessage by Users.liveAlertMessage
+
+    val managers by User via UserManagers
+    val suborinates by User via UserManagers
 }
