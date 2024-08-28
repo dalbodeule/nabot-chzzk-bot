@@ -117,8 +117,9 @@ fun Routing.apiRoutes() {
                 songConfig.disabled
             ))
             val subordinates = user.subordinates
+            println(subordinates)
             returnUsers.addAll(subordinates.map {
-                val subStatus = user.token?.let { it1 -> getStreamInfo(it1) }
+                val subStatus = it.token?.let { it1 -> getStreamInfo(it1) }
                 return@map if (it.token == null || subStatus?.content == null) {
                     null
                 } else {
