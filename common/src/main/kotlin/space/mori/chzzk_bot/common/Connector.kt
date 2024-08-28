@@ -25,8 +25,8 @@ object Connector {
     init {
         Database.connect(dataSource)
         val tables = listOf(
-            Users,
             UserManagers,
+            Users,
             Commands,
             Counters,
             DailyCounters,
