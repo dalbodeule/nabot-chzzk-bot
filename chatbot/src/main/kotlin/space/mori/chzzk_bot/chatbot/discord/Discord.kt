@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.Activity
 import net.dv8tion.jda.api.entities.Guild
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent
-import net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
@@ -17,7 +16,6 @@ import space.mori.chzzk_bot.common.utils.IData
 import space.mori.chzzk_bot.common.utils.IStreamInfo
 import space.mori.chzzk_bot.chatbot.discord.commands.*
 import space.mori.chzzk_bot.common.models.User
-import space.mori.chzzk_bot.common.services.ManagerService
 import java.time.Instant
 
 val dotenv = dotenv {
@@ -62,9 +60,6 @@ class Discord: ListenerAdapter() {
 
     private val commands = listOf(
         PingCommand,
-        AddManagerCommand,
-        ListManagerCommand,
-        RemoveManagerCommand,
     )
 
     override fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
@@ -72,10 +67,6 @@ class Discord: ListenerAdapter() {
         val handler = commands.find { it.name == event.name }
         logger.debug("Handler: ${handler?.name ?: "undefined"} command")
         handler?.run(event, bot)
-    }
-
-    override fun onGuildMemberRemove(event: GuildMemberRemoveEvent) {
-        event.member?.let { ManagerService.deleteManager(event.guild.idLong, it.idLong) }
     }
 
     override fun onGuildJoin(event: GuildJoinEvent) {

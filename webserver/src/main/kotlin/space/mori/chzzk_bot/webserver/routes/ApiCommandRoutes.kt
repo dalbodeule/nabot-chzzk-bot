@@ -28,7 +28,7 @@ fun Routing.apiCommandRoutes() {
                 return@get
             }
             val user = UserService.getUser(uid)
-            if(user == null ) {
+            if(user == null) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get
             }
@@ -49,7 +49,12 @@ fun Routing.apiCommandRoutes() {
                 return@put
             }
             val user = UserService.getUser(uid)
-            if(user == null || user.naverId != session?.id) {
+            if(user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@put
+            }
+
+            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@put
             }
@@ -74,7 +79,12 @@ fun Routing.apiCommandRoutes() {
                 return@post
             }
             val user = UserService.getUser(uid)
-            if(user == null || user.naverId != session?.id) {
+            if(user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@post
+            }
+
+            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
@@ -104,7 +114,12 @@ fun Routing.apiCommandRoutes() {
                 return@delete
             }
             val user = UserService.getUser(uid)
-            if(user == null || user.naverId != session?.id) {
+            if(user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@delete
+            }
+
+            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@delete
             }

@@ -25,7 +25,11 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
             val user = UserService.getUser(uid)
-            if(user == null || user.naverId != session?.id || user.token == null) {
+            if(user?.token == null) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@get
+            }
+            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get
             }
@@ -50,10 +54,15 @@ fun Route.apiDiscordRoutes() {
                 return@post
             }
             val user = UserService.getUser(uid)
-            if(user == null || user.naverId != session?.id || user.token == null) {
+            if(user?.token == null) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
+            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+                call.respond(HttpStatusCode.BadRequest, "User does not exist")
+                return@post
+            }
+
             UserService.updateLiveAlert(user, body.guildId?.toLong() ?: 0L, body.channelId?.toLong() ?: 0L, body.message)
             call.respond(HttpStatusCode.OK)
         }
@@ -80,21 +89,6 @@ fun Route.apiDiscordRoutes() {
                 return@get
             }
             call.respond(HttpStatusCode.OK, guild)
-            return@get
-        }
-        get {
-            val session = call.sessions.get<UserSession>()
-            if(session == null) {
-                call.respond(HttpStatusCode.BadRequest, "Session is required")
-                return@get
-            }
-            val user = UserService.getUserWithNaverId(session.id)
-            if(user == null) {
-                call.respond(HttpStatusCode.BadRequest, "User does not exist")
-                return@get
-            }
-
-            call.respond(HttpStatusCode.OK, DiscordGuildCache.getCachedGuilds(session.discordGuildList))
             return@get
         }
     }
