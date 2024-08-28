@@ -117,7 +117,7 @@ fun Routing.apiRoutes() {
                 songConfig.disabled
             ))
 
-            user.suborinates.forEach {
+            user.subordinate.forEach {
                 val subStatus = user.token?.let { it1 -> getStreamInfo(it1) }
                 if(it.token == null) return@forEach
                 if(subStatus?.content == null) return@forEach
