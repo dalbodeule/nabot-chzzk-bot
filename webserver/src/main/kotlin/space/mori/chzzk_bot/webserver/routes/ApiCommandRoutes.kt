@@ -54,7 +54,7 @@ fun Routing.apiCommandRoutes() {
                 return@put
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!user.managers?.any { it.naverId == session?.id }!! ?: true && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@put
             }
@@ -84,7 +84,7 @@ fun Routing.apiCommandRoutes() {
                 return@post
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!user.managers?.any { it.naverId == session?.id }!! ?: true && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
@@ -119,7 +119,7 @@ fun Routing.apiCommandRoutes() {
                 return@delete
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!user.managers?.any { it.naverId == session?.id }!! ?: true && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@delete
             }
