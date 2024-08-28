@@ -11,13 +11,13 @@ repositories {
 
 dependencies {
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-core
-    api("org.jetbrains.exposed:exposed-core:0.52.0")
+    api("org.jetbrains.exposed:exposed-core:0.53.0")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-dao
-    api("org.jetbrains.exposed:exposed-dao:0.52.0")
+    api("org.jetbrains.exposed:exposed-dao:0.53.0")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-jdbc
-    api("org.jetbrains.exposed:exposed-jdbc:0.52.0")
+    api("org.jetbrains.exposed:exposed-jdbc:0.53.0")
     // https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed-kotlin-datetime
-    api("org.jetbrains.exposed:exposed-java-time:0.52.0")
+    api("org.jetbrains.exposed:exposed-java-time:0.53.0")
 
     // https://mvnrepository.com/artifact/com.zaxxer/HikariCP
     api("com.zaxxer:HikariCP:5.1.0")
