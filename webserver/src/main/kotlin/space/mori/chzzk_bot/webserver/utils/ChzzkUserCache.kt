@@ -9,7 +9,7 @@ import space.mori.chzzk_bot.common.utils.getStreamInfo
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
-object ChzzkUsercache {
+object ChzzkUserCache {
     private val cache = ConcurrentHashMap<String, CachedUser>()
     private const val EXP_SECONDS = 600L
     private val mutex = Mutex()

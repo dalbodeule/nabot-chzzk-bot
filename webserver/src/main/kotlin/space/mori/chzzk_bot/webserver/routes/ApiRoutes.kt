@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.events.UserRegisterEvent
@@ -18,7 +19,7 @@ import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getStreamInfo
 import space.mori.chzzk_bot.common.utils.getUserInfo
 import space.mori.chzzk_bot.webserver.UserSession
-import space.mori.chzzk_bot.webserver.utils.ChzzkUsercache
+import space.mori.chzzk_bot.webserver.utils.ChzzkUserCache
 
 @Serializable
 data class GetUserDTO(
@@ -68,8 +69,8 @@ fun Routing.apiRoutes() {
                 call.respondText("Require UID", status = HttpStatusCode.NotFound)
                 return@get
             }
-            val user = getStreamInfo(uid)
-            if(user.content == null) {
+            val user = ChzzkUserCache.getCachedUser(uid)
+            if(user?.content == null) {
                 call.respondText("User not found", status = HttpStatusCode.NotFound)
                 return@get
             } else {
@@ -117,10 +118,12 @@ fun Routing.apiRoutes() {
                 songConfig.streamerOnly,
                 songConfig.disabled
             ))
-            val subordinates = user.subordinates
-            println(subordinates)
+
+            val subordinates = transaction {
+                user.subordinates
+            }
             returnUsers.addAll(subordinates.map {
-                val subStatus = it.token?.let { token -> ChzzkUsercache.getCachedUser(token) }
+                val subStatus = it.token?.let { token -> ChzzkUserCache.getCachedUser(token) }
                 return@map if (it.token == null || subStatus?.content == null) {
                     null
                 } else {

@@ -10,6 +10,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.CommandReloadEvent
 import space.mori.chzzk_bot.common.events.CoroutinesEventBus
@@ -54,7 +55,10 @@ fun Routing.apiCommandRoutes() {
                 return@put
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            val managers = transaction {
+                user.managers
+            }
+            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@put
             }
@@ -84,7 +88,10 @@ fun Routing.apiCommandRoutes() {
                 return@post
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            val managers = transaction {
+                user.managers
+            }
+            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
@@ -119,7 +126,10 @@ fun Routing.apiCommandRoutes() {
                 return@delete
             }
 
-            if(!user.managers?.any { it.naverId == session?.id }!! ?: true && user.naverId != session?.id) {
+            val managers = transaction {
+                user.managers
+            }
+            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@delete
             }

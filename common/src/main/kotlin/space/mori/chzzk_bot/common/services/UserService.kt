@@ -1,7 +1,6 @@
 package space.mori.chzzk_bot.common.services
 
 import org.jetbrains.exposed.dao.load
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.models.Users
@@ -35,7 +34,7 @@ object UserService {
 
     fun getUser(id: Int): User? {
         return transaction {
-            val user = User.findById(id)
+            val user = User.find{ Users.id eq id }.firstOrNull()
             user?.load(User::subordinates, User::managers)
             user
         }
@@ -43,9 +42,7 @@ object UserService {
 
     fun getUser(discordID: Long): User? {
         return transaction {
-            val users = User.find(Users.discord eq discordID)
-
-            val user = users.firstOrNull()
+            val user = User.find{ Users.discord eq discordID }.firstOrNull()
             user?.load(User::subordinates, User::managers)
             user
         }
@@ -53,9 +50,7 @@ object UserService {
 
     fun getUser(chzzkID: String): User? {
         return transaction {
-            val users = User.find(Users.token eq chzzkID)
-
-            val user = users.firstOrNull()
+            val user = User.find{ Users.token eq chzzkID }.firstOrNull()
             user?.load(User::subordinates, User::managers)
             user
         }
@@ -63,9 +58,7 @@ object UserService {
 
     fun getUserWithGuildId(discordGuildId: Long): User? {
         return transaction {
-            val users = User.find(Users.liveAlertGuild eq discordGuildId)
-
-            val user = users.firstOrNull()
+            val user = User.find { Users.liveAlertGuild eq discordGuildId }.firstOrNull()
             user?.load(User::subordinates, User::managers)
             user
         }
@@ -73,9 +66,7 @@ object UserService {
 
     fun getUserWithNaverId(naverId: String): User? {
         return transaction {
-            val users = User.find(Users.naverId eq naverId)
-
-            val user = users.firstOrNull()
+            val user = User.find{ Users.naverId eq naverId }.firstOrNull()
             user?.load(User::subordinates, User::managers)
             user
         }

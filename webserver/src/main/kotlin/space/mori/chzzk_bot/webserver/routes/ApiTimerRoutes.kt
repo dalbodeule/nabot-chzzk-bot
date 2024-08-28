@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.transactions.transaction
 import space.mori.chzzk_bot.common.events.TimerType
 import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
@@ -27,7 +28,10 @@ fun Routing.apiTimerRoutes() {
                 return@get
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            val managers = transaction {
+                user.managers
+            }
+            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get
             }
@@ -51,7 +55,10 @@ fun Routing.apiTimerRoutes() {
                 return@put
             }
 
-            if(!user.managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            val managers = transaction {
+                user.managers
+            }
+            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@put
             }
