@@ -13,12 +13,12 @@ import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
+import space.mori.chzzk_bot.webserver.utils.CurrentTimer
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 
 fun Routing.wsTimerRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
-    val status = ConcurrentHashMap<String, TimerType>()
     val logger = LoggerFactory.getLogger("WSTimerRoutes")
 
     fun addSession(uid: String, session: WebSocketServerSession) {
@@ -45,17 +45,29 @@ fun Routing.wsTimerRoutes() {
         }
 
         addSession(uid, this)
+        val timer = CurrentTimer.getTimer(user)
 
-        if(status[uid] == TimerType.STREAM_OFF) {
+        if(timer?.type == TimerType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
                 sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, null))
             }
         } else {
             CoroutineScope(Dispatchers.Default).launch {
-                sendSerialized(TimerResponse(
-                    TimerConfigService.getConfig(user)?.option ?: TimerType.REMOVE.value,
-                    null
-                ))
+                if (timer == null) {
+                    sendSerialized(
+                        TimerResponse(
+                            TimerConfigService.getConfig(user)?.option ?: TimerType.REMOVE.value,
+                            null
+                        )
+                    )
+                } else {
+                    sendSerialized(
+                        TimerResponse(
+                            timer.type.value,
+                            timer.time
+                        )
+                    )
+                }
             }
         }
 
@@ -84,7 +96,8 @@ fun Routing.wsTimerRoutes() {
 
     dispatcher.subscribe(TimerEvent::class) {
         logger.debug("TimerEvent: {} / {}", it.uid, it.type)
-        status[it.uid] = it.type
+        val user = UserService.getUser(it.uid)
+        CurrentTimer.setTimer(user!!, it)
         CoroutineScope(Dispatchers.Default).launch {
             sessions[it.uid]?.forEach { ws ->
                 ws.sendSerialized(TimerResponse(it.type.value, it.time ?: ""))
