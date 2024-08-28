@@ -117,21 +117,23 @@ fun Routing.apiRoutes() {
                 songConfig.disabled
             ))
 
-            user.subordinate.forEach {
+            returnUsers.addAll(user.subordinates.map {
                 val subStatus = user.token?.let { it1 -> getStreamInfo(it1) }
-                if(it.token == null) return@forEach
-                if(subStatus?.content == null) return@forEach
-                returnUsers.add(GetSessionDTO(
-                    subStatus.content!!.channel.channelId,
-                    subStatus.content!!.channel.channelName,
-                    subStatus.content!!.status == "OPEN",
-                    subStatus.content!!.channel.channelImageUrl,
-                    0,
-                    0,
-                    false,
-                    false
-                ))
-            }
+                return@map if (it.token == null || subStatus?.content == null) {
+                    null
+                } else {
+                    GetSessionDTO(
+                        subStatus.content!!.channel.channelId,
+                        subStatus.content!!.channel.channelName,
+                        subStatus.content!!.status == "OPEN",
+                        subStatus.content!!.channel.channelImageUrl,
+                        0,
+                        0,
+                        false,
+                        false
+                    )
+                }
+            }.filterNotNull())
 
             call.respond(HttpStatusCode.OK, returnUsers)
         }

@@ -27,6 +27,9 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var liveAlertChannel by Users.liveAlertChannel
     var liveAlertMessage by Users.liveAlertMessage
 
-    val managers by User.via(UserManagers.manager, UserManagers.user)
-    val subordinate by User.via(UserManagers.user, UserManagers.manager)
+    // 유저가 가진 매니저들
+    val managers by User.via(UserManagers.user, UserManagers.manager)
+
+    // 매니저가 관리하는 유저들
+    val subordinates by User.via(UserManagers.manager, UserManagers.user)
 }
