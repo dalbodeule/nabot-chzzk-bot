@@ -18,6 +18,7 @@ import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.getStreamInfo
 import space.mori.chzzk_bot.common.utils.getUserInfo
 import space.mori.chzzk_bot.webserver.UserSession
+import space.mori.chzzk_bot.webserver.utils.ChzzkUsercache
 
 @Serializable
 data class GetUserDTO(
@@ -119,7 +120,7 @@ fun Routing.apiRoutes() {
             val subordinates = user.subordinates
             println(subordinates)
             returnUsers.addAll(subordinates.map {
-                val subStatus = it.token?.let { it1 -> getStreamInfo(it1) }
+                val subStatus = it.token?.let { token -> ChzzkUsercache.getCachedUser(token) }
                 return@map if (it.token == null || subStatus?.content == null) {
                     null
                 } else {

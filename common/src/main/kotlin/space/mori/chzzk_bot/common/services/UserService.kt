@@ -1,5 +1,6 @@
 package space.mori.chzzk_bot.common.services
 
+import org.jetbrains.exposed.dao.load
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import space.mori.chzzk_bot.common.models.User
@@ -27,13 +28,16 @@ object UserService {
     fun updateUser(user: User, discordID: Long): User {
         return transaction {
             user.discord = discordID
+            user.load(User::subordinates, User::managers)
             user
         }
     }
 
     fun getUser(id: Int): User? {
         return transaction {
-            User.findById(id)
+            val user = User.findById(id)
+            user?.load(User::subordinates, User::managers)
+            user
         }
     }
 
@@ -41,7 +45,9 @@ object UserService {
         return transaction {
             val users = User.find(Users.discord eq discordID)
 
-            users.firstOrNull()
+            val user = users.firstOrNull()
+            user?.load(User::subordinates, User::managers)
+            user
         }
     }
 
@@ -49,7 +55,9 @@ object UserService {
         return transaction {
             val users = User.find(Users.token eq chzzkID)
 
-            users.firstOrNull()
+            val user = users.firstOrNull()
+            user?.load(User::subordinates, User::managers)
+            user
         }
     }
 
@@ -57,7 +65,9 @@ object UserService {
         return transaction {
             val users = User.find(Users.liveAlertGuild eq discordGuildId)
 
-            users.firstOrNull()
+            val user = users.firstOrNull()
+            user?.load(User::subordinates, User::managers)
+            user
         }
     }
 
@@ -65,7 +75,9 @@ object UserService {
         return transaction {
             val users = User.find(Users.naverId eq naverId)
 
-            users.firstOrNull()
+            val user = users.firstOrNull()
+            user?.load(User::subordinates, User::managers)
+            user
         }
     }
 
@@ -80,6 +92,8 @@ object UserService {
             user.liveAlertGuild = guildId
             user.liveAlertChannel = channelId
             user.liveAlertMessage = alertMessage ?: ""
+
+            user.load(User::subordinates, User::managers)
 
             user
         }
