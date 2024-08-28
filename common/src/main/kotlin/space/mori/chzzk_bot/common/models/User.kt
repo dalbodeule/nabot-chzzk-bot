@@ -27,6 +27,6 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var liveAlertChannel by Users.liveAlertChannel
     var liveAlertMessage by Users.liveAlertMessage
 
-    val managers by User referrersOn UserManagers.user
-    val subordinate by User referrersOn UserManagers.manager
+    val managers by User.via(UserManagers.manager, UserManagers.user)
+    val subordinate by User.via(UserManagers.user, UserManagers.manager)
 }
