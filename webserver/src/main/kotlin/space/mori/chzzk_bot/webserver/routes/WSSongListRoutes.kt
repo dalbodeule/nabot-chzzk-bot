@@ -138,7 +138,14 @@ fun Routing.wsSongListRoutes() {
                             handleSongRequest(data, user, dispatcher, logger)
 
                             // Send ACK after handling request
-                            send("ACK: ${data.url}")
+                            sendSerialized(SongResponse(
+                                SongType.ACK.value,
+                                user.token!!,
+                                null,
+                                null,
+                                null,
+                                null,
+                            ))
                         }
                     }
                     is Ping -> send(Pong(frame.data))
