@@ -12,7 +12,7 @@ object SongLists: IntIdTable("song_list") {
     val uid = varchar("uid", 64)
     val url = varchar("url", 128)
     val name = text("name")
-    val reqName = varchar("req_name", 20)
+    val reqName = varchar("req_name", 80)
     val author = text("author")
     val time = integer("time")
     val created_at = datetime("created_at").default(LocalDateTime.now())

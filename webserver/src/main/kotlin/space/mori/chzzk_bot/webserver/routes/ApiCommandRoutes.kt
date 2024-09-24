@@ -69,7 +69,9 @@ fun Routing.apiCommandRoutes() {
                 commandRequest.failContent ?: ""
             )
             CoroutineScope(Dispatchers.Default).launch {
-                dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                for(i: Int in 0..3) {
+                    dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                }
             }
             call.respond(HttpStatusCode.OK)
         }
@@ -104,7 +106,9 @@ fun Routing.apiCommandRoutes() {
                     commandRequest.failContent ?: ""
                 )
                 CoroutineScope(Dispatchers.Default).launch {
-                    dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                    for(i: Int in 0..3) {
+                        dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                    }
                 }
                 call.respond(HttpStatusCode.OK)
             } catch(e: Exception) {
@@ -137,7 +141,9 @@ fun Routing.apiCommandRoutes() {
             try {
                 CommandService.removeCommand(user, commandRequest.label)
                 CoroutineScope(Dispatchers.Default).launch {
-                    dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                    for(i: Int in 0..3) {
+                        dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                    }
                 }
                 call.respond(HttpStatusCode.OK)
             } catch(e: Exception) {

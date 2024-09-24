@@ -7,7 +7,8 @@ enum class SongType(var value: Int) {
     REMOVE(1),
     NEXT(2),
 
-    STREAM_OFF(50)
+    STREAM_OFF(50),
+    ACK(51)
 }
 
 class SongEvent(
