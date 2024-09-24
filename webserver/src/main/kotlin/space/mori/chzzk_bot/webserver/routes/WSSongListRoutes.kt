@@ -65,7 +65,7 @@ fun Routing.wsSongListRoutes() {
             }
             delay(100) // Check every 100 ms
         }
-        return false // Timeout
+        return false // Timeoutㅌ
     }
 
     suspend fun sendWithRetry(uid: String, res: SongResponse, maxRetries: Int = 5, delayMillis: Long = 3000L) {
@@ -136,16 +136,6 @@ fun Routing.wsSongListRoutes() {
 
                             // Handle song requests
                             handleSongRequest(data, user, dispatcher, logger)
-
-                            // Send ACK after handling request
-                            sendSerialized(SongResponse(
-                                SongType.ACK.value,
-                                user.token!!,
-                                null,
-                                null,
-                                null,
-                                null,
-                            ))
                         }
                     }
                     is Ping -> send(Pong(frame.data))
