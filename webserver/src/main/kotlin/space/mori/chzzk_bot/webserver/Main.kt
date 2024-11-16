@@ -27,6 +27,7 @@ import space.mori.chzzk_bot.webserver.routes.*
 import space.mori.chzzk_bot.webserver.utils.DiscordRatelimits
 import wsSongListRoutes
 import java.time.Duration
+import kotlin.time.toKotlinDuration
 
 val dotenv = dotenv {
     ignoreIfMissing = true
@@ -38,8 +39,8 @@ val redirects = mutableMapOf<String, String>()
 
 val server = embeddedServer(Netty, port = 8080, ) {
     install(WebSockets) {
-        pingPeriod = Duration.ofSeconds(15)
-        timeout = Duration.ofSeconds(15)
+        pingPeriod = Duration.ofSeconds(15).toKotlinDuration()
+        timeout = Duration.ofSeconds(15).toKotlinDuration()
         maxFrameSize = Long.MAX_VALUE
         masking = false
         contentConverter = KotlinxWebsocketSerializationConverter(Json)
