@@ -181,7 +181,7 @@ class UserHandler(
     private var user: User,
     var streamStartTime: LocalDateTime?,
 ) {
-    lateinit var messageHandler: MessageHandler
+    var messageHandler: MessageHandler
     var listener: ChzzkChat
 
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
@@ -267,7 +267,8 @@ class UserHandler(
                     }
                     delay(5000L)
                     try {
-                        listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
+                        if(!user.isDisableStartupMsg)
+                            listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
                         Discord.sendDiscord(user, status)
                     } catch(e: Exception) {
                         logger.info("Stream on logic has some error: ${e.stackTraceToString()}")
