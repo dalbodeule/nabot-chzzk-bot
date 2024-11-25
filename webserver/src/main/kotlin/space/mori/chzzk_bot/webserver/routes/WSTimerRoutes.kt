@@ -75,7 +75,7 @@ fun Routing.wsTimerRoutes() {
             for (frame in incoming) {
                 when(frame) {
                     is Frame.Text -> {
-                        if(frame.readText() == "ping") {
+                        if(frame.readText().trim() == "ping") {
                             send("pong")
                         }
                     }

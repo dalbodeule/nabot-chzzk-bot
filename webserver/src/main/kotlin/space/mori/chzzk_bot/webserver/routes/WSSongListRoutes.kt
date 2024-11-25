@@ -57,6 +57,9 @@ fun Routing.wsSongListRoutes() {
             for (frame in ws.incoming) {
                 if (frame is Text) {
                     val message = frame.readText()
+                    if(message == "ping") {
+                        return true
+                    }
                     val data = Json.decodeFromString<SongRequest>(message)
                     if (data.type == SongType.ACK.value) {
                         return true // ACK received
