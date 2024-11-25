@@ -79,8 +79,8 @@ fun Routing.wsSongListRoutes() {
                 ws?.sendSerialized(res)
                 logger.debug("Message sent successfully to $uid on attempt $attempt")
                 // Wait for ACK
-                val ackReceived = waitForAck(ws!!, res.type)
-                if (ackReceived) {
+                val ackReceived = ws?.let { waitForAck(it, res.type) }
+                if (ackReceived == true) {
                     sentSuccessfully = true
                 } else {
                     logger.warn("ACK not received for message to $uid on attempt $attempt.")
