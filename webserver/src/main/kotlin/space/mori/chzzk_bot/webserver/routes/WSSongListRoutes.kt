@@ -65,7 +65,7 @@ fun Routing.wsSongListRoutes() {
             }
             delay(100) // Check every 100 ms
         }
-        return false // Timeoutㅌ
+        return false // Timeout
     }
 
     suspend fun sendWithRetry(uid: String, res: SongResponse, maxRetries: Int = 5, delayMillis: Long = 3000L) {
@@ -75,11 +75,15 @@ fun Routing.wsSongListRoutes() {
         while (attempt < maxRetries && !sentSuccessfully) {
             val ws = sessions[uid]
             try {
+                if(ws == null) {
+                    delay(delayMillis)
+                    continue
+                }
                 // Attempt to send the message
-                ws?.sendSerialized(res)
+                ws.sendSerialized(res)
                 logger.debug("Message sent successfully to $uid on attempt $attempt")
                 // Wait for ACK
-                val ackReceived = ws?.let { waitForAck(it, res.type) }
+                val ackReceived = waitForAck(ws, res.type)
                 if (ackReceived == true) {
                     sentSuccessfully = true
                 } else {
@@ -129,7 +133,7 @@ fun Routing.wsSongListRoutes() {
             for (frame in incoming) {
                 when (frame) {
                     is Text -> {
-                        if (frame.readText() == "ping") {
+                        if (frame.readText().trim() == "ping") {
                             send("pong")
                         } else {
                             val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }
