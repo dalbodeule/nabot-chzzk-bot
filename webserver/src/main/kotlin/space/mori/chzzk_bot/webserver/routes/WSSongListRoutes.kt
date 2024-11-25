@@ -93,7 +93,7 @@ fun Routing.wsSongListRoutes() {
                 attempt++
                 logger.warn("Failed to send message to $uid on attempt $attempt. Retrying in $delayMillis ms.")
                 logger.warn(e.stackTraceToString())
-
+            } finally {
                 // Wait before retrying
                 delay(delayMillis)
             }
