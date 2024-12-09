@@ -39,7 +39,7 @@ object ChzzkHandler {
     fun enable() {
         botUid = chzzk.loggedUser.userId
         UserService.getAllUsers().map {
-            if(it.token != null)
+            if(it.token != null && !it.isDisabled)
                 chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
         }
 
@@ -55,8 +55,21 @@ object ChzzkHandler {
                 addUser(channel, user)
             }
         }
+
         dispatcher.subscribe(CommandReloadEvent::class) {
             handlers.firstOrNull { handlers -> handlers.channel.channelId == it.uid }?.reloadCommand()
+        }
+
+        dispatcher.subscribe(BotEnabledEvent::class) {
+            if(it.isDisabled) {
+                handlers.removeIf { handlers -> handlers.channel.channelId == it.chzzkId }
+            } else {
+                val channel = getChannel(it.chzzkId)
+                val user = UserService.getUser(it.chzzkId)
+                if(channel != null && user != null) {
+                    addUser(channel, user)
+                }
+            }
         }
     }
 

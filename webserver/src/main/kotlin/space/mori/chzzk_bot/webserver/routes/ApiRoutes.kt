@@ -1,7 +1,6 @@
 package space.mori.chzzk_bot.webserver.routes
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -42,12 +41,18 @@ data class GetSessionDTO(
 )
 
 @Serializable
+data class GetSettingDTO(
+    val isBotDisabled: Boolean,
+    val isBotMsgDisabled: Boolean,
+)
+
+@Serializable
 data class RegisterChzzkUserDTO(
     val chzzkUrl: String
 )
 
 fun Routing.apiRoutes() {
-    val chzzkIDRegex = """(?:.+chzzk\.naver\.com\/)?([a-f0-9]{32})(?:.+)?""".toRegex()
+    val chzzkIDRegex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})(?:.+)?""".toRegex()
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     route("/") {
@@ -181,6 +186,48 @@ fun Routing.apiRoutes() {
                 dispatcher.post(UserRegisterEvent(status.content!!.channelId))
             }
             return@post
+        }
+    }
+
+    route("/settings") {
+        get {
+            val session = call.sessions.get<UserSession>()
+            if(session == null) {
+                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
+                return@get
+            }
+
+            val user = UserService.getUserWithNaverId(session.id)
+            if(user == null) {
+                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
+                return@get
+            }
+
+            call.respond(GetSettingDTO(
+                user.isDisabled, user.isDisableStartupMsg
+            ))
+        }
+        post {
+            val session = call.sessions.get<UserSession>()
+            if(session == null) {
+                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
+                return@post
+            }
+
+            val body: GetSettingDTO = call.receive()
+
+            val user = UserService.getUserWithNaverId(session.id)
+            if(user == null) {
+                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
+                return@post
+            }
+
+            UserService.setIsDisabled(user, body.isBotDisabled)
+            UserService.setIsStartupDisabled(user, body.isBotMsgDisabled)
+
+            call.respond(GetSettingDTO(
+                user.isDisabled, user.isDisableStartupMsg
+            ))
         }
     }
 }

@@ -15,6 +15,7 @@ object Users: IntIdTable("users") {
     val liveAlertChannel = long("live_alert_channel").nullable()
     val liveAlertMessage = text("live_alert_message").nullable()
     val isDisableStartupMsg = bool("is_disable_startup_msg").default(false)
+    val isDisabled = bool("is_disabled").default(false)
 }
 
 class User(id: EntityID<Int>) : IntEntity(id) {
@@ -28,6 +29,7 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var liveAlertChannel by Users.liveAlertChannel
     var liveAlertMessage by Users.liveAlertMessage
     var isDisableStartupMsg by Users.isDisableStartupMsg
+    var isDisabled by Users.isDisabled
 
     // 유저가 가진 매니저들
     var managers by User.via(UserManagers.user, UserManagers.manager)
