@@ -89,4 +89,20 @@ object UserService {
             user
         }
     }
+
+    fun setIsDisabled(user: User, disabled: Boolean): User {
+        return transaction {
+            user.isDisabled = disabled
+
+            user
+        }
+    }
+
+    fun setIsStartupDisabled(user: User, disabled: Boolean): User {
+        return transaction {
+            user.isDisableStartupMsg = disabled
+
+            user
+        }
+    }
 }
