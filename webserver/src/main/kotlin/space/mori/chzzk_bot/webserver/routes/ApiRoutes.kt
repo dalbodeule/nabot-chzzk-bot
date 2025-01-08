@@ -41,24 +41,18 @@ data class GetSessionDTO(
 )
 
 @Serializable
-data class GetSettingDTO(
-    val isBotDisabled: Boolean,
-    val isBotMsgDisabled: Boolean,
-)
-
-@Serializable
 data class RegisterChzzkUserDTO(
     val chzzkUrl: String
 )
 
 fun Routing.apiRoutes() {
-    val chzzkIDRegex = """(?:.+chzzk\.naver\.com/)?([a-f0-9]{32})(?:.+)?""".toRegex()
+    val chzzkIDRegex = """(?:.+chzzk\.naver\.com\/)?([a-f0-9]{32})(?:.+)?""".toRegex()
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     route("/") {
         get {
             call.respondText("Hello World!", status =
-            HttpStatusCode.OK)
+                HttpStatusCode.OK)
         }
     }
     route("/health") {
@@ -108,16 +102,11 @@ fun Routing.apiRoutes() {
                 status.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
             }
 
-            if(status.content == null) {
-                call.respondText(user.token, status = HttpStatusCode.NotFound)
-                return@get
-            }
-
             returnUsers.add(GetSessionDTO(
-                status.content!!.channel.channelId,
-                status.content!!.channel.channelName,
-                status.content!!.status == "OPEN",
-                status.content!!.channel.channelImageUrl,
+                status.content?.channel?.channelId ?: user.token,
+                status.content?.channel?.channelName ?: user.token,
+                status.content?.status == "OPEN",
+                status.content?.channel?.channelImageUrl ?: "",
                 songConfig.queueLimit,
                 songConfig.personalLimit,
                 songConfig.streamerOnly,
@@ -128,7 +117,7 @@ fun Routing.apiRoutes() {
                 user.subordinates.toList()
             }
             returnUsers.addAll(subordinates.map {
-                val subStatus = it.token.let { token -> ChzzkUserCache.getCachedUser(token) }
+                val subStatus = ChzzkUserCache.getCachedUser(it.token)
                 return@map if (subStatus?.content == null) {
                     null
                 } else {
@@ -186,48 +175,6 @@ fun Routing.apiRoutes() {
                 dispatcher.post(UserRegisterEvent(status.content!!.channelId))
             }
             return@post
-        }
-    }
-
-    route("/settings") {
-        get {
-            val session = call.sessions.get<UserSession>()
-            if(session == null) {
-                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
-                return@get
-            }
-
-            val user = UserService.getUser(session.id)
-            if(user == null) {
-                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
-                return@get
-            }
-
-            call.respond(GetSettingDTO(
-                user.isDisabled, user.isDisableStartupMsg
-            ))
-        }
-        post {
-            val session = call.sessions.get<UserSession>()
-            if(session == null) {
-                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
-                return@post
-            }
-
-            val body: GetSettingDTO = call.receive()
-
-            val user = UserService.getUser(session.id)
-            if(user == null) {
-                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
-                return@post
-            }
-
-            UserService.setIsDisabled(user, body.isBotDisabled)
-            UserService.setIsStartupDisabled(user, body.isBotMsgDisabled)
-
-            call.respond(GetSettingDTO(
-                user.isDisabled, user.isDisableStartupMsg
-            ))
         }
     }
 }
