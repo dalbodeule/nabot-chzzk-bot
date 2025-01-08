@@ -95,7 +95,7 @@ fun Routing.apiRoutes() {
             }
 
             returnUsers.add(GetSessionDTO(
-                status.content?.channel?.channelId ?: user.token,
+                status.content?.channel?.channelId ?: user.username,
                 status.content?.channel?.channelName ?: user.token,
                 status.content?.status == "OPEN",
                 status.content?.channel?.channelImageUrl ?: "",
