@@ -1,22 +1,15 @@
 package space.mori.chzzk_bot.webserver.routes
 
 import io.ktor.http.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.koin.java.KoinJavaComponent.inject
 import space.mori.chzzk_bot.common.events.CoroutinesEventBus
-import space.mori.chzzk_bot.common.events.UserRegisterEvent
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.UserService
-import space.mori.chzzk_bot.common.utils.getStreamInfo
-import space.mori.chzzk_bot.common.utils.getUserInfo
 import space.mori.chzzk_bot.webserver.UserSession
 import space.mori.chzzk_bot.webserver.utils.ChzzkUserCache
 
@@ -40,13 +33,7 @@ data class GetSessionDTO(
     val isDisabled: Boolean
 )
 
-@Serializable
-data class RegisterChzzkUserDTO(
-    val chzzkUrl: String
-)
-
 fun Routing.apiRoutes() {
-    val chzzkIDRegex = """(?:.+chzzk\.naver\.com\/)?([a-f0-9]{32})(?:.+)?""".toRegex()
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     route("/") {
@@ -95,8 +82,13 @@ fun Routing.apiRoutes() {
                 user = UserService.saveUser("임시닉네임", session.id)
             }
             val songConfig = SongConfigService.getConfig(user)
-            val status = getStreamInfo(user.token)
+            val status = ChzzkUserCache.getCachedUser(session.id)
             val returnUsers = mutableListOf<GetSessionDTO>()
+
+            if(status == null) {
+                call.respondText("No user found", status = HttpStatusCode.NotFound)
+                return@get
+            }
 
             if (user.username == "임시닉네임") {
                 status.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
@@ -135,46 +127,6 @@ fun Routing.apiRoutes() {
             }.filterNotNull())
 
             call.respond(HttpStatusCode.OK, returnUsers)
-        }
-        post {
-            val session = call.sessions.get<UserSession>()
-            if(session == null) {
-                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
-                return@post
-            }
-
-            val body: RegisterChzzkUserDTO = call.receive()
-
-            val user = UserService.getUser(session.id)
-            if(user == null) {
-                call.respondText("No session found", status = HttpStatusCode.Unauthorized)
-                return@post
-            }
-
-            val matchResult = chzzkIDRegex.find(body.chzzkUrl)
-            val matchedChzzkId = matchResult?.groups?.get(1)?.value
-
-            if (matchedChzzkId == null) {
-                call.respondText("Invalid chzzk ID", status = HttpStatusCode.BadRequest)
-                return@post
-            }
-
-            val status = getUserInfo(matchedChzzkId)
-            if (status.content == null) {
-                call.respondText("Invalid chzzk ID", status = HttpStatusCode.BadRequest)
-                return@post
-            }
-            UserService.updateUser(
-                user,
-                status.content!!.channelId,
-                status.content!!.channelName
-            )
-            call.respondText("Done!", status = HttpStatusCode.OK)
-
-            CoroutineScope(Dispatchers.Default).launch {
-                dispatcher.post(UserRegisterEvent(status.content!!.channelId))
-            }
-            return@post
         }
     }
 }
