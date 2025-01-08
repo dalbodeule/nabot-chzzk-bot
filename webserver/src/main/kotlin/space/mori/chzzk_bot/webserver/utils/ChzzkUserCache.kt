@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.utils.IData
 import space.mori.chzzk_bot.common.utils.IStreamInfo
 import space.mori.chzzk_bot.common.utils.getStreamInfo
+import space.mori.chzzk_bot.common.utils.getUserInfo
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
 
@@ -21,9 +22,20 @@ object ChzzkUserCache {
 
         if(user == null || user.timestamp.plusSeconds(EXP_SECONDS).isBefore(now)) {
             mutex.withLock {
-                if(user == null || user?.timestamp?.plusSeconds(EXP_SECONDS)?.isBefore(now) != false) {
-                    user = CachedUser(getStreamInfo(id))
-                    user?.let { cache[id] = user!! }
+                if(user == null || user.timestamp.plusSeconds(EXP_SECONDS)?.isBefore(now) != false) {
+                    var findUser = getStreamInfo(id)
+                    if(findUser.content == null) {
+                        val userInfo = getUserInfo(id)
+
+                        if(userInfo.content == null) return null
+
+                        findUser = IData(200, null, IStreamInfo(
+                            channel = userInfo.content!!
+                        ))
+                    }
+
+                    user = CachedUser(findUser)
+                    user.let { cache[id] = user }
                 }
             }
         }
