@@ -1,7 +1,6 @@
 package space.mori.chzzk_bot.webserver.routes
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -34,7 +33,7 @@ fun Route.apiDiscordRoutes() {
             val managers = transaction {
                 user.managers.toList()
             }
-            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!managers.any { it.token == session?.id } && user.token != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get
             }
@@ -67,7 +66,7 @@ fun Route.apiDiscordRoutes() {
             val managers = transaction {
                 user.managers.toList()
             }
-            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!managers.any { it.token == session?.id } && user.token != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
@@ -86,7 +85,7 @@ fun Route.apiDiscordRoutes() {
                 call.respond(HttpStatusCode.BadRequest, "Session is required")
                 return@get
             }
-            val user = UserService.getUserWithNaverId(session.id)
+            val user = UserService.getUser(session.id)
             if(user == null) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@get

@@ -6,11 +6,11 @@ import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.models.Users
 
 object UserService {
-    fun saveUser(username: String, naverId: String): User {
+    fun saveUser(username: String, token: String): User {
         return transaction {
             User.new {
                 this.username = username
-                this.naverId = naverId
+                this.token = token
             }
         }
     }
@@ -59,14 +59,6 @@ object UserService {
     fun getUserWithGuildId(discordGuildId: Long): User? {
         return transaction {
             val user = User.find { Users.liveAlertGuild eq discordGuildId }.firstOrNull()
-            user?.load(User::subordinates, User::managers)
-            user
-        }
-    }
-
-    fun getUserWithNaverId(naverId: String): User? {
-        return transaction {
-            val user = User.find{ Users.naverId eq naverId }.firstOrNull()
             user?.load(User::subordinates, User::managers)
             user
         }

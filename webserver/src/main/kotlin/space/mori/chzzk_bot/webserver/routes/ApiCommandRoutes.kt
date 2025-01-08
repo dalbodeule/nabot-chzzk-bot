@@ -1,7 +1,6 @@
 package space.mori.chzzk_bot.webserver.routes
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -58,7 +57,7 @@ fun Routing.apiCommandRoutes() {
             val managers = transaction {
                 user.managers.toList()
             }
-            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!managers.any { it.token == session?.id } && user.token != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@put
             }
@@ -70,7 +69,7 @@ fun Routing.apiCommandRoutes() {
             )
             CoroutineScope(Dispatchers.Default).launch {
                 for(i: Int in 0..3) {
-                    dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                    dispatcher.post(CommandReloadEvent(user.token))
                 }
             }
             call.respond(HttpStatusCode.OK)
@@ -93,7 +92,7 @@ fun Routing.apiCommandRoutes() {
             val managers = transaction {
                 user.managers.toList()
             }
-            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!managers.any { it.token == session?.id } && user.token != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@post
             }
@@ -107,7 +106,7 @@ fun Routing.apiCommandRoutes() {
                 )
                 CoroutineScope(Dispatchers.Default).launch {
                     for(i: Int in 0..3) {
-                        dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                        dispatcher.post(CommandReloadEvent(user.token))
                     }
                 }
                 call.respond(HttpStatusCode.OK)
@@ -133,7 +132,7 @@ fun Routing.apiCommandRoutes() {
             val managers = transaction {
                 user.managers.toList()
             }
-            if(!managers.any { it.naverId == session?.id } && user.naverId != session?.id) {
+            if(!managers.any { it.token == session?.id } && user.token != session?.id) {
                 call.respond(HttpStatusCode.BadRequest, "User does not exist")
                 return@delete
             }
@@ -142,7 +141,7 @@ fun Routing.apiCommandRoutes() {
                 CommandService.removeCommand(user, commandRequest.label)
                 CoroutineScope(Dispatchers.Default).launch {
                     for(i: Int in 0..3) {
-                        dispatcher.post(CommandReloadEvent(user.token ?: ""))
+                        dispatcher.post(CommandReloadEvent(user.token))
                     }
                 }
                 call.respond(HttpStatusCode.OK)

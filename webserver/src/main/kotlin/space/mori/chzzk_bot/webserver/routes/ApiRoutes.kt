@@ -96,20 +96,20 @@ fun Routing.apiRoutes() {
                 call.respondText("No session found", status = HttpStatusCode.Unauthorized)
                 return@get
             }
-            var user = UserService.getUserWithNaverId(session.id)
+            var user = UserService.getUser(session.id)
             if(user == null) {
                 user = UserService.saveUser("임시닉네임", session.id)
             }
             val songConfig = SongConfigService.getConfig(user)
-            val status = user.token?.let { it1 -> getStreamInfo(it1) }
+            val status = getStreamInfo(user.token)
             val returnUsers = mutableListOf<GetSessionDTO>()
 
             if (user.username == "임시닉네임") {
-                status?.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
+                status.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
             }
 
-            if(status?.content == null) {
-                call.respondText(user.naverId, status = HttpStatusCode.NotFound)
+            if(status.content == null) {
+                call.respondText(user.token, status = HttpStatusCode.NotFound)
                 return@get
             }
 
@@ -128,8 +128,8 @@ fun Routing.apiRoutes() {
                 user.subordinates.toList()
             }
             returnUsers.addAll(subordinates.map {
-                val subStatus = it.token?.let { token -> ChzzkUserCache.getCachedUser(token) }
-                return@map if (it.token == null || subStatus?.content == null) {
+                val subStatus = it.token.let { token -> ChzzkUserCache.getCachedUser(token) }
+                return@map if (subStatus?.content == null) {
                     null
                 } else {
                     GetSessionDTO(
@@ -156,7 +156,7 @@ fun Routing.apiRoutes() {
 
             val body: RegisterChzzkUserDTO = call.receive()
 
-            val user = UserService.getUserWithNaverId(session.id)
+            val user = UserService.getUser(session.id)
             if(user == null) {
                 call.respondText("No session found", status = HttpStatusCode.Unauthorized)
                 return@post
@@ -197,7 +197,7 @@ fun Routing.apiRoutes() {
                 return@get
             }
 
-            val user = UserService.getUserWithNaverId(session.id)
+            val user = UserService.getUser(session.id)
             if(user == null) {
                 call.respondText("No session found", status = HttpStatusCode.Unauthorized)
                 return@get
@@ -216,7 +216,7 @@ fun Routing.apiRoutes() {
 
             val body: GetSettingDTO = call.receive()
 
-            val user = UserService.getUserWithNaverId(session.id)
+            val user = UserService.getUser(session.id)
             if(user == null) {
                 call.respondText("No session found", status = HttpStatusCode.Unauthorized)
                 return@post
