@@ -42,7 +42,7 @@ class MessageHandler(
             if(it.type == SongType.STREAM_OFF) {
                 val user = UserService.getUser(channel.channelId)
                 if(! user?.let { usr -> SongListService.getSong(usr) }.isNullOrEmpty()) {
-                    SongListService.deleteUser(user!!)
+                    SongListService.deleteUser(user)
                 }
             }
         }
@@ -161,7 +161,7 @@ class MessageHandler(
                 CoroutineScope(Dispatchers.Default).launch {
                     dispatcher.post(
                         TimerEvent(
-                            user.token!!,
+                            user.token,
                             TimerType.UPTIME,
                             getUptime(handler.streamStartTime!!)
                         )
@@ -171,7 +171,7 @@ class MessageHandler(
             "삭제" -> {
                 logger.debug("${user.token} / 삭제")
                 CoroutineScope(Dispatchers.Default).launch {
-                    dispatcher.post(TimerEvent(user.token!!, TimerType.REMOVE, ""))
+                    dispatcher.post(TimerEvent(user.token, TimerType.REMOVE, ""))
                 }
             }
             "설정" -> {
@@ -195,7 +195,7 @@ class MessageHandler(
                     val timestamp = currentTime.plus(time.toLong(), ChronoUnit.MINUTES)
 
                     CoroutineScope(Dispatchers.Default).launch {
-                        dispatcher.post(TimerEvent(user.token!!, TimerType.TIMER, timestamp.toString()))
+                        dispatcher.post(TimerEvent(user.token, TimerType.TIMER, timestamp.toString()))
                     }
                 } catch (e: NumberFormatException) {
                     listener.sendChat("!타이머/숫자 형식으로 적어주세요! 단위: 분")
@@ -267,7 +267,7 @@ class MessageHandler(
             CoroutineScope(Dispatchers.Default).launch {
                 dispatcher.post(
                     SongEvent(
-                        user.token!!,
+                        user.token,
                         SongType.ADD,
                         msg.userId,
                         null,

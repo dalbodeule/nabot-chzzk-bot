@@ -109,7 +109,7 @@ fun Routing.wsSongListRoutes() {
 
     webSocket("/songlist") {
         val session = call.sessions.get<UserSession>()
-        val user = session?.id?.let { UserService.getUserWithNaverId(it) }
+        val user = session?.id?.let { UserService.getUser(it) }
         if (user == null) {
             close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
             return@webSocket
@@ -117,7 +117,7 @@ fun Routing.wsSongListRoutes() {
 
         val uid = user.token
 
-        addSession(uid!!, this)
+        addSession(uid, this)
 
         if (status[uid] == SongType.STREAM_OFF) {
             CoroutineScope(Dispatchers.Default).launch {
@@ -161,18 +161,16 @@ fun Routing.wsSongListRoutes() {
         CoroutineScope(Dispatchers.Default).launch {
             val user = UserService.getUser(it.uid)
             if (user != null) {
-                user.token?.let { token ->
-                    sendWithRetry(
-                        token, SongResponse(
-                            it.type.value,
-                            it.uid,
-                            it.reqUid,
-                            it.current?.toSerializable(),
-                            it.next?.toSerializable(),
-                            it.delUrl
-                        )
+                sendWithRetry(
+                    user.token, SongResponse(
+                        it.type.value,
+                        it.uid,
+                        it.reqUid,
+                        it.current?.toSerializable(),
+                        it.next?.toSerializable(),
+                        it.delUrl
                     )
-                }
+                )
             }
         }
     }
@@ -182,17 +180,15 @@ fun Routing.wsSongListRoutes() {
             CoroutineScope(Dispatchers.Default).launch {
                 val user = UserService.getUser(it.uid)
                 if (user != null) {
-                    user.token?.let { token ->
-                        sendWithRetry(
-                            token, SongResponse(
-                                it.type.value,
-                                it.uid,
-                                null,
-                                null,
-                                null,
-                            )
+                    sendWithRetry(
+                        user.token, SongResponse(
+                            it.type.value,
+                            it.uid,
+                            null,
+                            null,
+                            null,
                         )
-                    }
+                    )
                 }
             }
         }
@@ -219,7 +215,7 @@ suspend fun handleSongRequest(
                         CoroutineScope(Dispatchers.Default).launch {
                             SongListService.saveSong(
                                 user,
-                                user.token!!,
+                                user.token,
                                 url,
                                 youtubeVideo.name,
                                 youtubeVideo.author,
@@ -228,7 +224,7 @@ suspend fun handleSongRequest(
                             )
                             dispatcher.post(
                                 SongEvent(
-                                    user.token!!,
+                                    user.token,
                                     SongType.ADD,
                                     user.token,
                                     CurrentSong.getSong(user),
@@ -251,7 +247,7 @@ suspend fun handleSongRequest(
                 }
                 dispatcher.post(
                     SongEvent(
-                        user.token!!,
+                        user.token,
                         SongType.REMOVE,
                         null,
                         null,
@@ -281,7 +277,7 @@ suspend fun handleSongRequest(
             }
             dispatcher.post(
                 SongEvent(
-                    user.token!!,
+                    user.token,
                     SongType.NEXT,
                     song?.uid,
                     youtubeVideo

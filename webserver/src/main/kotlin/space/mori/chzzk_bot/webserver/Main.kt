@@ -26,6 +26,8 @@ import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
 import space.mori.chzzk_bot.webserver.utils.DiscordRatelimits
 import wsSongListRoutes
+import java.math.BigInteger
+import java.security.SecureRandom
 import java.time.Duration
 import kotlin.time.toKotlinDuration
 
@@ -33,14 +35,12 @@ val dotenv = dotenv {
     ignoreIfMissing = true
 }
 
-const val naverMeAPIURL = "https://openapi.naver.com/v1/nid/me"
-
 val redirects = mutableMapOf<String, String>()
 
 val server = embeddedServer(Netty, port = 8080, ) {
     install(WebSockets) {
         pingPeriod = Duration.ofSeconds(15).toKotlinDuration()
-        timeout = Duration.ofSeconds(15).toKotlinDuration()
+        timeout = Duration.ofSeconds(100).toKotlinDuration()
         maxFrameSize = Long.MAX_VALUE
         masking = false
         contentConverter = KotlinxWebsocketSerializationConverter(Json)
@@ -56,26 +56,6 @@ val server = embeddedServer(Netty, port = 8080, ) {
         cookie<UserSession>("user_session", storage = MariadbSessionStorage()) {}
     }
     install(Authentication) {
-        oauth("auth-oauth-naver") {
-            urlProvider = { "${dotenv["HOST"]}/auth/callback" }
-            providerLookup = { OAuthServerSettings.OAuth2ServerSettings(
-                name = "naver",
-                authorizeUrl = "https://nid.naver.com/oauth2.0/authorize",
-                accessTokenUrl = "https://nid.naver.com/oauth2.0/token",
-                requestMethod = HttpMethod.Post,
-                clientId = dotenv["NAVER_CLIENT_ID"],
-                clientSecret = dotenv["NAVER_CLIENT_SECRET"],
-                defaultScopes = listOf(""),
-                extraAuthParameters = listOf(),
-                onStateCreated = { call, state ->
-                    //saves new state with redirect url value
-                    call.request.queryParameters["redirectUrl"]?.let {
-                        redirects[state] = it
-                    }
-                }
-            )}
-            client = applicationHttpClient
-        }
         oauth("auth-oauth-discord") {
             urlProvider = { "${dotenv["HOST"]}/auth/callback/discord" }
             providerLookup = { OAuthServerSettings.OAuth2ServerSettings(
@@ -112,7 +92,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                     try {
                         val principal = call.principal<OAuthAccessTokenResponse.OAuth2>()
                         val session = call.sessions.get<UserSession>()
-                        val user = session?.id?.let { UserService.getUserWithNaverId(it) }
+                        val user = session?.id?.let { UserService.getUser(it) }
 
                         if(principal != null && session != null && user != null) {
                             try {
@@ -150,31 +130,80 @@ val server = embeddedServer(Netty, port = 8080, ) {
             }
 
             // naver login
-            authenticate("auth-oauth-naver") {
-                get("/login") {
+            get("/login") {
+                val state = generateSecureRandomState()
 
+                // 세션에 상태 값 저장
+                call.sessions.set(UserSession(
+                    state,
+                    "",
+                    listOf(),
+                ))
+
+                // OAuth 제공자의 인증 URL 구성
+                val authUrl = URLBuilder("https://chzzk.naver.com/account-interlock").apply {
+                    parameters.append("clientId", dotenv["NAVER_CLIENT_ID"]) // 비표준 파라미터 이름
+                    parameters.append("redirectUri", "${dotenv["HOST"]}/auth/callback")
+                    parameters.append("state", state)
+                    // 추가적인 파라미터가 필요하면 여기에 추가
+                }.build().toString()
+
+                // 사용자에게 인증 페이지로 리다이렉트
+                call.respondRedirect(authUrl)
+            }
+            get("/callback") {
+                val receivedState = call.parameters["state"]
+                val code = call.parameters["code"]
+
+                // 세션에서 상태 값 가져오기
+                val session = call.sessions.get<UserSession>()
+                if (session == null || session.state != receivedState) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid state parameter")
+                    return@get
                 }
-                get("/callback") {
-                    val currentPrincipal = call.principal<OAuthAccessTokenResponse.OAuth2>()
-                    currentPrincipal?.let { principal ->
-                        principal.state?.let { state ->
-                            val userInfo: NaverAPI<NaverMeAPI> = applicationHttpClient.get(naverMeAPIURL) {
-                                headers {
-                                    append(HttpHeaders.Authorization, "Bearer ${principal.accessToken}")
-                                }
-                            }.body()
 
-                            call.sessions.set(userInfo.response?.let { profile ->
-                                UserSession(state, profile.id, listOf())
-                            })
+                if (code == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Missing code parameter")
+                    return@get
+                }
+                try {
+                    // Access Token 요청
+                    val tokenRequest = TokenRequest(
+                        grantType = "authorization_code",
+                        state = session.state,
+                        code = code,
+                        clientId = dotenv["NAVER_CLIENT_ID"],
+                        clientSecret = dotenv["NAVER_CLIENT_SECRET"]
+                    )
 
-                            redirects[state]?.let { redirect ->
-                                call.respondRedirect(redirect)
-                                return@get
-                            }
-                        }
+                    val response = applicationHttpClient.post("https://chzzk.naver.com/auth/v1/token") {
+                        contentType(ContentType.Application.Json)
+                        setBody(tokenRequest)
                     }
-                    call.respondRedirect(getFrontendURL(""))
+
+                    val tokenResponse = response.body<TokenResponse>()
+
+                    if(tokenResponse.content == null) {
+                        call.respond(HttpStatusCode.InternalServerError, "Failed to obtain access token")
+                        return@get
+                    }
+
+                    // Access Token 사용: 예를 들어, 사용자 정보 요청
+                    val userInfo = getChzzkUser(tokenResponse.content.accessToken)
+
+                    if(userInfo.content != null) {
+                        call.sessions.set(
+                            UserSession(
+                                session.state,
+                                userInfo.content.channelId,
+                                listOf()
+                            )
+                        )
+                        call.respondRedirect(getFrontendURL(""))
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    call.respond(HttpStatusCode.InternalServerError, "Failed to obtain access token")
                 }
             }
 
@@ -231,16 +260,33 @@ fun getFrontendURL(path: String)
 data class UserSession(
     val state: String,
     val id: String,
-    val discordGuildList: List<String>
+    val discordGuildList: List<String>,
+
 )
 
 @Serializable
-data class NaverMeAPI(
-    val id: String
+data class TokenRequest(
+    val grantType: String,
+    val state: String,
+    val code: String,
+    val clientId: String,
+    val clientSecret: String
 )
 
 @Serializable
-data class NaverAPI<T>(val resultcode: String, val message: String, val response: T?)
+data class TokenResponse(
+    val code: Int,
+    val message: String?,
+    val content: TokenResponseBody?
+)
+
+@Serializable
+data class TokenResponseBody(
+    val accessToken: String,
+    val tokenType: String,
+    val expiresIn: Int,
+    val refreshToken: String? = null
+)
 
 @Serializable
 data class DiscordMeAPI(
@@ -352,4 +398,32 @@ suspend fun getUserGuilds(accessToken: String): List<DiscordGuildListAPI> {
     DiscordRatelimits.setRateLimit(rateLimit, remaining, resetAfter)
 
     return response.body<List<DiscordGuildListAPI>>()
+}
+
+@Serializable
+data class ChzzkMeApi(
+    val channelId: String,
+    val channelName: String,
+    val nickname: String,
+)
+
+@Serializable
+data class ChzzkApi<T>(
+    val code: Int,
+    val message: String?,
+    val content: T?
+)
+
+suspend fun getChzzkUser(accessToken: String): ChzzkApi<ChzzkMeApi> {
+    val response = applicationHttpClient.get("https://openapi.chzzk.naver.com/open/v1/users/me") {
+        headers {
+            append(HttpHeaders.Authorization, "Bearer $accessToken")
+        }
+    }
+
+    return response.body<ChzzkApi<ChzzkMeApi>>()
+}
+
+fun generateSecureRandomState(): String {
+    return BigInteger(130, SecureRandom()).toString(32)
 }
