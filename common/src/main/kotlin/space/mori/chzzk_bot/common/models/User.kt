@@ -15,6 +15,8 @@ object Users: IntIdTable("users") {
     val liveAlertMessage = text("live_alert_message").nullable()
     val isDisableStartupMsg = bool("is_disable_startup_msg").default(false)
     val isDisabled = bool("is_disabled").default(false)
+    val accessToken = varchar("access_token", 255).nullable()
+    val refreshToken = varchar("refresh_token", 255).nullable()
 }
 
 class User(id: EntityID<Int>) : IntEntity(id) {
@@ -28,6 +30,9 @@ class User(id: EntityID<Int>) : IntEntity(id) {
     var liveAlertMessage by Users.liveAlertMessage
     var isDisableStartupMsg by Users.isDisableStartupMsg
     var isDisabled by Users.isDisabled
+
+    var accessToken by Users.accessToken
+    var refreshToken by Users.refreshToken
 
     // 유저가 가진 매니저들
     var managers by User.via(UserManagers.user, UserManagers.manager)

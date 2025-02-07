@@ -191,6 +191,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                     val userInfo = getChzzkUser(tokenResponse.content.accessToken)
 
                     if(userInfo.content != null) {
+                        val user = UserService.getUser(userInfo.content.channelId)
                         call.sessions.set(
                             UserSession(
                                 session.state,
@@ -198,6 +199,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 listOf()
                             )
                         )
+                        user?.let { UserService.setRefreshToken(it, tokenResponse.content.accessToken, tokenResponse.content.refreshToken ?: "") }
                         call.respondRedirect(getFrontendURL(""))
                     }
                 } catch (e: Exception) {
