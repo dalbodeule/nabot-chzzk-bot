@@ -97,4 +97,19 @@ object UserService {
             user
         }
     }
+
+    fun setAccessToken(user: User, accessToken: String): User {
+        return transaction {
+            user.accessToken = accessToken
+            user
+        }
+    }
+
+    fun setRefreshToken(user: User, accessToken: String, refreshToken: String): User {
+        return transaction {
+            user.accessToken = accessToken
+            user.refreshToken = refreshToken
+            user
+        }
+    }
 }
