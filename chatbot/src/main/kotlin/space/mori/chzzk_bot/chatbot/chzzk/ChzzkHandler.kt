@@ -40,7 +40,11 @@ object ChzzkHandler {
         botUid = chzzk.loggedUser.userId
         UserService.getAllUsers().map {
             if(!it.isDisabled)
-                chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
+                try {
+                    chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
+                } catch(e: Exception) {
+                    logger.info("Exception: ${it.token}(${it.username}) not found. ${e.stackTraceToString()}")
+                }
         }
 
         handlers.forEach { handler ->
