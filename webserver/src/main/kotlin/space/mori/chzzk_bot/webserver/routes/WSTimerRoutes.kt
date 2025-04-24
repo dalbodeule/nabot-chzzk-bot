@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 val timerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 fun Routing.wsTimerRoutes() {
     environment.monitor.subscribe(ApplicationStopped) {
-        songListScope.cancel()
+        timerScope.cancel()
     }
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val logger = LoggerFactory.getLogger("WSTimerRoutes")
@@ -77,7 +77,7 @@ fun Routing.wsTimerRoutes() {
     fun broadcastMessage(uid: String, message: TimerResponse) {
         val userSessions = sessions[uid]
         userSessions?.forEach { session ->
-            songListScope.launch {
+            timerScope.launch {
                 val success = sendWithRetry(session, message.copy(uid = uid))
                 if (!success) {
                     logger.info("Removing session for user $uid due to repeated failures.")
@@ -98,11 +98,11 @@ fun Routing.wsTimerRoutes() {
         val timer = CurrentTimer.getTimer(user)
 
         if (timer?.type == TimerType.STREAM_OFF) {
-            songListScope.launch {
+            timerScope.launch {
                 sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, null, uid))
             }
         } else {
-            songListScope.launch {
+            timerScope.launch {
                 if(timer?.type == TimerType.STREAM_OFF) {
                     sendSerialized(TimerResponse(TimerType.STREAM_OFF.value, null, uid))
                 } else {
@@ -157,7 +157,7 @@ fun Routing.wsTimerRoutes() {
         logger.debug("TimerEvent: {} / {}", it.uid, it.type)
         val user = UserService.getUser(it.uid)
         CurrentTimer.setTimer(user!!, it)
-        songListScope.launch {
+        timerScope.launch {
             broadcastMessage(it.uid, TimerResponse(it.type.value, it.time ?: "", it.uid))
         }
     }

@@ -26,7 +26,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 val songScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 fun Routing.wsSongRoutes() {
     environment.monitor.subscribe(ApplicationStopped) {
-        songListScope.cancel()
+        songScope.cancel()
     }
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, SongType>()
@@ -77,7 +77,7 @@ fun Routing.wsSongRoutes() {
     fun broadcastMessage(userId: String, message: SongResponse) {
         val userSessions = sessions[userId]
         userSessions?.forEach { session ->
-            songListScope.launch {
+            songScope.launch {
                 val success = sendWithRetry(session, message)
                 if (!success) {
                     logger.info("Removing session for user $userId due to repeated failures.")
@@ -96,7 +96,7 @@ fun Routing.wsSongRoutes() {
         }
         addSession(uid, this)
         if(status[uid] == SongType.STREAM_OFF) {
-            songListScope.launch {
+            songScope.launch {
                 sendSerialized(SongResponse(
                     SongType.STREAM_OFF.value,
                     uid,
@@ -135,7 +135,7 @@ fun Routing.wsSongRoutes() {
 
     dispatcher.subscribe(SongEvent::class) {
         logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.current?.name)
-        songListScope.launch {
+        songScope.launch {
             broadcastMessage(it.uid, SongResponse(
                 it.type.value,
                 it.uid,
@@ -148,7 +148,7 @@ fun Routing.wsSongRoutes() {
     }
     dispatcher.subscribe(TimerEvent::class) {
         if(it.type == TimerType.STREAM_OFF) {
-            songListScope.launch {
+            songScope.launch {
                 broadcastMessage(it.uid, SongResponse(
                     it.type.value,
                     it.uid,
