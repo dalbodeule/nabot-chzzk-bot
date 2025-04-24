@@ -151,8 +151,6 @@ fun Routing.wsSongListRoutes() {
             }
         } catch (e: ClosedReceiveChannelException) {
             logger.error("Error in WebSocket: ${e.message}")
-        } finally {
-            removeSession(uid)
         }
     }
 
