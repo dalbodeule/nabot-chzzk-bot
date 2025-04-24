@@ -5,7 +5,8 @@ enum class TimerType(var value: Int) {
     TIMER(1),
     REMOVE(2),
 
-    STREAM_OFF(50)
+    STREAM_OFF(50),
+    ACK(51)
 }
 
 class TimerEvent(
