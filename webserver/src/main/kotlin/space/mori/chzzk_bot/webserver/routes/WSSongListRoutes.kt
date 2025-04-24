@@ -3,16 +3,14 @@ import io.ktor.server.sessions.*
 import io.ktor.server.websocket.*
 import io.ktor.util.logging.Logger
 import io.ktor.websocket.*
+import io.ktor.server.application.*
 import io.ktor.websocket.Frame.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.koin.java.KoinJavaComponent.inject
-import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.SongList
 import space.mori.chzzk_bot.common.models.SongLists.uid
@@ -23,177 +21,56 @@ import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.YoutubeVideo
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import space.mori.chzzk_bot.webserver.UserSession
-import space.mori.chzzk_bot.webserver.routes.SongResponse
-import space.mori.chzzk_bot.webserver.routes.toSerializable
 import space.mori.chzzk_bot.webserver.utils.CurrentSong
-import java.util.concurrent.ConcurrentHashMap
+import space.mori.chzzk_bot.webserver.utils.SongListWebSocketManager
 
-fun Routing.wsSongListRoutes() {
-    val sessions = ConcurrentHashMap<String, WebSocketServerSession>()
-    val status = ConcurrentHashMap<String, SongType>()
-    val logger = LoggerFactory.getLogger("WSSongListRoutes")
-
+fun Route.wsSongListRoutes(songListWebSocketManager: SongListWebSocketManager) {
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
-
-    fun addSession(uid: String, session: WebSocketServerSession) {
-        if (sessions[uid] != null) {
-            CoroutineScope(Dispatchers.Default).launch {
-                sessions[uid]?.close(
-                    CloseReason(CloseReason.Codes.VIOLATED_POLICY, "Duplicated sessions.")
-                )
-            }
-        }
-        sessions[uid] = session
-    }
-
-    fun removeSession(uid: String) {
-        sessions.remove(uid)
-    }
-
-    suspend fun waitForAck(ws: WebSocketServerSession, expectedType: Int): Boolean {
-        val timeout = 5000L // 5 seconds timeout
-        val startTime = System.currentTimeMillis()
-        while (System.currentTimeMillis() - startTime < timeout) {
-            for (frame in ws.incoming) {
-                if (frame is Text) {
-                    val message = frame.readText()
-                    if(message == "ping") {
-                        return true
-                    }
-                    val data = Json.decodeFromString<SongRequest>(message)
-                    if (data.type == SongType.ACK.value) {
-                        return true // ACK received
-                    }
-                }
-            }
-            delay(100) // Check every 100 ms
-        }
-        return false // Timeout
-    }
-
-    suspend fun sendWithRetry(uid: String, res: SongResponse, maxRetries: Int = 5, delayMillis: Long = 3000L) {
-        var attempt = 0
-        var sentSuccessfully = false
-
-        while (attempt < maxRetries && !sentSuccessfully) {
-            val ws = sessions[uid]
-            try {
-                if(ws == null) {
-                    delay(delayMillis)
-                    continue
-                }
-                // Attempt to send the message
-                ws.sendSerialized(res)
-                logger.debug("Message sent successfully to $uid on attempt $attempt")
-                // Wait for ACK
-                val ackReceived = waitForAck(ws, res.type)
-                if (ackReceived == true) {
-                    sentSuccessfully = true
-                } else {
-                    logger.warn("ACK not received for message to $uid on attempt $attempt.")
-                }
-            } catch (e: Exception) {
-                attempt++
-                logger.warn("Failed to send message to $uid on attempt $attempt. Retrying in $delayMillis ms.")
-                logger.warn(e.stackTraceToString())
-            } finally {
-                // Wait before retrying
-                delay(delayMillis)
-            }
-        }
-
-        if (!sentSuccessfully) {
-            logger.error("Failed to send message to $uid after $maxRetries attempts.")
-        }
-    }
 
     webSocket("/songlist") {
         val session = call.sessions.get<UserSession>()
-        val user = session?.id?.let { UserService.getUser(it) }
-        if (user == null) {
-            close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid SID"))
+        val uid = session?.id
+        if (uid == null) {
+            close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT, "Invalid session"))
             return@webSocket
         }
 
-        val uid = user.token
-
-        addSession(uid, this)
-
-        if (status[uid] == SongType.STREAM_OFF) {
-            CoroutineScope(Dispatchers.Default).launch {
-                sendSerialized(SongResponse(
-                    SongType.STREAM_OFF.value,
-                    uid,
-                    null,
-                    null,
-                    null,
-                ))
-            }
-            removeSession(uid)
-        }
-
         try {
+            songListWebSocketManager.addSession(uid, this)
             for (frame in incoming) {
                 when (frame) {
                     is Text -> {
-                        if (frame.readText().trim() == "ping") {
-                            send("pong")
+                        val text = frame.readText().trim()
+                        if (text == SongListWebSocketManager.PING_MESSAGE) {
+                            send(SongListWebSocketManager.PONG_MESSAGE)
+                            songListWebSocketManager.handlePong(uid)
                         } else {
-                            val data = frame.readText().let { Json.decodeFromString<SongRequest>(it) }
-
                             // Handle song requests
-                            handleSongRequest(data, user, dispatcher, logger)
+                            text.let { Json.decodeFromString<SongRequest>(it) }.let { data ->
+                                val user = session.id.let { UserService.getUser(it) }
+                                
+                                if(user == null) {
+                                    songListWebSocketManager.removeSession(uid)
+                                    return@webSocket
+                                }
+                                
+                                handleSongRequest(data, user, dispatcher, songListWebSocketManager.logger)
+                            }.runCatching { songListWebSocketManager.logger.error("Failed to parse WebSocket message as SongRequest.") }
                         }
                     }
+
                     is Ping -> send(Pong(frame.data))
-                    else -> ""
+                    else -> songListWebSocketManager.logger.warn("Unsupported frame type received.")
                 }
             }
-        } catch (e: ClosedReceiveChannelException) {
-            logger.error("Error in WebSocket: ${e.message}")
+        } catch (e: Exception) {
+            songListWebSocketManager.logger.error("WebSocket error: ${e.message}")
         } finally {
-            removeSession(uid)
-        }
-    }
-
-    dispatcher.subscribe(SongEvent::class) {
-        logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.current?.name)
-        CoroutineScope(Dispatchers.Default).launch {
-            val user = UserService.getUser(it.uid)
-            if (user != null) {
-                sendWithRetry(
-                    user.token, SongResponse(
-                        it.type.value,
-                        it.uid,
-                        it.reqUid,
-                        it.current?.toSerializable(),
-                        it.next?.toSerializable(),
-                        it.delUrl
-                    )
-                )
-            }
-        }
-    }
-
-    dispatcher.subscribe(TimerEvent::class) {
-        if (it.type == TimerType.STREAM_OFF) {
-            CoroutineScope(Dispatchers.Default).launch {
-                val user = UserService.getUser(it.uid)
-                if (user != null) {
-                    sendWithRetry(
-                        user.token, SongResponse(
-                            it.type.value,
-                            it.uid,
-                            null,
-                            null,
-                            null,
-                        )
-                    )
-                }
-            }
+            songListWebSocketManager.removeSession(uid)
         }
     }
 }
+
 
 suspend fun handleSongRequest(
     data: SongRequest,
@@ -288,6 +165,7 @@ suspend fun handleSongRequest(
         }
     }
 }
+
 
 @Serializable
 data class SongRequest(
