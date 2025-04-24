@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
 import space.mori.chzzk_bot.webserver.utils.DiscordRatelimits
-import space.mori.chzzk_bot.webserver.utils.SongListWebSocketManager
 import wsSongListRoutes
 import java.math.BigInteger
 import java.security.SecureRandom
@@ -225,7 +224,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
 
         wsTimerRoutes()
         wsSongRoutes()
-        wsSongListRoutes(SongListWebSocketManager(LoggerFactory.getLogger("wsSongListRoutes")))
+        wsSongListRoutes()
 
         swaggerUI("swagger-ui/index.html", "openapi/documentation.yaml") {
             options {
