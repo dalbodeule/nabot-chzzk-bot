@@ -1,11 +1,13 @@
 package space.mori.chzzk_bot.webserver.routes
 
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -21,6 +23,10 @@ import java.util.concurrent.ConcurrentLinkedQueue
 val routeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 fun Routing.wsSongRoutes() {
+    environment.monitor.subscribe(ApplicationStopped) {
+        routeScope.cancel()
+    }
+
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
     val status = ConcurrentHashMap<String, SongType>()
     val logger = LoggerFactory.getLogger("WSSongRoutes")

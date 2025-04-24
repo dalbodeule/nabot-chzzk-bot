@@ -16,7 +16,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.io.IOException
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -78,26 +77,23 @@ fun Routing.wsSongListRoutes() {
     }
 
     suspend fun waitForAck(ws: WebSocketServerSession, expectedType: Int): Boolean {
-        return withTimeoutOrNull(5000L) { // 5초 타임아웃
-            try {
-                for (frame in ws.incoming) {
-                    if (frame is Text) {
-                        val message = frame.readText()
-                        if(message == "ping") {
-                            return@withTimeoutOrNull true
-                        }
-                        val data = Json.decodeFromString<SongRequest>(message)
-                        if (data.type == SongType.ACK.value) {
-                            return@withTimeoutOrNull true // ACK 받음
-                        }
+        try {
+            for (frame in ws.incoming) {
+                if (frame is Text) {
+                    val message = frame.readText()
+                    if (message == "ping") {
+                        continue // Keep the loop running if a ping is received
+                    }
+                    val data = Json.decodeFromString<SongRequest>(message)
+                    if (data.type == SongType.ACK.value) {
+                        return true // ACK received
                     }
                 }
-                false // 채널이 닫힘
-            } catch (e: Exception) {
-                logger.warn("Error waiting for ACK: ${e.message}")
-                false
             }
-        } ?: false // 타임아웃 시 false 반환
+        } catch (e: Exception) {
+            logger.warn("Error waiting for ACK: ${e.message}")
+        }
+        return false // Return false if no ACK received
     }
 
 
@@ -114,7 +110,7 @@ fun Routing.wsSongListRoutes() {
                 null
             }
 
-            if(ws == null) continue
+            if (ws == null) continue
 
             try {
                 // 메시지 전송 시도
@@ -124,6 +120,7 @@ fun Routing.wsSongListRoutes() {
                 // ACK 대기
                 val ackReceived = waitForAck(ws, res.type)
                 if (ackReceived) {
+                    logger.debug("ACK received for message to $uid on attempt $attempt.")
                     sentSuccessfully = true
                 } else {
                     logger.warn("ACK not received for message to $uid on attempt $attempt.")
