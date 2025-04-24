@@ -5,6 +5,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -16,6 +17,8 @@ import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.YoutubeVideo
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
+
+val routeScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 fun Routing.wsSongRoutes() {
     val sessions = ConcurrentHashMap<String, ConcurrentLinkedQueue<WebSocketServerSession>>()
@@ -58,7 +61,7 @@ fun Routing.wsSongRoutes() {
         val userSessions = sessions[userId]
 
         userSessions?.forEach { session ->
-            CoroutineScope(Dispatchers.Default).launch {
+            routeScope.launch {
                 val success = sendWithRetry(session, message)
                 if (!success) {
                     println("Removing session for user $userId due to repeated failures.")
@@ -83,7 +86,7 @@ fun Routing.wsSongRoutes() {
         addSession(uid, this)
 
         if(status[uid] == SongType.STREAM_OFF) {
-            CoroutineScope(Dispatchers.Default).launch {
+            routeScope.launch {
                 sendSerialized(SongResponse(
                     SongType.STREAM_OFF.value,
                     uid,
@@ -119,7 +122,7 @@ fun Routing.wsSongRoutes() {
 
     dispatcher.subscribe(SongEvent::class) {
         logger.debug("SongEvent: {} / {} {}", it.uid, it.type, it.current?.name)
-        CoroutineScope(Dispatchers.Default).launch {
+        routeScope.launch {
             broadcastMessage(it.uid, SongResponse(
                 it.type.value,
                 it.uid,
@@ -132,7 +135,7 @@ fun Routing.wsSongRoutes() {
     }
     dispatcher.subscribe(TimerEvent::class) {
         if(it.type == TimerType.STREAM_OFF) {
-            CoroutineScope(Dispatchers.Default).launch {
+            routeScope.launch {
                 broadcastMessage(it.uid, SongResponse(
                     it.type.value,
                     it.uid,
