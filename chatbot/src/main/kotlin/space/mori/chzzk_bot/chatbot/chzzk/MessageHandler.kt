@@ -13,15 +13,16 @@ import space.mori.chzzk_bot.common.utils.getUptime
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
 import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
+import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
+import xyz.r2turntrue.chzzk4j.session.message.SessionChatMessage
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
-
 class MessageHandler(
     private val handler: UserHandler
 ) {
-    private val commands = mutableMapOf<String, (msg: ChatMessage, user: User) -> Unit>()
+    private val commands = mutableMapOf<String, (msg: SessionChatMessage, user: User) -> Unit>()
 
     private val counterPattern = Regex("<counter:([^>]+)>")
     private val personalCounterPattern = Regex("<counter_personal:([^>]+)>")
@@ -71,85 +72,90 @@ class MessageHandler(
             this.commands.put(it.command.lowercase()) { msg, user ->
                 logger.debug("${channel.channelName} - ${it.command} - ${it.content}/${it.failContent}")
 
-                val result = replaceCounters(Pair(it.content, it.failContent), user, msg, listener, msg.profile?.nickname ?: "")
-                listener.sendChat(result)
+                val result = replaceCounters(
+                    Pair(it.content, it.failContent),
+                    user,
+                    msg,
+                    msg.profile?.nickname ?: ""
+                )
+                handler.sendChat(result)
             }
         }
     }
 
-    private fun commandListCommand(msg: ChatMessage, user: User) {
-        listener.sendChat("리스트는 여기입니다. https://nabot.mori.space/commands/${user.token}")
+    private fun commandListCommand(msg: SessionChatMessage, user: User) {
+        handler.sendChat("리스트는 여기입니다. https://nabot.mori.space/commands/${user.token}")
     }
 
-    private fun manageAddCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode == "common_user") {
-            listener.sendChat("매니저만 명령어를 추가할 수 있습니다.")
+    private fun manageAddCommand(msg: SessionChatMessage, user: User) {
+        if (msg.profile.badges.size == 0) {
+            handler.sendChat("매니저만 명령어를 추가할 수 있습니다.")
             return
         }
 
         val parts = msg.content.split(" ", limit = 3)
         if (parts.size < 3) {
-            listener.sendChat("명령어 추가 형식은 '!명령어추가 명령어 내용'입니다.")
+            handler.sendChat("명령어 추가 형식은 '!명령어추가 명령어 내용'입니다.")
             return
         }
         if (commands.containsKey(parts[1])) {
-            listener.sendChat("${parts[1]} 명령어는 이미 있는 명령어입니다.")
+            handler.sendChat("${parts[1]} 명령어는 이미 있는 명령어입니다.")
             return
         }
         val command = parts[1]
         val content = parts[2]
         CommandService.saveCommand(user, command, content, "")
-        listener.sendChat("명령어 '$command' 추가되었습니다.")
+        handler.sendChat("명령어 '$command' 추가되었습니다.")
     }
 
-    private fun manageUpdateCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode == "common_user") {
-            listener.sendChat("매니저만 명령어를 추가할 수 있습니다.")
+    private fun manageUpdateCommand(msg: SessionChatMessage, user: User) {
+        if (msg.profile.badges.size == 0) {
+            handler.sendChat("매니저만 명령어를 추가할 수 있습니다.")
             return
         }
 
         val parts = msg.content.split(" ", limit = 3)
         if (parts.size < 3) {
-            listener.sendChat("명령어 수정 형식은 '!명령어수정 명령어 내용'입니다.")
+            handler.sendChat("명령어 수정 형식은 '!명령어수정 명령어 내용'입니다.")
             return
         }
         if (!commands.containsKey(parts[1])) {
-            listener.sendChat("${parts[1]} 명령어는 없는 명령어입니다.")
+            handler.sendChat("${parts[1]} 명령어는 없는 명령어입니다.")
             return
         }
         val command = parts[1]
         val content = parts[2]
         CommandService.updateCommand(user, command, content, "")
-        listener.sendChat("명령어 '$command' 수정되었습니다.")
+        handler.sendChat("명령어 '$command' 수정되었습니다.")
         ChzzkHandler.reloadCommand(channel)
     }
 
-    private fun manageRemoveCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode == "common_user") {
-            listener.sendChat("매니저만 명령어를 삭제할 수 있습니다.")
+    private fun manageRemoveCommand(msg: SessionChatMessage, user: User) {
+        if (msg.profile.badges.size == 0) {
+            handler.sendChat("매니저만 명령어를 삭제할 수 있습니다.")
             return
         }
 
         val parts = msg.content.split(" ", limit = 2)
         if (parts.size < 2) {
-            listener.sendChat("명령어 삭제 형식은 '!명령어삭제 명령어'입니다.")
+            handler.sendChat("명령어 삭제 형식은 '!명령어삭제 명령어'입니다.")
             return
         }
         val command = parts[1]
         CommandService.removeCommand(user, command)
-        listener.sendChat("명령어 '$command' 삭제되었습니다.")
+        handler.sendChat("명령어 '$command' 삭제되었습니다.")
         ChzzkHandler.reloadCommand(channel)
     }
 
-    private fun timerCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode == "common_user") {
-            listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+    private fun timerCommand(msg: SessionChatMessage, user: User) {
+        if (msg.profile.badges.size == 0) {
+            handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
         }
 
         val parts = msg.content.split(" ", limit = 3)
         if (parts.size < 2) {
-            listener.sendChat("타이머 명령어 형식을 잘 찾아봐주세요!")
+            handler.sendChat("타이머 명령어 형식을 잘 찾아봐주세요!")
             return
         }
 
@@ -178,13 +184,13 @@ class MessageHandler(
                 when (parts[2]) {
                     "업타임" -> {
                         TimerConfigService.saveOrUpdateConfig(user, TimerType.UPTIME)
-                        listener.sendChat("기본 타이머 설정이 업타임으로 바뀌었습니다.")
+                        handler.sendChat("기본 타이머 설정이 업타임으로 바뀌었습니다.")
                     }
                     "삭제" -> {
                         TimerConfigService.saveOrUpdateConfig(user, TimerType.REMOVE)
-                        listener.sendChat("기본 타이머 설정이 삭제로 바뀌었습니다.")
+                        handler.sendChat("기본 타이머 설정이 삭제로 바뀌었습니다.")
                     }
-                    else -> listener.sendChat("!타이머 설정 (업타임/삭제) 형식으로 써주세요!")
+                    else -> handler.sendChat("!타이머 설정 (업타임/삭제) 형식으로 써주세요!")
                 }
             }
             else -> {
@@ -198,9 +204,9 @@ class MessageHandler(
                         dispatcher.post(TimerEvent(user.token, TimerType.TIMER, timestamp.toString()))
                     }
                 } catch (e: NumberFormatException) {
-                    listener.sendChat("!타이머/숫자 형식으로 적어주세요! 단위: 분")
+                    handler.sendChat("!타이머/숫자 형식으로 적어주세요! 단위: 분")
                 } catch (e: Exception) {
-                    listener.sendChat("타이머 설정 중 오류가 발생했습니다.")
+                    handler.sendChat("타이머 설정 중 오류가 발생했습니다.")
                     logger.error("Error processing timer command: ${e.message}", e)
                 }
             }
@@ -208,21 +214,21 @@ class MessageHandler(
     }
 
     // songs
-    private fun songAddCommand(msg: ChatMessage, user: User) {
+    private fun songAddCommand(msg: SessionChatMessage, user: User) {
         if(SongConfigService.getConfig(user).disabled) {
             return
         }
 
         val parts = msg.content.split(" ", limit = 2)
         if (parts.size < 2) {
-            listener.sendChat("유튜브 URL을 입력해주세요!")
+            handler.sendChat("유튜브 URL을 입력해주세요!")
             return
         }
 
         val config = SongConfigService.getConfig(user)
 
-        if(config.streamerOnly && msg.profile?.userRoleCode == "common_user") {
-            listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+        if(config.streamerOnly && msg.profile.badges.size == 0) {
+            handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
         }
 
@@ -230,34 +236,34 @@ class MessageHandler(
         val songs = SongListService.getSong(user)
 
         if(songs.size >= config.queueLimit) {
-            listener.sendChat("더이상 노래를 신청할 수 없습니다. 잠시 뒤 다시 시도해주세요!")
+            handler.sendChat("더이상 노래를 신청할 수 없습니다. 잠시 뒤 다시 시도해주세요!")
             return
         }
-        if(songs.filter { it.uid == msg.userId }.size  >= config.personalLimit) {
-            listener.sendChat("더이상 노래를 신청할 수 없습니다. 잠시 뒤 다시 시도해주세요!")
+        if(songs.filter { it.uid == msg.senderChannelId }.size  >= config.personalLimit) {
+            handler.sendChat("더이상 노래를 신청할 수 없습니다. 잠시 뒤 다시 시도해주세요!")
             return
         }
 
         try {
             val video = getYoutubeVideo(url)
             if (video == null) {
-                listener.sendChat("유튜브에서 찾을 수 없어요!")
+                handler.sendChat("유튜브에서 찾을 수 없어요!")
                 return
             }
 
             if (songs.any { it.url == video.url }) {
-                listener.sendChat("같은 노래가 이미 신청되어 있습니다.")
+                handler.sendChat("같은 노래가 이미 신청되어 있습니다.")
                 return
             }
 
             if (video.length > 600) {
-                listener.sendChat("10분이 넘는 노래는 신청할 수 없습니다.")
+                handler.sendChat("10분이 넘는 노래는 신청할 수 없습니다.")
                 return
             }
 
             SongListService.saveSong(
                 user,
-                msg.userId,
+                msg.senderChannelId,
                 video.url,
                 video.name,
                 video.author,
@@ -269,31 +275,31 @@ class MessageHandler(
                     SongEvent(
                         user.token,
                         SongType.ADD,
-                        msg.userId,
+                        msg.senderChannelId,
                         null,
                         video,
                     )
                 )
             }
 
-            listener.sendChat("노래가 추가되었습니다. ${video.name} - ${video.author}")
+            handler.sendChat("노래가 추가되었습니다. ${video.name} - ${video.author}")
         } catch(e: Exception) {
-            listener.sendChat("유튜브 영상 주소로 다시 신청해주세요!")
+            handler.sendChat("유튜브 영상 주소로 다시 신청해주세요!")
             logger.info(e.stackTraceToString())
         }
     }
 
-    private fun songListCommand(msg: ChatMessage, user: User) {
+    private fun songListCommand(msg: SessionChatMessage, user: User) {
         if(SongConfigService.getConfig(user).disabled) {
             return
         }
         
-        listener.sendChat("리스트는 여기입니다. https://nabot.mori.space/songs/${user.token}")
+        handler.sendChat("리스트는 여기입니다. https://nabot.mori.space/songs/${user.token}")
     }
 
-    private fun songStartCommand(msg: ChatMessage, user: User) {
-        if (msg.profile?.userRoleCode == "common_user") {
-            listener.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+    private fun songStartCommand(msg: SessionChatMessage, user: User) {
+        if (msg.profile?.badges?.size == 0) {
+            handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
         }
 
@@ -306,28 +312,28 @@ class MessageHandler(
                 }
             }
         } else {
-            listener.sendChat("나봇 홈페이지의 노래목록 페이지를 이용해주세요! 디스코드 연동을 하시면 DM으로 바로 전송됩니다.")
+            handler.sendChat("나봇 홈페이지의 노래목록 페이지를 이용해주세요! 디스코드 연동을 하시면 DM으로 바로 전송됩니다.")
         }
     }
 
-    internal fun handle(msg: ChatMessage, user: User) {
-        if(msg.userId == ChzzkHandler.botUid) return
+    internal fun handle(msg: SessionChatMessage, user: User) {
+        if(msg.senderChannelId == ChzzkHandler.botUid) return
 
         val commandKey = msg.content.split(' ')[0]
         commands[commandKey.lowercase()]?.let { it(msg, user) }
     }
 
-    private fun replaceCounters(chat: Pair<String, String>, user: User, msg: ChatMessage, listener: ChzzkChat, userName: String): String {
+    private fun replaceCounters(chat: Pair<String, String>, user: User, msg: SessionChatMessage, userName: String): String {
         var result = chat.first
         var isFail = false
 
         // Replace dailyCounterPattern
         result = dailyCounterPattern.replace(result) { matchResult ->
             val name = matchResult.groupValues[1]
-            val dailyCounter = CounterService.getDailyCounterValue(name, msg.userId, user)
+            val dailyCounter = CounterService.getDailyCounterValue(name, msg.senderChannelId, user)
 
             if (dailyCounter.second) {
-                CounterService.updateDailyCounterValue(name, msg.userId, 1, user).first.toString()
+                CounterService.updateDailyCounterValue(name, msg.senderChannelId, 1, user).first.toString()
             } else {
                 isFail = true
                 dailyCounter.first.toString()
@@ -339,7 +345,7 @@ class MessageHandler(
             result = chat.second
             result = dailyCounterPattern.replace(result) { matchResult ->
                 val name = matchResult.groupValues[1]
-                val dailyCounter = CounterService.getDailyCounterValue(name, msg.userId, user)
+                val dailyCounter = CounterService.getDailyCounterValue(name, msg.senderChannelId, user)
                 dailyCounter.first.toString()
             }
         }
@@ -347,7 +353,7 @@ class MessageHandler(
         // Replace followPattern
         result = followPattern.replace(result) { _ ->
             try {
-                val followingDate = getFollowDate(listener.chatId, msg.userId)
+                val followingDate = getFollowDate(channel.channelId, msg.senderChannelId)
                     .content?.streamingProperty?.following?.followDate
 
                 val period = followingDate?.let {
@@ -383,7 +389,7 @@ class MessageHandler(
         // Replace personalCounterPattern
         result = personalCounterPattern.replace(result) { matchResult ->
             val name = matchResult.groupValues[1]
-            CounterService.updatePersonalCounterValue(name, msg.userId, 1, user).toString()
+            CounterService.updatePersonalCounterValue(name, msg.senderChannelId, 1, user).toString()
         }
 
         // Replace namePattern
@@ -391,5 +397,4 @@ class MessageHandler(
 
         return result
     }
-
 }
