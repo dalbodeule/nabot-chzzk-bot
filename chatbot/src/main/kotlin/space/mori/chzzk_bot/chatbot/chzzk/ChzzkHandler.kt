@@ -1,25 +1,31 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
+import okhttp3.OkHttpClient
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import space.mori.chzzk_bot.chatbot.chzzk.Connector.chzzk
+import space.mori.chzzk_bot.chatbot.chzzk.Connector.client as ChzzkClient
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.getChannel
 import space.mori.chzzk_bot.chatbot.discord.Discord
+import space.mori.chzzk_bot.chatbot.utils.refreshAccessToken
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
 import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.*
-import xyz.r2turntrue.chzzk4j.chat.ChatEventListener
-import xyz.r2turntrue.chzzk4j.chat.ChatMessage
-import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
+import xyz.r2turntrue.chzzk4j.ChzzkClient
+import xyz.r2turntrue.chzzk4j.auth.ChzzkSimpleUserLoginAdapter
+import xyz.r2turntrue.chzzk4j.session.ChzzkSessionBuilder
+import xyz.r2turntrue.chzzk4j.session.ChzzkSessionSubscriptionType
+import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
+import xyz.r2turntrue.chzzk4j.session.event.SessionChatMessageEvent
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
 import java.lang.Exception
 import java.net.SocketTimeoutException
@@ -37,18 +43,17 @@ object ChzzkHandler {
     }
 
     fun enable() {
-        botUid = chzzk.loggedUser.userId
         UserService.getAllUsers().map {
             if(!it.isDisabled)
                 try {
-                    chzzk.getChannel(it.token)?.let { token -> addUser(token, it) }
+                    Connector.getChannel(it.token)?.let { token -> addUser(token, it) }
                 } catch(e: Exception) {
                     logger.info("Exception: ${it.token}(${it.username}) not found. ${e.stackTraceToString()}")
                 }
         }
 
         handlers.forEach { handler ->
-            val streamInfo = getStreamInfo(handler.listener.channelId)
+            val streamInfo = getStreamInfo(handler.channel.channelId)
             if (streamInfo.content?.status == "OPEN") handler.isActive(true, streamInfo)
         }
 
@@ -199,7 +204,8 @@ class UserHandler(
     var streamStartTime: LocalDateTime?,
 ) {
     var messageHandler: MessageHandler
-    var listener: ChzzkChat
+    lateinit var client: ChzzkClient
+    lateinit var listener: ChzzkUserSession
 
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
     private var _isActive: Boolean
@@ -209,35 +215,30 @@ class UserHandler(
         }
 
     init {
-        listener = chzzk.chat(channel.channelId)
-            .withAutoReconnect(true)
-            .withChatListener(object : ChatEventListener {
-                override fun onConnect(chat: ChzzkChat, isReconnecting: Boolean) {
-                    logger.info("${channel.channelName} - ${channel.channelId} / reconnected: $isReconnecting")
-                }
+        val user = UserService.getUser(channel.channelId)
 
-                override fun onError(ex: Exception) {
-                    logger.info("ChzzkChat error. ${channel.channelName} - ${channel.channelId}")
-                    logger.info(ex.stackTraceToString())
-                }
+        if(user?.accessToken == null || user.refreshToken == null) {
+            throw RuntimeException("AccessToken or RefreshToken is not valid.")
+        }
 
-                override fun onChat(msg: ChatMessage) {
-                    if(!_isActive) return
-                    messageHandler.handle(msg, user)
-                }
+        val tokens = ChzzkClient.refreshAccessToken(user.refreshToken!!)
 
-                override fun onConnectionClosed(code: Int, reason: String?, remote: Boolean, tryingToReconnect: Boolean) {
-                    logger.info("ChzzkChat closed. ${channel.channelName} - ${channel.channelId}")
-                    logger.info("Reason: $reason / $tryingToReconnect")
-                }
-            })
-            .build()
+        client = Connector.getClient(tokens.first, tokens.second)
+        listener = ChzzkSessionBuilder(client).buildUserSession()
+
+        UserService.setRefreshToken(user, tokens.first, tokens.second)
+
+        listener.createAndConnectAsync().join()
+
+        listener.on(SessionChatMessageEvent::class.java) {
+            messageHandler.handle(it.message, user)
+        }
         messageHandler = MessageHandler(this@UserHandler)
     }
 
-
     internal fun disable() {
-        listener.closeAsync()
+        listener.disconnectAsync().join()
+        _isActive = false
     }
 
     internal fun reloadCommand() {
@@ -259,7 +260,7 @@ class UserHandler(
                 reloadUser(UserService.getUser(user.id.value)!!)
 
                 logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
-                listener.connectAsync().await()
+                listener.subscribeAsync(ChzzkSessionSubscriptionType.CHAT)
 
                 streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
 
@@ -285,7 +286,7 @@ class UserHandler(
                     delay(5000L)
                     try {
                         if(!user.isDisableStartupMsg)
-                            listener.sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
+                            sendChat("${user.username} 님! 오늘도 열심히 방송하세요!")
                         Discord.sendDiscord(user, status)
                     } catch(e: Exception) {
                         logger.info("Stream on logic has some error: ${e.stackTraceToString()}")
@@ -295,7 +296,7 @@ class UserHandler(
         } else {
             logger.info("${user.username} is offline.")
             streamStartTime = null
-            listener.closeAsync()
+            listener.disconnectAsync().join()
             _isActive = false
 
             CoroutineScope(Dispatchers.Default).launch {
@@ -318,5 +319,9 @@ class UserHandler(
                 events.forEach { dispatcher.post(it) }
             }
         }
+    }
+
+    internal fun sendChat(msg: String) {
+        client.sendChatToLoggedInChannel(msg)
     }
 }
