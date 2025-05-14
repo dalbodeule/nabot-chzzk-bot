@@ -226,7 +226,7 @@ class UserHandler(
         client = Connector.getClient(tokens.first, tokens.second)
         listener = ChzzkSessionBuilder(client).buildUserSession()
 
-        UserService.setTokens(user, tokens.first, tokens.second)
+        UserService.setRefreshToken(user, tokens.first, tokens.second)
 
         listener.createAndConnectAsync().join()
 
