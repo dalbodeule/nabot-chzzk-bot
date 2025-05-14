@@ -52,49 +52,6 @@ data class NicknameColor(
     val colorCode: String = ""
 )
 
-// Stream info
-data class IStreamInfo(
-    val liveId: Int = 0,
-    val liveTitle: String = "",
-    val status: String = "",
-    val liveImageUrl: String = "",
-    val defaultThumbnailImageUrl: String? = null,
-    val concurrentUserCount: Int = 0,
-    val accumulateCount: Int = 0,
-    val openDate: String = "",
-    val closeDate: String = "",
-    val adult: Boolean = false,
-    val clipActive: Boolean = false,
-    val tags: List<String> = emptyList(),
-    val chatChannelId: String = "",
-    val categoryType: String = "",
-    val liveCategory: String = "",
-    val liveCategoryValue: String = "",
-    val chatActive: Boolean = true,
-    val chatAvailableGroup: String = "",
-    val paidPromotion: Boolean = false,
-    val chatAvailableCondition: String = "",
-    val minFollowerMinute: Int = 0,
-    val livePlaybackJson: String = "",
-    val p2pQuality: List<Any> = emptyList(),
-    val channel: Channel = Channel(),
-    val livePollingStatusJson: String = "",
-    val userAdultStatus: String? = null,
-    val chatDonationRankingExposure: Boolean = true,
-    val adParameter: AdParameter = AdParameter()
-)
-
-data class Channel(
-    val channelId: String = "",
-    val channelName: String = "",
-    val channelImageUrl: String = "",
-    val verifiedMark: Boolean = false
-)
-
-data class AdParameter(
-    val tag: String = ""
-)
-
 // OkHttpClient에 Interceptor 추가
 val client = OkHttpClient.Builder()
     .addNetworkInterceptor { chain ->
@@ -123,44 +80,6 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent?> {
             return follow
         } catch(e: Exception) {
             println(e.stackTrace)
-            throw e
-        }
-    }
-}
-
-fun getStreamInfo(userId: String) : IData<IStreamInfo?> {
-    val url = "https://api.chzzk.naver.com/service/v3/channels/${userId}/live-detail"
-    val request = Request.Builder()
-        .url(url)
-        .build()
-
-    client.newCall(request).execute().use { response ->
-        try {
-            if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
-            val body = response.body?.string()
-            val follow = gson.fromJson(body, object: TypeToken<IData<IStreamInfo?>>() {})
-
-            return follow
-        } catch(e: Exception) {
-            throw e
-        }
-    }
-}
-
-fun getUserInfo(userId: String): IData<Channel?> {
-    val url = "https://api.chzzk.naver.com/service/v1/channels/${userId}"
-    val request = Request.Builder()
-        .url(url)
-        .build()
-
-    client.newCall(request).execute().use { response ->
-        try {
-            if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
-            val body = response.body?.string()
-            val channel = gson.fromJson(body, object: TypeToken<IData<Channel?>>() {})
-
-            return channel
-        } catch(e: Exception) {
             throw e
         }
     }

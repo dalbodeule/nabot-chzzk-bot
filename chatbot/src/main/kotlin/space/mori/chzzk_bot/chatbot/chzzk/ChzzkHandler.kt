@@ -1,12 +1,9 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.future.await
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -21,12 +18,12 @@ import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.common.utils.*
 import xyz.r2turntrue.chzzk4j.ChzzkClient
-import xyz.r2turntrue.chzzk4j.auth.ChzzkSimpleUserLoginAdapter
 import xyz.r2turntrue.chzzk4j.session.ChzzkSessionBuilder
 import xyz.r2turntrue.chzzk4j.session.ChzzkSessionSubscriptionType
 import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
 import xyz.r2turntrue.chzzk4j.session.event.SessionChatMessageEvent
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
+import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveStatus
 import java.lang.Exception
 import java.net.SocketTimeoutException
 import java.time.LocalDateTime
@@ -53,8 +50,8 @@ object ChzzkHandler {
         }
 
         handlers.forEach { handler ->
-            val streamInfo = getStreamInfo(handler.channel.channelId)
-            if (streamInfo.content?.status == "OPEN") handler.isActive(true, streamInfo)
+            val streamInfo = Connector.getLive(handler.channel.channelId)
+            if (streamInfo?.isOnline == true) handler.isActive(true, streamInfo)
         }
 
         dispatcher.subscribe(UserRegisterEvent::class) {
@@ -113,15 +110,15 @@ object ChzzkHandler {
                 handlers.forEach {
                     if (!running) return@forEach
                     try {
-                        val streamInfo = getStreamInfo(it.channel.channelId)
-                        if (streamInfo.content?.status == "OPEN" && !it.isActive) {
+                        val streamInfo = Connector.getLive(it.channel.channelId)
+                        if (streamInfo?.isOnline == true && !it.isActive) {
                             try {
                                 it.isActive(true, streamInfo)
                             } catch(e: Exception) {
                                 logger.info("Exception: ${e.stackTraceToString()}")
                             }
                         }
-                        if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
+                        if (streamInfo?.isOnline == false && it.isActive) it.isActive(false, streamInfo)
                     } catch (e: SocketTimeoutException) {
                         logger.info("Thread 1 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
@@ -141,19 +138,19 @@ object ChzzkHandler {
                 handlers.forEach {
                     if (!running) return@forEach
                     try {
-                        val streamInfo = getStreamInfo(it.channel.channelId)
-                        if (streamInfo.content?.status == "OPEN" && !it.isActive) {
+                        val streamInfo = Connector.getLive(it.channel.channelId)
+                        if (streamInfo?.isOnline == true && !it.isActive) {
                             try {
                                 it.isActive(true, streamInfo)
                             } catch(e: Exception) {
                                 logger.info("Exception: ${e.stackTraceToString()}")
                             }
                         }
-                        if (streamInfo.content?.status == "CLOSE" && it.isActive) it.isActive(false, streamInfo)
+                        if (streamInfo?.isOnline == false && it.isActive) it.isActive(false, streamInfo)
                     } catch (e: SocketTimeoutException) {
-                        logger.info("Thread 2 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                        logger.info("Thread 1 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
-                        logger.info("Thread 2 Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                        logger.info("Thread 1 Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } finally {
                         Thread.sleep(5000)
                     }
@@ -204,8 +201,8 @@ class UserHandler(
     var streamStartTime: LocalDateTime?,
 ) {
     var messageHandler: MessageHandler
-    lateinit var client: ChzzkClient
-    lateinit var listener: ChzzkUserSession
+    var client: ChzzkClient
+    var listener: ChzzkUserSession
 
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
     private var _isActive: Boolean
@@ -252,7 +249,7 @@ class UserHandler(
     internal val isActive: Boolean
         get() = _isActive
 
-    internal fun isActive(value: Boolean, status: IData<IStreamInfo?>) {
+    internal fun isActive(value: Boolean, status: ChzzkLiveStatus) {
         if(value) {
             CoroutineScope(Dispatchers.Default).launch {
                 logger.info("${user.username} is live.")
@@ -262,7 +259,7 @@ class UserHandler(
                 logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
                 listener.subscribeAsync(ChzzkSessionSubscriptionType.CHAT)
 
-                streamStartTime = status.content?.openDate?.let { convertChzzkDateToLocalDateTime(it) }
+                streamStartTime = LocalDateTime.now()
 
                 if(!_isActive) {
                     _isActive = true

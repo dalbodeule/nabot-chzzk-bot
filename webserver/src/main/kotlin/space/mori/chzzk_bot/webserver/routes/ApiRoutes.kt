@@ -11,7 +11,10 @@ import space.mori.chzzk_bot.common.events.CoroutinesEventBus
 import space.mori.chzzk_bot.common.services.SongConfigService
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.UserSession
-import space.mori.chzzk_bot.webserver.utils.ChzzkUserCache
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.withTimeoutOrNull
+import space.mori.chzzk_bot.common.events.ChzzkUserFindEvent
+import space.mori.chzzk_bot.common.events.ChzzkUserReceiveEvent
 
 @Serializable
 data class GetUserDTO(
@@ -36,6 +39,16 @@ data class GetSessionDTO(
 fun Routing.apiRoutes() {
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
+    suspend fun getChzzkUserWithId(uid: String): ChzzkUserReceiveEvent? {
+        val completableDeferred = CompletableDeferred< ChzzkUserReceiveEvent>()
+        val user = withTimeoutOrNull(5000) {
+            dispatcher.post(ChzzkUserFindEvent(uid))
+            completableDeferred.await()
+        }
+
+        return user
+    }
+
     route("/") {
         get {
             call.respondText("Hello World!", status =
@@ -50,21 +63,21 @@ fun Routing.apiRoutes() {
 
     route("/user/{uid}") {
         get {
-            val uid = call.parameters["uid"]
+        val uid = call.parameters["uid"]
             if(uid == null) {
                 call.respondText("Require UID", status = HttpStatusCode.NotFound)
                 return@get
             }
-            val user = ChzzkUserCache.getCachedUser(uid)
-            if(user?.content == null) {
+            val user = getChzzkUserWithId(uid)
+            if (user?.find == false) {
                 call.respondText("User not found", status = HttpStatusCode.NotFound)
                 return@get
             } else {
                 call.respond(HttpStatusCode.OK, GetUserDTO(
-                    user.content!!.channel.channelId,
-                    user.content!!.channel.channelName,
-                    user.content!!.status == "OPEN",
-                    user.content!!.channel.channelImageUrl
+                    user?.uid ?: "",
+                    user?.nickname ?: "",
+                    user?.isStreamOn ?: false,
+                    user?.avatarUrl ?: ""
                 ))
             }
         }
@@ -82,7 +95,7 @@ fun Routing.apiRoutes() {
                 user = UserService.saveUser("임시닉네임", session.id)
             }
             val songConfig = SongConfigService.getConfig(user)
-            val status = ChzzkUserCache.getCachedUser(session.id)
+            val status = getChzzkUserWithId(user.token)
             val returnUsers = mutableListOf<GetSessionDTO>()
 
             if(status == null) {
@@ -91,14 +104,14 @@ fun Routing.apiRoutes() {
             }
 
             if (user.username == "임시닉네임") {
-                status.content?.channel?.let { it1 -> UserService.updateUser(user, it1.channelId, it1.channelName) }
+                status.let { stats -> UserService.updateUser(user, stats.uid ?: "", stats.nickname ?: "") }
             }
 
             returnUsers.add(GetSessionDTO(
-                status.content?.channel?.channelId ?: user.username,
-                status.content?.channel?.channelName ?: user.token,
-                status.content?.status == "OPEN",
-                status.content?.channel?.channelImageUrl ?: "",
+                status.uid ?: user.token,
+                status.nickname ?: user.username,
+                status.isStreamOn == true,
+                status.avatarUrl ?: "",
                 songConfig.queueLimit,
                 songConfig.personalLimit,
                 songConfig.streamerOnly,
@@ -109,15 +122,15 @@ fun Routing.apiRoutes() {
                 user.subordinates.toList()
             }
             returnUsers.addAll(subordinates.map {
-                val subStatus = ChzzkUserCache.getCachedUser(it.token)
-                return@map if (subStatus?.content == null) {
+                val subStatus = getChzzkUserWithId(user.token)
+                return@map if (subStatus == null) {
                     null
                 } else {
                     GetSessionDTO(
-                        subStatus.content!!.channel.channelId,
-                        subStatus.content!!.channel.channelName,
-                        subStatus.content!!.status == "OPEN",
-                        subStatus.content!!.channel.channelImageUrl,
+                        subStatus.uid ?: "",
+                        subStatus.nickname ?: "",
+                        subStatus.isStreamOn == true,
+                        subStatus.avatarUrl ?: "",
                         0,
                         0,
                         false,
