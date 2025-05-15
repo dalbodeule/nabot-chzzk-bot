@@ -40,12 +40,16 @@ fun Routing.apiRoutes() {
     val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     suspend fun getChzzkUserWithId(uid: String): ChzzkUserReceiveEvent? {
-        val completableDeferred = CompletableDeferred< ChzzkUserReceiveEvent>()
+        val completableDeferred = CompletableDeferred<ChzzkUserReceiveEvent>()
+        dispatcher.subscribe(ChzzkUserReceiveEvent::class) { event ->
+            if (event.uid == uid) {
+                completableDeferred.complete(event)
+            }
+        }
         val user = withTimeoutOrNull(5000) {
             dispatcher.post(ChzzkUserFindEvent(uid))
             completableDeferred.await()
         }
-
         return user
     }
 

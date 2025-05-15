@@ -199,7 +199,10 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 listOf()
                             )
                         )
-                        user?.let { UserService.setRefreshToken(it, tokenResponse.content.accessToken, tokenResponse.content.refreshToken ?: "") }
+                        user?.let { UserService.setRefreshToken(it,
+                            tokenResponse.content.accessToken,
+                            tokenResponse.content.refreshToken ?: ""
+                        ) }
                         call.respondRedirect(getFrontendURL(""))
                     }
                 } catch (e: Exception) {

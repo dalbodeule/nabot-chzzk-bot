@@ -7,10 +7,8 @@ import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import space.mori.chzzk_bot.chatbot.chzzk.Connector.client as ChzzkClient
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.getChannel
 import space.mori.chzzk_bot.chatbot.discord.Discord
-import space.mori.chzzk_bot.chatbot.utils.refreshAccessToken
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
@@ -217,20 +215,28 @@ class UserHandler(
         if(user?.accessToken == null || user.refreshToken == null) {
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
+        try {
 
-        val tokens = ChzzkClient.refreshAccessToken(user.refreshToken!!)
+            client = Connector.getClient(user.accessToken!!, user.refreshToken!!)
 
-        client = Connector.getClient(tokens.first, tokens.second)
-        listener = ChzzkSessionBuilder(client).buildUserSession()
+            client.loginAsync().join()
+            client.refreshTokenAsync().join()
 
-        UserService.setRefreshToken(user, tokens.first, tokens.second)
+            UserService.setRefreshToken(user, client.loginResult.accessToken(), client.loginResult.refreshToken())
 
-        listener.createAndConnectAsync().join()
+            listener = ChzzkSessionBuilder(client).buildUserSession()
 
-        listener.on(SessionChatMessageEvent::class.java) {
-            messageHandler.handle(it.message, user)
+            listener.createAndConnectAsync().join()
+
+            messageHandler = MessageHandler(this@UserHandler)
+
+            listener.on(SessionChatMessageEvent::class.java) {
+                messageHandler.handle(it.message, user)
+            }
+        } catch(e: Exception) {
+            logger.error("Exception(${user.username}): ${e.stackTraceToString()}")
+            throw RuntimeException("Exception: ${e.stackTraceToString()}")
         }
-        messageHandler = MessageHandler(this@UserHandler)
     }
 
     internal fun disable() {
