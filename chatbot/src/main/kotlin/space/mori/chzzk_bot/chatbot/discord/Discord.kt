@@ -44,7 +44,7 @@ class Discord: ListenerAdapter() {
                 embed.setTimestamp(Instant.now())
                 embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}")
                 embed.addField("카테고리", status.categoryType.getOrNull() ?: "Unknown", true)
-                embed.addField("태그", status.tags.joinToString { "," }, true)
+                embed.addField("태그", status.tags.joinToString(", ") { it.trim() }, true)
                 // embed.setImage(status.)
 
                 channel.sendMessage(
