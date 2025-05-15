@@ -43,7 +43,7 @@ class Discord: ListenerAdapter() {
                 embed.setDescription("${user.username} 님이 방송을 시작했습니다.")
                 embed.setTimestamp(Instant.now())
                 embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}")
-                embed.addField("카테고리", status.categoryType.getOrNull() ?: "Unknown", true)
+                embed.addField("카테고리", status.liveCategoryValue, true)
                 embed.addField("태그", status.tags.joinToString(", ") { it.trim() }, true)
                 // embed.setImage(status.)
 

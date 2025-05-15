@@ -22,12 +22,16 @@ import io.ktor.server.websocket.*
 import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.koin.java.KoinJavaComponent.inject
+import space.mori.chzzk_bot.common.events.CoroutinesEventBus
+import space.mori.chzzk_bot.common.events.UserRegisterEvent
 import space.mori.chzzk_bot.common.services.UserService
 import space.mori.chzzk_bot.webserver.routes.*
 import space.mori.chzzk_bot.webserver.utils.DiscordRatelimits
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.time.Duration
+import kotlin.getValue
 import kotlin.time.toKotlinDuration
 
 val dotenv = dotenv {
@@ -81,6 +85,8 @@ val server = embeddedServer(Netty, port = 8080, ) {
         }
     }
     routing {
+        val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
+
         route("/auth") {
             // discord login
             authenticate("auth-oauth-discord") {
@@ -191,7 +197,12 @@ val server = embeddedServer(Netty, port = 8080, ) {
                     val userInfo = getChzzkUser(tokenResponse.content.accessToken)
 
                     if(userInfo.content != null) {
-                        val user = UserService.getUser(userInfo.content.channelId)
+                        var user = UserService.getUser(userInfo.content.channelId)
+
+                        if(user == null) {
+                            user = UserService.saveUser(userInfo.content.channelName , userInfo.content.channelId)
+                        }
+
                         call.sessions.set(
                             UserSession(
                                 session.state,
@@ -199,10 +210,13 @@ val server = embeddedServer(Netty, port = 8080, ) {
                                 listOf()
                             )
                         )
-                        user?.let { UserService.setRefreshToken(it,
+                        UserService.setRefreshToken(user,
                             tokenResponse.content.accessToken,
                             tokenResponse.content.refreshToken ?: ""
-                        ) }
+                        )
+
+                        dispatcher.post(UserRegisterEvent(user.token))
+
                         call.respondRedirect(getFrontendURL(""))
                     }
                 } catch (e: Exception) {
