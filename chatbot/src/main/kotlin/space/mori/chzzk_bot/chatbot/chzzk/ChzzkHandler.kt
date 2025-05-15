@@ -38,6 +38,7 @@ object ChzzkHandler {
     }
 
     fun enable() {
+        botUid = Connector.client.fetchLoggedUser().userId
         UserService.getAllUsers().map {
             if(!it.isDisabled)
                 try {
