@@ -126,7 +126,7 @@ fun Routing.apiRoutes() {
                 user.subordinates.toList()
             }
             returnUsers.addAll(subordinates.map {
-                val subStatus = getChzzkUserWithId(user.token)
+                val subStatus = getChzzkUserWithId(it.token)
                 return@map if (subStatus == null) {
                     null
                 } else {
