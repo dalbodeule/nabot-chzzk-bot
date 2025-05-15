@@ -12,11 +12,11 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.slf4j.LoggerFactory
-import space.mori.chzzk_bot.common.utils.IData
-import space.mori.chzzk_bot.common.utils.IStreamInfo
 import space.mori.chzzk_bot.chatbot.discord.commands.*
 import space.mori.chzzk_bot.common.models.User
+import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveStatus
 import java.time.Instant
+import kotlin.jvm.optionals.getOrNull
 
 val dotenv = dotenv {
     ignoreIfMissing = true
@@ -33,20 +33,19 @@ class Discord: ListenerAdapter() {
             return bot.getGuildById(guildId)?.getTextChannelById(channelId)
         }
 
-        fun sendDiscord(user: User, status: IData<IStreamInfo?>) {
-            if(status.content == null) return
+        fun sendDiscord(user: User, status: ChzzkLiveStatus) {
             if(user.liveAlertMessage != null && user.liveAlertGuild != null && user.liveAlertChannel != null) {
                 val channel = getChannel(user.liveAlertGuild ?: 0, user.liveAlertChannel ?: 0)
                     ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
 
                 val embed = EmbedBuilder()
-                embed.setTitle(status.content!!.liveTitle, "https://chzzk.naver.com/live/${user.token}")
+                embed.setTitle(status.title, "https://chzzk.naver.com/live/${user.token}")
                 embed.setDescription("${user.username} 님이 방송을 시작했습니다.")
                 embed.setTimestamp(Instant.now())
-                embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}", status.content!!.channel.channelImageUrl)
-                embed.addField("카테고리", status.content!!.liveCategoryValue, true)
-                embed.addField("태그", status.content!!.tags.joinToString(", "), true)
-                embed.setImage(status.content!!.liveImageUrl.replace("{type}", "1080"))
+                embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}")
+                embed.addField("카테고리", status.categoryType.getOrNull() ?: "Unknown", true)
+                embed.addField("태그", status.tags.joinToString { "," }, true)
+                // embed.setImage(status.)
 
                 channel.sendMessage(
                     MessageCreateBuilder()
