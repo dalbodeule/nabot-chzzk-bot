@@ -14,7 +14,7 @@ import xyz.r2turntrue.chzzk4j.ChzzkClientBuilder
 import xyz.r2turntrue.chzzk4j.auth.ChzzkLegacyLoginAdapter
 import xyz.r2turntrue.chzzk4j.auth.ChzzkSimpleUserLoginAdapter
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
-import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveStatus
+import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveDetail
 import kotlin.getValue
 
 val dotenv = dotenv {
@@ -31,7 +31,7 @@ object Connector {
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     fun getChannel(channelId: String): ChzzkChannel? = client.fetchChannel(channelId)
-    fun getLive(channelId: String): ChzzkLiveStatus? = client.fetchLiveStatus(channelId)
+    fun getLive(channelId: String): ChzzkLiveDetail? = client.fetchLiveDetail(channelId)
 
     init {
         logger.info("chzzk logged: ${client.isLoggedIn}")
