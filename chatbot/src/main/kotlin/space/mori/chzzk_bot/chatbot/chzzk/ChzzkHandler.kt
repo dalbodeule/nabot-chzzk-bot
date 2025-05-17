@@ -23,7 +23,7 @@ import xyz.r2turntrue.chzzk4j.session.ChzzkSessionSubscriptionType
 import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
 import xyz.r2turntrue.chzzk4j.session.event.SessionChatMessageEvent
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
-import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveStatus
+import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveDetail
 import java.lang.Exception
 import java.net.SocketTimeoutException
 import java.time.LocalDateTime
@@ -259,7 +259,7 @@ class UserHandler(
     internal val isActive: Boolean
         get() = _isActive
 
-    internal fun isActive(value: Boolean, status: ChzzkLiveStatus) {
+    internal fun isActive(value: Boolean, status: ChzzkLiveDetail) {
         if(value) {
             CoroutineScope(Dispatchers.Default).launch {
                 logger.info("${user.username} is live.")
@@ -267,7 +267,7 @@ class UserHandler(
                 reloadUser(UserService.getUser(user.id.value)!!)
 
                 logger.info("ChzzkChat connecting... ${channel.channelName} - ${channel.channelId}")
-                listener.subscribeAsync(ChzzkSessionSubscriptionType.CHAT)
+                listener.subscribeAsync(ChzzkSessionSubscriptionType.CHAT).join()
 
                 streamStartTime = LocalDateTime.now()
 

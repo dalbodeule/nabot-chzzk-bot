@@ -14,7 +14,8 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.discord.commands.*
 import space.mori.chzzk_bot.common.models.User
-import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveStatus
+import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveDetail
+import xyz.r2turntrue.chzzk4j.types.channel.live.Resolution
 import java.time.Instant
 import kotlin.jvm.optionals.getOrNull
 
@@ -33,7 +34,7 @@ class Discord: ListenerAdapter() {
             return bot.getGuildById(guildId)?.getTextChannelById(channelId)
         }
 
-        fun sendDiscord(user: User, status: ChzzkLiveStatus) {
+        fun sendDiscord(user: User, status: ChzzkLiveDetail) {
             if(user.liveAlertMessage != null && user.liveAlertGuild != null && user.liveAlertChannel != null) {
                 val channel = getChannel(user.liveAlertGuild ?: 0, user.liveAlertChannel ?: 0)
                     ?: throw RuntimeException("${user.liveAlertChannel} is not valid.")
@@ -45,7 +46,14 @@ class Discord: ListenerAdapter() {
                 embed.setAuthor(user.username, "https://chzzk.naver.com/live/${user.token}")
                 embed.addField("카테고리", status.liveCategoryValue, true)
                 embed.addField("태그", status.tags.joinToString(", ") { it.trim() }, true)
-                // embed.setImage(status.)
+                status.defaultThumbnailImageUrl.getOrNull()?.let { embed.setImage(it) }
+                    ?: Resolution.entries.reversed().forEach {
+                        val thumbnail = status.getLiveImageUrl(it)
+                        if (thumbnail != null) {
+                            embed.setImage(thumbnail)
+                            return@forEach
+                        }
+                    }
 
                 channel.sendMessage(
                     MessageCreateBuilder()
