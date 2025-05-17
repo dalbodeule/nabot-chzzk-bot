@@ -1,7 +1,9 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
@@ -25,6 +27,7 @@ import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveStatus
 import java.lang.Exception
 import java.net.SocketTimeoutException
 import java.time.LocalDateTime
+import java.nio.charset.Charset
 
 object ChzzkHandler {
     private val handlers = mutableListOf<UserHandler>()
@@ -325,7 +328,21 @@ class UserHandler(
         }
     }
 
+    private fun String.limitUtf8Length(maxBytes: Int): String {
+        val bytes = this.toByteArray(Charset.forName("UTF-8"))
+        if (bytes.size <= maxBytes) return this
+        var truncatedString = this
+        while (truncatedString.toByteArray(Charset.forName("UTF-8")).size > maxBytes) {
+            truncatedString = truncatedString.substring(0, truncatedString.length - 1)
+        }
+        return truncatedString
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
     internal fun sendChat(msg: String) {
-        client.sendChatToLoggedInChannel(msg)
+        GlobalScope.launch {
+            delay(100L)
+            client.sendChatToLoggedInChannel(msg.limitUtf8Length(100))
+        }
     }
 }
