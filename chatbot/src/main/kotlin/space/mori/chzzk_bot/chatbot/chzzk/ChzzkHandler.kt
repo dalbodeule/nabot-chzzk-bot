@@ -37,7 +37,7 @@ object ChzzkHandler {
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
 
     fun addUser(chzzkChannel: ChzzkChannel, user: User) {
-        handlers.add(UserHandler(chzzkChannel, logger, user, streamStartTime = null))
+        handlers.add(UserHandler(chzzkChannel, logger, user, streamStartTime = LocalDateTime.now()))
     }
 
     fun enable() {
@@ -196,6 +196,7 @@ object ChzzkHandler {
     }
 }
 
+@OptIn(DelicateCoroutinesApi::class)
 class UserHandler(
     val channel: ChzzkChannel,
     val logger: Logger,
