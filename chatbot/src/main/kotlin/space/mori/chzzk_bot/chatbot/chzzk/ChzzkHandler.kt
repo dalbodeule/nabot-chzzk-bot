@@ -237,6 +237,26 @@ class UserHandler(
             listener.on(SessionChatMessageEvent::class.java) {
                 messageHandler.handle(it.message, user)
             }
+
+            GlobalScope.launch {
+                val timer = TimerConfigService.getConfig(user)
+                if (timer?.option == TimerType.UPTIME.value)
+                    dispatcher.post(
+                        TimerEvent(
+                            channel.channelId,
+                            TimerType.UPTIME,
+                            getUptime(streamStartTime!!)
+                        )
+                    )
+                else dispatcher.post(
+                    TimerEvent(
+                        channel.channelId,
+                        TimerType.entries.firstOrNull { it.value == timer?.option } ?: TimerType.REMOVE,
+                        null
+                    )
+                )
+            }
+            
         } catch(e: Exception) {
             logger.error("Exception(${user.username}): ${e.stackTraceToString()}")
             throw RuntimeException("Exception: ${e.stackTraceToString()}")
