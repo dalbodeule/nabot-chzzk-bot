@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.getChannel
 import space.mori.chzzk_bot.chatbot.discord.Discord
+import space.mori.chzzk_bot.chatbot.utils.refreshAccessToken
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
@@ -221,13 +222,12 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-
-            client = Connector.getClient(user.accessToken!!, user.refreshToken!!)
+            val tokens = Connector.client.refreshAccessToken(user.refreshToken!!)
+            client = Connector.getClient(tokens.first, tokens.second)
+            UserService.setRefreshToken(user, tokens.first, tokens.second)
 
             client.loginAsync().join()
             client.refreshTokenAsync().join()
-
-            UserService.setRefreshToken(user, client.loginResult.accessToken(), client.loginResult.refreshToken())
 
             listener = ChzzkSessionBuilder(client).buildUserSession()
 
