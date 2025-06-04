@@ -11,6 +11,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import space.mori.chzzk_bot.chatbot.chzzk.Connector.getChannel
 import space.mori.chzzk_bot.chatbot.discord.Discord
+import space.mori.chzzk_bot.chatbot.utils.refreshAccessToken
 import space.mori.chzzk_bot.common.events.*
 import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
