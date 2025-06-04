@@ -29,7 +29,7 @@ data class RefreshTokenResponse(
 )
 
 fun ChzzkClient.refreshAccessToken(refreshToken: String): Pair<String, String> {
-    val url = "https://openapi.chzzk.naver.com/auth/v1/token"
+    val url = "https://chzzk.naver.com/auth/v1/token"
     val request = Request.Builder()
         .url(url)
         .header("Content-Type", "application/json")
