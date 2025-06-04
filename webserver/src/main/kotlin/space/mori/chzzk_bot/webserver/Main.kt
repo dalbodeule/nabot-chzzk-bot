@@ -181,7 +181,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
                         clientSecret = dotenv["NAVER_CLIENT_SECRET"]
                     )
 
-                    val response = applicationHttpClient.post("https://chzzk.naver.com/auth/v1/token") {
+                    val response = applicationHttpClient.post("https://openapi.chzzk.naver.com/auth/v1/token") {
                         contentType(ContentType.Application.Json)
                         setBody(tokenRequest)
                     }
