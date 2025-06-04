@@ -353,15 +353,15 @@ class MessageHandler(
         // Replace followPattern
         result = followPattern.replace(result) { _ ->
             try {
-                val followingDate = getFollowDate(channel.channelId, msg.senderChannelId)
-                    .content?.streamingProperty?.following?.followDate
+                val followingDate = handler.chatChannelId?.let { getFollowDate(it, msg.senderChannelId) }
+                    ?.content?.streamingProperty?.following?.followDate ?: LocalDateTime.now().minusDays(1).toString()
 
-                val period = followingDate?.let {
+                val period = followingDate.let {
                     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                     val pastDate = LocalDateTime.parse(it, formatter)
                     val today = LocalDateTime.now()
                     ChronoUnit.DAYS.between(pastDate, today)
-                } ?: 0
+                } + 1
 
                 period.toString()
             } catch (e: Exception) {

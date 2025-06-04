@@ -206,6 +206,7 @@ class UserHandler(
     var messageHandler: MessageHandler
     var client: ChzzkClient
     var listener: ChzzkUserSession
+    var chatChannelId: String?
 
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
     private var _isActive: Boolean
@@ -221,18 +222,14 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-
-            client = Connector.getClient(user.accessToken!!, user.refreshToken!!)
+            val tokens = Connector.client.refreshAccessToken(user.refreshToken!!)
+            client = Connector.getClient(tokens.first, tokens.second)
+            UserService.setRefreshToken(user, tokens.first, tokens.second)
+            chatChannelId = getChzzkChannelId(channel.channelId)
 
             client.loginAsync().join()
-            client.refreshTokenAsync().join()
-
-            UserService.setRefreshToken(user, client.loginResult.accessToken(), client.loginResult.refreshToken())
-
             listener = ChzzkSessionBuilder(client).buildUserSession()
-
             listener.createAndConnectAsync().join()
-
             messageHandler = MessageHandler(this@UserHandler)
 
             listener.on(SessionChatMessageEvent::class.java) {

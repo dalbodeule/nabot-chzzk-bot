@@ -52,6 +52,20 @@ data class NicknameColor(
     val colorCode: String = ""
 )
 
+data class LiveStatus(
+    val liveTitle: String,
+    val status: String,
+    val concurrentUserCount: Int,
+    val accumulateCount: Int,
+    val paidPromotion: Boolean,
+    val adult: Boolean,
+    val krOnlyViewing: Boolean,
+    val openDate: String,
+    val closeDate: String?,
+    val clipActive: Boolean,
+    val chatChannelId: String
+)
+
 // OkHttpClient에 Interceptor 추가
 val client = OkHttpClient.Builder()
     .addNetworkInterceptor { chain ->
@@ -80,6 +94,27 @@ fun getFollowDate(chatID: String, userId: String) : IData<IFollowContent?> {
             return follow
         } catch(e: Exception) {
             println(e.stackTrace)
+            throw e
+        }
+    }
+}
+
+fun getChzzkChannelId(channelId: String): String? {
+    val url = "https://api.chzzk.naver.com/polling/v3/channels/$channelId/live-status?includePlayerRecommendContent=false"
+    val request = Request.Builder()
+        .url(url)
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+
+    client.newCall(request).execute().use { response ->
+        try {
+            if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
+            val body = response.body?.string()
+            val data = gson.fromJson(body, object: TypeToken<IData<LiveStatus?>>() {})
+
+            return data.content?.chatChannelId
+        } catch(e: Exception) {
             throw e
         }
     }
