@@ -223,8 +223,8 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-            val tokens = Connector.client.refreshAccessToken(user.refreshToken!!)
-            client = Connector.getClient(tokens.first, tokens.second)
+            val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token) }
+            client = Connector.getClient(tokens!!.first, tokens.second)
             UserService.setRefreshToken(user, tokens.first, tokens.second)
             chatChannelId = getChzzkChannelId(channel.channelId)
 
