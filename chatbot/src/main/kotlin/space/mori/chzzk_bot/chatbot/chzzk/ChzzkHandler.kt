@@ -46,7 +46,7 @@ object ChzzkHandler {
         UserService.getAllUsers().map {
             if(!it.isDisabled)
                 try {
-                    Connector.getChannel(it.token)?.let { token -> addUser(token, it) }
+                    getChannel(it.token)?.let { token -> addUser(token, it) }
                 } catch(e: Exception) {
                     logger.info("Exception: ${it.token}(${it.username}) not found. ${e.stackTraceToString()}")
                 }
@@ -223,7 +223,9 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-            val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token) }
+            println(user.refreshToken)
+
+            val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
             if(tokens == null) {
                 throw RuntimeException("AccessToken is not valid.")
             }

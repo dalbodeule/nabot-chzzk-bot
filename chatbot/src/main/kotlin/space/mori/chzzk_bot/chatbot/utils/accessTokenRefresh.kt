@@ -1,27 +1,15 @@
 package space.mori.chzzk_bot.chatbot.utils
 
-import com.google.gson.Gson
-import okhttp3.MediaType
+import com.google.gson.reflect.TypeToken
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import space.mori.chzzk_bot.chatbot.chzzk.dotenv
+import space.mori.chzzk_bot.common.utils.IData
 import space.mori.chzzk_bot.common.utils.client
 import xyz.r2turntrue.chzzk4j.ChzzkClient
 import java.io.IOException
 
-val client = OkHttpClient.Builder()
-    .addNetworkInterceptor { chain ->
-        chain.proceed(
-            chain.request()
-                .newBuilder()
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-                .build()
-        )
-    }
-    .build()
-val gson = Gson()
 
 data class RefreshTokenResponse(
     val accessToken: String,
@@ -48,9 +36,9 @@ fun ChzzkClient.refreshAccessToken(refreshToken: String): Pair<String, String> {
         try {
             if(!response.isSuccessful) throw IOException("Unexpected code ${response.code}")
             val body = response.body?.string()
-            val data = gson.fromJson(body, RefreshTokenResponse::class.java)
+            val data = gson.fromJson(body, object: TypeToken<IData<RefreshTokenResponse>>() {})
 
-            return Pair(data.accessToken, data.refreshToken)
+            return Pair(data.content.accessToken, data.content.refreshToken)
         } catch(e: Exception) {
             throw e
         }
