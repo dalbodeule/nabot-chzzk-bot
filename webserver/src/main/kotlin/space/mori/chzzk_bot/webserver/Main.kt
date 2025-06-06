@@ -228,8 +228,7 @@ val server = embeddedServer(Netty, port = 8080, ) {
             // common: logout
             get("/logout") {
                 call.sessions.clear<UserSession>()
-                call.response.status(HttpStatusCode.OK)
-                return@get
+                call.respondRedirect(getFrontendURL(""))
             }
         }
 

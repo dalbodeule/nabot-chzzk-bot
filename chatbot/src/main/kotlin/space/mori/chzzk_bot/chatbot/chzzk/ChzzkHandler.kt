@@ -223,8 +223,6 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-            println(user.refreshToken)
-
             val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
             if(tokens == null) {
                 throw RuntimeException("AccessToken is not valid.")
