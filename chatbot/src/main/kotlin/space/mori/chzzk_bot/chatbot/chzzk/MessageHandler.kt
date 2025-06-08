@@ -84,7 +84,7 @@ class MessageHandler(
     }
 
     private fun commandListCommand(msg: SessionChatMessage, user: User) {
-        handler.sendChat("리스트는 여기입니다. https://nabot.mori.space/commands/${user.token}")
+        handler.sendChat("리스트는 여기입니다. https://chibot.mori.space/commands/${user.token}")
     }
 
     private fun manageAddCommand(msg: SessionChatMessage, user: User) {
@@ -294,7 +294,7 @@ class MessageHandler(
             return
         }
         
-        handler.sendChat("리스트는 여기입니다. https://nabot.mori.space/songs/${user.token}")
+        handler.sendChat("리스트는 여기입니다. https://chibot.mori.space/songs/${user.token}")
     }
 
     private fun songStartCommand(msg: SessionChatMessage, user: User) {
@@ -307,7 +307,7 @@ class MessageHandler(
         if(user.discord != null) {
             bot.retrieveUserById(user.discord!!).queue { discordUser ->
                 discordUser?.openPrivateChannel()?.queue { channel ->
-                    channel.sendMessage("여기로 접속해주세요! ||https://nabot.mori.space/songlist||.")
+                    channel.sendMessage("여기로 접속해주세요! ||https://chibot.mori.space/songlist||.")
                         .queue()
                 }
             }
