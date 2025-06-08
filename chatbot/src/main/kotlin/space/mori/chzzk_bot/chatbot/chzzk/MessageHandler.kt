@@ -11,9 +11,6 @@ import space.mori.chzzk_bot.common.services.*
 import space.mori.chzzk_bot.common.utils.getFollowDate
 import space.mori.chzzk_bot.common.utils.getUptime
 import space.mori.chzzk_bot.common.utils.getYoutubeVideo
-import xyz.r2turntrue.chzzk4j.chat.ChatMessage
-import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
-import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
 import xyz.r2turntrue.chzzk4j.session.message.SessionChatMessage
 import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveSettings
 import java.time.LocalDateTime
@@ -324,14 +321,21 @@ class MessageHandler(
             handler.sendChat("카테고리가 없습니다.")
             return
         }
-        val category = parts[1]
+        val category = parts[1].let {
+            return@let when(it) {
+                "저챗", "토크", "JustChatting" -> "Talk"
+                else -> it
+            }
+        }
         handler.client.searchCategories(category).handle { result, _ ->
             if(result.size == 0) {
                 handler.sendChat("$category 카테고리는 없습니다.")
                 return@handle
             }
             val settings = ChzzkLiveSettings()
-            settings.category = result[0]
+            settings.category = result.first {
+                it.categoryValue == category
+            } ?: result[0]
 
             handler.client.modifyLiveSettings(settings)
             handler.sendChat("$category 로 수정했어요!")
