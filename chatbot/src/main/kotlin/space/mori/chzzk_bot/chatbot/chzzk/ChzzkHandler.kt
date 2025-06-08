@@ -263,6 +263,9 @@ class UserHandler(
         client.loginAsync().await()
         listener = ChzzkSessionBuilder(client).buildUserSession()
         listener.createAndConnectAsync().await()
+
+        delay(1000L)
+
         messageHandler = MessageHandler(this@UserHandler)
     }
 
