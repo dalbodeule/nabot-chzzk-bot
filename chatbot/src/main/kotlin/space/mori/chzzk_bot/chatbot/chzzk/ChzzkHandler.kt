@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -223,13 +224,13 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-            connect()
+            CoroutineScope(Dispatchers.Default).launch {
+                connect()
 
-            listener.on(SessionChatMessageEvent::class.java) {
-                messageHandler.handle(it.message, user)
-            }
+                listener.on(SessionChatMessageEvent::class.java) {
+                    messageHandler.handle(it.message, user)
+                }
 
-            GlobalScope.launch {
                 val timer = TimerConfigService.getConfig(user)
                 if (timer?.option == TimerType.UPTIME.value)
                     dispatcher.post(
@@ -247,14 +248,13 @@ class UserHandler(
                     )
                 )
             }
-            
         } catch(e: Exception) {
             logger.error("Exception(${user.username}): ${e.stackTraceToString()}")
             throw RuntimeException("Exception: ${e.stackTraceToString()}")
         }
     }
 
-    private fun connect() {
+    private suspend fun connect() = runBlocking {
         val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
         if(tokens == null) {
             throw RuntimeException("AccessToken is not valid.")
@@ -287,9 +287,9 @@ class UserHandler(
 
     internal fun isActive(value: Boolean, status: ChzzkLiveDetail) {
         if(value) {
-            connect()
-
             CoroutineScope(Dispatchers.Default).launch {
+                connect()
+
                 logger.info("${user.username} is live.")
 
                 reloadUser(UserService.getUser(user.id.value)!!)
