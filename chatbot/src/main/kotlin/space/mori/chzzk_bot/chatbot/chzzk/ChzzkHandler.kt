@@ -204,10 +204,10 @@ class UserHandler(
     private var user: User,
     var streamStartTime: LocalDateTime?,
 ) {
-    var messageHandler: MessageHandler
-    var client: ChzzkClient
-    var listener: ChzzkUserSession
-    var chatChannelId: String?
+    lateinit var messageHandler: MessageHandler
+    lateinit var client: ChzzkClient
+    lateinit var listener: ChzzkUserSession
+    lateinit var chatChannelId: String
 
     private val dispatcher: CoroutinesEventBus by inject(CoroutinesEventBus::class.java)
     private var _isActive: Boolean
@@ -223,18 +223,7 @@ class UserHandler(
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
         try {
-            val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
-            if(tokens == null) {
-                throw RuntimeException("AccessToken is not valid.")
-            }
-            client = Connector.getClient(tokens.first, tokens.second)
-            UserService.setRefreshToken(user, tokens.first, tokens.second)
-            chatChannelId = getChzzkChannelId(channel.channelId)
-
-            client.loginAsync().join()
-            listener = ChzzkSessionBuilder(client).buildUserSession()
-            listener.createAndConnectAsync().join()
-            messageHandler = MessageHandler(this@UserHandler)
+            connect()
 
             listener.on(SessionChatMessageEvent::class.java) {
                 messageHandler.handle(it.message, user)
@@ -265,6 +254,21 @@ class UserHandler(
         }
     }
 
+    private fun connect() {
+        val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
+        if(tokens == null) {
+            throw RuntimeException("AccessToken is not valid.")
+        }
+        client = Connector.getClient(tokens.first, tokens.second)
+        UserService.setRefreshToken(user, tokens.first, tokens.second)
+        chatChannelId = getChzzkChannelId(channel.channelId) ?: throw RuntimeException("Chat Channel ID is not found.")
+
+        client.loginAsync().join()
+        listener = ChzzkSessionBuilder(client).buildUserSession()
+        listener.createAndConnectAsync().join()
+        messageHandler = MessageHandler(this@UserHandler)
+    }
+
     internal fun disable() {
         listener.disconnectAsync().join()
         _isActive = false
@@ -283,6 +287,8 @@ class UserHandler(
 
     internal fun isActive(value: Boolean, status: ChzzkLiveDetail) {
         if(value) {
+            connect()
+
             CoroutineScope(Dispatchers.Default).launch {
                 logger.info("${user.username} is live.")
 
