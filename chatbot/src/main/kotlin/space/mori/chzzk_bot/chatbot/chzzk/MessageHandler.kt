@@ -87,7 +87,7 @@ class MessageHandler(
     }
 
     private fun manageAddCommand(msg: SessionChatMessage, user: User) {
-        if (msg.profile.badges.none { it.imageUrl.contains("manager") }) {
+        if (msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
             handler.sendChat("매니저만 명령어를 추가할 수 있습니다.")
             return
         }
@@ -108,7 +108,7 @@ class MessageHandler(
     }
 
     private fun manageUpdateCommand(msg: SessionChatMessage, user: User) {
-        if (msg.profile.badges.none { it.imageUrl.contains("manager") }) {
+        if (msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
             handler.sendChat("매니저만 명령어를 추가할 수 있습니다.")
             return
         }
@@ -130,7 +130,7 @@ class MessageHandler(
     }
 
     private fun manageRemoveCommand(msg: SessionChatMessage, user: User) {
-        if (msg.profile.badges.none { it.imageUrl.contains("manager") }) {
+        if (msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
             handler.sendChat("매니저만 명령어를 삭제할 수 있습니다.")
             return
         }
@@ -147,7 +147,7 @@ class MessageHandler(
     }
 
     private fun timerCommand(msg: SessionChatMessage, user: User) {
-        if (msg.profile.badges.none { it.imageUrl.contains("manager") }) {
+        if (msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
             handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
         }
@@ -226,7 +226,7 @@ class MessageHandler(
 
         val config = SongConfigService.getConfig(user)
 
-        if(config.streamerOnly && msg.profile.badges.none { it.imageUrl.contains("manager") }) {
+        if(config.streamerOnly && msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
             handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
         }
@@ -297,7 +297,7 @@ class MessageHandler(
     }
 
     private fun songStartCommand(msg: SessionChatMessage, user: User) {
-        if (msg.profile.badges.none { it.imageUrl.contains("manager") }) {
+        if (msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
             handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
             return
         }
@@ -316,6 +316,11 @@ class MessageHandler(
     }
 
     private fun categoryChangeCommand(msg: SessionChatMessage, user: User) {
+        if (msg.profile.badges.none { it.imageUrl.contains("manager") || it.imageUrl.contains("streamer") }) {
+            handler.sendChat("매니저만 이 명령어를 사용할 수 있습니다.")
+            return
+        }
+
         val parts = msg.content.split(" ", limit = 2)
         if(parts.size <= 1) {
             handler.sendChat("카테고리가 없습니다.")
