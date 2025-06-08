@@ -15,6 +15,7 @@ import xyz.r2turntrue.chzzk4j.chat.ChatMessage
 import xyz.r2turntrue.chzzk4j.chat.ChzzkChat
 import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
 import xyz.r2turntrue.chzzk4j.session.message.SessionChatMessage
+import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveSettings
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
@@ -62,6 +63,7 @@ class MessageHandler(
             "!신청곡" to this::songAddCommand,
             "!노래목록" to this::songListCommand,
             "!노래시작" to this::songStartCommand,
+            "!카테고리" to this::categoryChangeCommand,
         )
 
         manageCommands.forEach { (commandName, command) ->
@@ -313,6 +315,26 @@ class MessageHandler(
             }
         } else {
             handler.sendChat("나봇 홈페이지의 노래목록 페이지를 이용해주세요! 디스코드 연동을 하시면 DM으로 바로 전송됩니다.")
+        }
+    }
+
+    private fun categoryChangeCommand(msg: SessionChatMessage, user: User) {
+        val parts = msg.content.split(" ", limit = 2)
+        if(parts.size <= 1) {
+            handler.sendChat("카테고리가 없습니다.")
+            return
+        }
+        val category = parts[1]
+        handler.client.searchCategories(category).handle { result, _ ->
+            if(result.size == 0) {
+                handler.sendChat("$category 카테고리는 없습니다.")
+                return@handle
+            }
+            val settings = ChzzkLiveSettings()
+            settings.category = result[0]
+
+            handler.client.modifyLiveSettings(settings)
+            handler.sendChat("$category 로 수정했어요!")
         }
     }
 
