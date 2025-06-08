@@ -327,6 +327,7 @@ class MessageHandler(
                 else -> it
             }
         }
+        handler.sendChat("$category 카테고리로 수정을 시도해볼게요!")
         handler.client.searchCategories(category).handle { result, _ ->
             if(result.size == 0) {
                 handler.sendChat("$category 카테고리는 없습니다.")
