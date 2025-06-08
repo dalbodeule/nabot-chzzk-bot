@@ -1,12 +1,7 @@
 package space.mori.chzzk_bot.chatbot.chzzk
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
+import kotlinx.coroutines.future.await
 import org.koin.java.KoinJavaComponent.inject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,7 +13,8 @@ import space.mori.chzzk_bot.common.models.User
 import space.mori.chzzk_bot.common.services.LiveStatusService
 import space.mori.chzzk_bot.common.services.TimerConfigService
 import space.mori.chzzk_bot.common.services.UserService
-import space.mori.chzzk_bot.common.utils.*
+import space.mori.chzzk_bot.common.utils.getChzzkChannelId
+import space.mori.chzzk_bot.common.utils.getUptime
 import xyz.r2turntrue.chzzk4j.ChzzkClient
 import xyz.r2turntrue.chzzk4j.session.ChzzkSessionBuilder
 import xyz.r2turntrue.chzzk4j.session.ChzzkSessionSubscriptionType
@@ -26,10 +22,11 @@ import xyz.r2turntrue.chzzk4j.session.ChzzkUserSession
 import xyz.r2turntrue.chzzk4j.session.event.SessionChatMessageEvent
 import xyz.r2turntrue.chzzk4j.types.channel.ChzzkChannel
 import xyz.r2turntrue.chzzk4j.types.channel.live.ChzzkLiveDetail
-import java.lang.Exception
+import java.lang.Runnable
+import java.lang.Thread
 import java.net.SocketTimeoutException
-import java.time.LocalDateTime
 import java.nio.charset.Charset
+import java.time.LocalDateTime
 
 object ChzzkHandler {
     private val handlers = mutableListOf<UserHandler>()
@@ -119,7 +116,7 @@ object ChzzkHandler {
                             try {
                                 it.isActive(true, streamInfo)
                             } catch(e: Exception) {
-                                logger.info("Exception: ${e.stackTraceToString()}")
+                                logger.info("Thread 1 Exception: ${e.stackTraceToString()}")
                             }
                         }
                         if (streamInfo?.isOnline == false && it.isActive) it.isActive(false, streamInfo)
@@ -147,14 +144,14 @@ object ChzzkHandler {
                             try {
                                 it.isActive(true, streamInfo)
                             } catch(e: Exception) {
-                                logger.info("Exception: ${e.stackTraceToString()}")
+                                logger.info("Thread 2 Exception: ${e.stackTraceToString()}")
                             }
                         }
                         if (streamInfo?.isOnline == false && it.isActive) it.isActive(false, streamInfo)
                     } catch (e: SocketTimeoutException) {
-                        logger.info("Thread 1 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                        logger.info("Thread 2 Timeout: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } catch (e: Exception) {
-                        logger.info("Thread 1 Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
+                        logger.info("Thread 2 Exception: ${it.channel.channelName} / ${e.stackTraceToString()}")
                     } finally {
                         Thread.sleep(5000)
                     }
@@ -254,7 +251,7 @@ class UserHandler(
         }
     }
 
-    private suspend fun connect() = runBlocking {
+    private suspend fun connect() {
         val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
         if(tokens == null) {
             throw RuntimeException("AccessToken is not valid.")
@@ -263,9 +260,9 @@ class UserHandler(
         UserService.setRefreshToken(user, tokens.first, tokens.second)
         chatChannelId = getChzzkChannelId(channel.channelId) ?: throw RuntimeException("Chat Channel ID is not found.")
 
-        client.loginAsync().join()
+        client.loginAsync().await()
         listener = ChzzkSessionBuilder(client).buildUserSession()
-        listener.createAndConnectAsync().join()
+        listener.createAndConnectAsync().await()
         messageHandler = MessageHandler(this@UserHandler)
     }
 
