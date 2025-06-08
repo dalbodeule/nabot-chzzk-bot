@@ -81,8 +81,10 @@ object ChzzkHandler {
     }
 
     fun disable() {
-        handlers.forEach { handler ->
-            handler.disable()
+        CoroutineScope(Dispatchers.Default).launch {
+            handlers.forEach { handler ->
+                handler.disable()
+            }
         }
     }
 
@@ -214,44 +216,13 @@ class UserHandler(
             LiveStatusService.updateOrCreate(user, value)
         }
 
-    init {
+    private suspend fun connect() {
         val user = UserService.getUser(channel.channelId)
 
         if(user?.accessToken == null || user.refreshToken == null) {
             throw RuntimeException("AccessToken or RefreshToken is not valid.")
         }
-        try {
-            CoroutineScope(Dispatchers.Default).launch {
-                connect()
 
-                listener.on(SessionChatMessageEvent::class.java) {
-                    messageHandler.handle(it.message, user)
-                }
-
-                val timer = TimerConfigService.getConfig(user)
-                if (timer?.option == TimerType.UPTIME.value)
-                    dispatcher.post(
-                        TimerEvent(
-                            channel.channelId,
-                            TimerType.UPTIME,
-                            getUptime(streamStartTime!!)
-                        )
-                    )
-                else dispatcher.post(
-                    TimerEvent(
-                        channel.channelId,
-                        TimerType.entries.firstOrNull { it.value == timer?.option } ?: TimerType.REMOVE,
-                        null
-                    )
-                )
-            }
-        } catch(e: Exception) {
-            logger.error("Exception(${user.username}): ${e.stackTraceToString()}")
-            throw RuntimeException("Exception: ${e.stackTraceToString()}")
-        }
-    }
-
-    private suspend fun connect() {
         val tokens = user.refreshToken?.let { token -> Connector.client.refreshAccessToken(token)}
         if(tokens == null) {
             throw RuntimeException("AccessToken is not valid.")
@@ -266,11 +237,32 @@ class UserHandler(
 
         delay(1000L)
 
+        listener.on(SessionChatMessageEvent::class.java) {
+            messageHandler.handle(it.message, user)
+        }
+
+        val timer = TimerConfigService.getConfig(user)
+        if (timer?.option == TimerType.UPTIME.value)
+            dispatcher.post(
+                TimerEvent(
+                    channel.channelId,
+                    TimerType.UPTIME,
+                    getUptime(streamStartTime!!)
+                )
+            )
+        else dispatcher.post(
+            TimerEvent(
+                channel.channelId,
+                TimerType.entries.firstOrNull { it.value == timer?.option } ?: TimerType.REMOVE,
+                null
+            )
+        )
+
         messageHandler = MessageHandler(this@UserHandler)
     }
 
-    internal fun disable() {
-        listener.disconnectAsync().join()
+    internal suspend fun disable() {
+        listener.disconnectAsync().await()
         _isActive = false
     }
 
