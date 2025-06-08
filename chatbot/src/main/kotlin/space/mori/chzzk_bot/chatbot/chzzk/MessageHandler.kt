@@ -323,7 +323,7 @@ class MessageHandler(
         }
         val category = parts[1].let {
             return@let when(it) {
-                "저챗", "토크", "JustChatting" -> "Talk"
+                "저챗", "토크", "JustChatting", "Just Chatting", "" -> "talk"
                 else -> it
             }
         }
